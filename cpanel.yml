@@ -1,0 +1,4 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/indegnnk/task.emphxs.com
+    - /bin/rsync -av --delete --exclude='.git' --exclude='.env' ./ $DEPLOYPATH/
