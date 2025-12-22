@@ -1,4 +1,11 @@
-deployment:
-  tasks:
-    - export DEPLOYPATH=/home/indegnnk/task.emphxs.com
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.env' ./ $DEPLOYPATH/
+  deployment:
+    tasks:
+      - export DEPLOYPATH=/home/indegnnk/task.emphxs.com
+      - /bin/rsync -av --delete --exclude='.git' --exclude='.env' --exclude='vendor' --exclude='storage/logs/*' --exclude='storage/framework/cache/*' --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' ./ $DEPLOYPATH/
+      - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php composer.phar install --no-dev --optimize-autoloader
+      - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan migrate --force
+      - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan config:cache
+      - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan route:cache
+      - cd $DEPLOYPATH && /opt/cpanel/ea-php83/root/usr/bin/php artisan view:cache
+
+
