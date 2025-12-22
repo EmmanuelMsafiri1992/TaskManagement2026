@@ -1,0 +1,228 @@
+<?php
+
+use Admin\Http\Controllers\Api\AvatarUpload;
+use Admin\Http\Controllers\Api\Charts;
+use Admin\Http\Controllers\Api\ChecklistItemComplete;
+use Admin\Http\Controllers\Api\ChecklistItemsController;
+use Admin\Http\Controllers\Api\FavoritesController;
+use Admin\Http\Controllers\Api\FileUpload;
+use Admin\Http\Controllers\Api\FiltersController;
+use Admin\Http\Controllers\Api\InvitationsController;
+use Admin\Http\Controllers\Api\LabelsController;
+use Admin\Http\Controllers\Api\LogoUpload;
+use Admin\Http\Controllers\Api\Metrics;
+use Admin\Http\Controllers\Api\Notifications;
+use Admin\Http\Controllers\Api\NotificationsRead;
+use Admin\Http\Controllers\Api\ProfileController;
+use Admin\Http\Controllers\Api\ProjectArchive;
+use Admin\Http\Controllers\Api\ProjectDuplicate;
+use Admin\Http\Controllers\Api\ProjectExportTimeLogs;
+use Admin\Http\Controllers\Api\ProjectFavorite;
+use Admin\Http\Controllers\Api\ProjectListSort;
+use Admin\Http\Controllers\Api\ProjectListsController;
+use Admin\Http\Controllers\Api\ProjectRestore;
+use Admin\Http\Controllers\Api\ProjectTimeLogs;
+use Admin\Http\Controllers\Api\ProjectTotalTime;
+use Admin\Http\Controllers\Api\ProjectsController;
+use Admin\Http\Controllers\Api\ProjectsOptions;
+use Admin\Http\Controllers\Api\RecentProjects;
+use Admin\Http\Controllers\Api\RolesController;
+use Admin\Http\Controllers\Api\SettingsEmailController;
+use Admin\Http\Controllers\Api\SettingsGeneralController;
+use Admin\Http\Controllers\Api\SettingsAdSenseController;
+use Admin\Http\Controllers\Api\AdSenseOAuthController;
+use Admin\Http\Controllers\Api\SubTasksController;
+use Admin\Http\Controllers\Api\TaskArchive;
+use Admin\Http\Controllers\Api\TaskAssign;
+use Admin\Http\Controllers\Api\TaskCommentsController;
+use Admin\Http\Controllers\Api\TaskComplete;
+use Admin\Http\Controllers\Api\TaskDueDate;
+use Admin\Http\Controllers\Api\TaskLabel;
+use Admin\Http\Controllers\Api\TaskList;
+use Admin\Http\Controllers\Api\TaskMove;
+use Admin\Http\Controllers\Api\TaskPriority;
+use Admin\Http\Controllers\Api\TaskRecurring;
+use Admin\Http\Controllers\Api\TaskRestore;
+use Admin\Http\Controllers\Api\TaskSort;
+use Admin\Http\Controllers\Api\TasksController;
+use Admin\Http\Controllers\Api\TimeLogsController;
+use Admin\Http\Controllers\Api\UsersController;
+use Admin\Http\Controllers\Api\AdSenseReportController;
+use Admin\Http\Controllers\Api\AttendanceController;
+use Admin\Http\Controllers\Api\EmployeeRecordsController;
+use Admin\Http\Controllers\Api\LeavesController;
+use Admin\Http\Controllers\Api\HolidaysController;
+use Admin\Http\Controllers\Api\PayrollsController;
+use Admin\Http\Controllers\Api\ClientsController;
+use Admin\Http\Controllers\Api\QuotationsController;
+use Admin\Http\Controllers\Api\ExpensesController;
+use Admin\Http\Controllers\Api\IncomeController;
+use App\Http\Controllers\Admin\SettingsCountriesController;
+use App\Http\Controllers\Admin\UserAssignmentController;
+use App\Http\Controllers\Admin\JobShareController;
+use App\Http\Controllers\UrlShortenerController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('{resource}/filters', FiltersController::class);
+Route::get('metrics', Metrics::class);
+Route::get('charts', Charts::class);
+Route::get('notifications', Notifications::class);
+Route::post('notifications/read', NotificationsRead::class);
+Route::get('recent-projects', RecentProjects::class);
+Route::post('logo', LogoUpload::class);
+Route::post('avatar', AvatarUpload::class);
+Route::post('file', FileUpload::class);
+Route::resource('profile', ProfileController::class)->only(['create', 'store']);
+Route::resource('time-logs', TimeLogsController::class)->only(['index', 'store']);
+
+// Attendance Routes
+Route::get('attendance/status', [AttendanceController::class, 'status']);
+Route::get('attendance/report', [AttendanceController::class, 'report']);
+Route::get('attendance/users', [AttendanceController::class, 'users']);
+Route::resource('attendance', AttendanceController::class);
+
+// Employee Records Routes
+Route::get('employees/statistics', [EmployeeRecordsController::class, 'statistics']);
+Route::get('employees/available-users', [EmployeeRecordsController::class, 'availableUsers']);
+Route::get('employees/supervisors', [EmployeeRecordsController::class, 'supervisors']);
+Route::resource('employees', EmployeeRecordsController::class);
+
+// Leave Management Routes
+Route::get('leaves/statistics', [LeavesController::class, 'statistics']);
+Route::post('leaves/{id}/approve', [LeavesController::class, 'approve']);
+Route::post('leaves/{id}/reject', [LeavesController::class, 'reject']);
+Route::resource('leaves', LeavesController::class);
+
+// Holiday Routes
+Route::get('holidays/upcoming', [HolidaysController::class, 'upcoming']);
+Route::get('holidays/calendar', [HolidaysController::class, 'calendar']);
+Route::resource('holidays', HolidaysController::class);
+
+// Payroll Routes
+Route::get('payrolls/statistics', [PayrollsController::class, 'statistics']);
+Route::post('payrolls/generate', [PayrollsController::class, 'generateForMonth']);
+Route::post('payrolls/{id}/approve', [PayrollsController::class, 'approve']);
+Route::post('payrolls/{id}/mark-as-paid', [PayrollsController::class, 'markAsPaid']);
+Route::post('payrolls/{id}/send-payslip', [PayrollsController::class, 'sendPayslip']);
+Route::resource('payrolls', PayrollsController::class);
+
+// Client Routes
+Route::get('clients/statistics', [ClientsController::class, 'statistics']);
+Route::resource('clients', ClientsController::class);
+
+// Quotation Routes
+Route::get('quotations/statistics', [QuotationsController::class, 'statistics']);
+Route::get('quotations/{id}/pdf', [QuotationsController::class, 'pdf']);
+Route::post('quotations/{id}/change-status', [QuotationsController::class, 'changeStatus']);
+Route::resource('quotations', QuotationsController::class);
+
+// Expense Routes
+Route::get('expenses/statistics', [ExpensesController::class, 'statistics']);
+Route::get('expenses/categories', [ExpensesController::class, 'categories']);
+Route::post('expenses/{id}/approve', [ExpensesController::class, 'approve']);
+Route::post('expenses/{id}/reject', [ExpensesController::class, 'reject']);
+Route::resource('expenses', ExpensesController::class);
+
+// Income Routes
+Route::get('income/statistics', [IncomeController::class, 'statistics']);
+Route::post('income/{id}/mark-as-received', [IncomeController::class, 'markAsReceived']);
+Route::resource('income', IncomeController::class);
+
+Route::resource('favorites', FavoritesController::class)->only(['index', 'store', 'destroy']);
+Route::get('projects/options', ProjectsOptions::class);
+Route::resource('projects', ProjectsController::class);
+Route::resource('projects.lists', ProjectListsController::class)->shallow();
+Route::patch('projects/{project}/favorite', ProjectFavorite::class);
+Route::post('projects/{project}/duplicate', ProjectDuplicate::class);
+Route::patch('projects/{project}/archive', ProjectArchive::class);
+Route::patch('projects/{project}/restore', ProjectRestore::class);
+Route::patch('projects/{project}/list-sort', ProjectListSort::class);
+Route::get('projects/{project}/time-logs', ProjectTimeLogs::class);
+Route::get('projects/{project}/total-time', ProjectTotalTime::class);
+Route::get('projects/{project}/export-time-logs', ProjectExportTimeLogs::class);
+
+Route::resource('tasks.comments', TaskCommentsController::class)->shallow()->only(['store', 'destroy']);
+Route::resource('tasks', TasksController::class);
+Route::patch('tasks/{task}/sort', TaskSort::class);
+Route::patch('tasks/{task}/move', TaskMove::class);
+Route::patch('tasks/{task}/list', TaskList::class);
+Route::patch('tasks/{task}/priority', TaskPriority::class);
+Route::patch('tasks/{task}/assign', TaskAssign::class);
+Route::patch('tasks/{task}/label', TaskLabel::class);
+Route::patch('tasks/{task}/complete', TaskComplete::class);
+Route::patch('tasks/{task}/archive', TaskArchive::class);
+Route::patch('tasks/{task}/restore', TaskRestore::class);
+Route::patch('tasks/{task}/due-date', TaskDueDate::class);
+Route::post('tasks/{task}/recurring', TaskRecurring::class);
+Route::post('sub-tasks', [SubTasksController::class, 'store']);
+Route::patch('sub-tasks/{task}', [SubTasksController::class, 'update']);
+Route::delete('sub-tasks/{task}', [SubTasksController::class, 'destroy']);
+Route::post('checklist-item', [ChecklistItemsController::class, 'store']);
+Route::patch('checklist-item/{item}', [ChecklistItemsController::class, 'update']);
+Route::delete('checklist-item/{item}', [ChecklistItemsController::class, 'destroy']);
+Route::patch('checklist-item/{item}/complete', ChecklistItemComplete::class);
+
+Route::resource('labels', LabelsController::class);
+Route::resource('users', UsersController::class);
+Route::resource('invitations', InvitationsController::class)->except(['show', 'edit', 'update']);
+Route::resource('roles', RolesController::class);
+
+Route::resource('settings/general', SettingsGeneralController::class)->only(['create', 'store']);
+Route::resource('settings/email', SettingsEmailController::class)->only(['create', 'store']);
+Route::resource('settings/adsense', SettingsAdSenseController::class)->only(['create', 'store']);
+
+// Countries & Websites Management Routes
+Route::prefix('settings/countries')->group(function () {
+    Route::get('/', [SettingsCountriesController::class, 'index']);
+    Route::put('users/{userId}/countries', [SettingsCountriesController::class, 'updateUserCountries']);
+    Route::get('companies/{countryCode}', [SettingsCountriesController::class, 'getCompaniesByCountry']);
+    Route::post('users/{userId}/countries/{userCountryId}/websites', [SettingsCountriesController::class, 'assignWebsitesToCountry']);
+    Route::get('users/{userId}/targets', [SettingsCountriesController::class, 'getUserTargets']);
+    Route::put('users/{userId}/targets', [SettingsCountriesController::class, 'updateUserTargets']);
+});
+
+// User Assignment Management Routes
+Route::prefix('settings/user-assignments')->group(function () {
+    Route::get('/', [UserAssignmentController::class, 'index']);
+    Route::put('users/{userId}/focus', [UserAssignmentController::class, 'updateFocus']);
+    Route::get('available-users', [UserAssignmentController::class, 'getAvailableUsers']);
+    Route::get('users/{userId}/assignments', [UserAssignmentController::class, 'getUserAssignments']);
+    Route::post('assign', [UserAssignmentController::class, 'assignUser']);
+    Route::delete('assignments/{assignmentId}', [UserAssignmentController::class, 'unassignUser']);
+    Route::put('assignments/{assignmentId}/notes', [UserAssignmentController::class, 'updateNotes']);
+    Route::get('statistics', [UserAssignmentController::class, 'getStatistics']);
+});
+
+// AdSense Routes
+Route::prefix('adsense')->group(function () {
+    // OAuth Routes
+    Route::get('auth/url', [AdSenseOAuthController::class, 'getAuthUrl']);
+    Route::post('disconnect', [AdSenseOAuthController::class, 'disconnect']);
+
+    // Reports Routes
+    Route::get('reports', [AdSenseReportController::class, 'index']);
+    Route::get('reports/by-country', [AdSenseReportController::class, 'byCountry']);
+    Route::get('reports/by-website', [AdSenseReportController::class, 'byWebsite']);
+    Route::get('reports/summary', [AdSenseReportController::class, 'summary']);
+    Route::get('reports/latest-date', [AdSenseReportController::class, 'latestDate']);
+    Route::get('reports/daily-trend', [AdSenseReportController::class, 'dailyTrend']);
+    Route::get('user-assignments', [AdSenseReportController::class, 'userAssignments']);
+    Route::post('sync', [AdSenseReportController::class, 'sync']);
+    Route::get('test-connection', [AdSenseReportController::class, 'testConnection']);
+
+    // Analytics Routes
+    Route::get('traffic-sources', [AdSenseReportController::class, 'trafficSources']);
+    Route::get('test-analytics-connection', [AdSenseReportController::class, 'testAnalyticsConnection']);
+});
+
+// Job Sharing Routes
+Route::prefix('job-shares')->group(function () {
+    Route::get('/', [JobShareController::class, 'index']);
+    Route::get('statistics', [JobShareController::class, 'statistics']);
+    Route::get('{id}', [JobShareController::class, 'show']);
+    Route::post('{id}/mark-copied', [JobShareController::class, 'markAsCopied']);
+    Route::post('trigger-assignment', [JobShareController::class, 'triggerAssignment']);
+});
+
+// URL Shortener Stats Route (API)
+Route::get('url-shortener/{shortCode}/stats', [UrlShortenerController::class, 'stats']);
