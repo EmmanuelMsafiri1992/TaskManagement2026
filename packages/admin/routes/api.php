@@ -50,6 +50,7 @@ use Admin\Http\Controllers\Api\UsersController;
 use Admin\Http\Controllers\Api\AdSenseReportController;
 use Admin\Http\Controllers\Api\AttendanceController;
 use Admin\Http\Controllers\Api\EmployeeRecordsController;
+use Admin\Http\Controllers\Api\ImpersonateController;
 use Admin\Http\Controllers\Api\LeavesController;
 use Admin\Http\Controllers\Api\HolidaysController;
 use Admin\Http\Controllers\Api\PayrollsController;
@@ -226,3 +227,10 @@ Route::prefix('job-shares')->group(function () {
 
 // URL Shortener Stats Route (API)
 Route::get('url-shortener/{shortCode}/stats', [UrlShortenerController::class, 'stats']);
+
+// Impersonation Routes
+Route::prefix('impersonate')->group(function () {
+    Route::post('stop', [ImpersonateController::class, 'stopImpersonating']);
+    Route::get('status', [ImpersonateController::class, 'status']);
+    Route::post('{userId}', [ImpersonateController::class, 'impersonate']);
+});

@@ -13,6 +13,7 @@ axios.interceptors.response.use(
     // Check if response is HTML (indicating a redirect to login page)
     const contentType = response.headers['content-type']
     if (contentType && contentType.includes('text/html')) {
+      console.warn('[Axios] Received HTML instead of JSON, redirecting to login')
       window.location.href = '/login'
       return Promise.reject(new Error('Session expired'))
     }
@@ -25,6 +26,7 @@ axios.interceptors.response.use(
     // Handle cases where we get HTML instead of JSON (redirects)
     const contentType = error.response?.headers['content-type']
     if (contentType && contentType.includes('text/html')) {
+      console.warn('[Axios] Received HTML error response, redirecting to login')
       window.location.href = '/login'
       return Promise.reject(new Error('Session expired'))
     }

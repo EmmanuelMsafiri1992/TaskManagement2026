@@ -254,9 +254,15 @@
                       {{ employee.employment_date ? new Date(employee.employment_date).toLocaleDateString() : '-' }}
                     </td>
                     <td class="flex items-center justify-end whitespace-nowrap px-6 py-4 text-right text-sm font-medium leading-5">
+                      <UserIcon
+                        v-if="canImpersonate(employee)"
+                        class="w-5 cursor-pointer text-indigo-400 hover:text-indigo-600"
+                        :title="__('Login as this user')"
+                        @click.stop="impersonateUser(employee)"
+                      />
                       <PencilIcon
                         v-if="can('employee:update')"
-                        class="w-5 cursor-pointer text-gray-400 hover:text-gray-800"
+                        class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
                         @click.stop="openEmployeeModal(employee)"
                       />
                       <TrashIcon
@@ -277,7 +283,7 @@
     </section>
 
     <!-- Employee Form Modal -->
-    <FormModal v-model="form.show" size="2xl" @saved="index.get()">
+    <FormModal v-if="form.show" size="2xl" @saved="index.get()">
       <Form :model-value="form.model" @close="form.show = false" />
     </FormModal>
   </div>
@@ -286,8 +292,8 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon } from '@heroicons/vue/24/outline'
-import axios from 'axios'
+import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon, UserIcon } from '@heroicons/vue/24/outline'
+import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import TableTh from '@/thetheme/components/TableTh.vue'
@@ -297,6 +303,7 @@ import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
 import { useIndex } from '@/composables/useIndex'
 import { can } from '@/helpers'
+import { appData } from '@/app-data'
 
 const router = useRouter()
 const processing = ref(true)
@@ -307,7 +314,7 @@ const filters = ref({
   employment_statuses: []
 })
 
-const index = useIndex('/api/employees', {
+const index = useIndex('employees', {
   search: '',
   employment_status: '',
   employment_type: '',
@@ -339,9 +346,33 @@ const viewEmployee = (id) => {
   router.push(`/employees/${id}`)
 }
 
+const canImpersonate = (employee) => {
+  // Only super admins can impersonate
+  if (!appData.is_super_admin) return false
+  // Cannot impersonate yourself
+  if (employee.user_id === appData.user?.id) return false
+  return true
+}
+
+const impersonateUser = async (employee) => {
+  if (!confirm(`Are you sure you want to login as ${employee.user?.name || 'this user'}?`)) {
+    return
+  }
+
+  try {
+    const response = await axios.post(`impersonate/${employee.user_id}`)
+    alert(response.data.message)
+    // Full page redirect to get fresh session and CSRF token
+    window.location.href = '/'
+  } catch (error) {
+    console.error('Impersonate error:', error)
+    alert(error.response?.data?.message || 'Failed to impersonate user')
+  }
+}
+
 const loadStatistics = async () => {
   try {
-    const response = await axios.get('/api/employees/statistics')
+    const response = await axios.get('employees/statistics')
     statistics.value = response.data.data
   } catch (error) {
     console.error('Failed to load statistics:', error)
@@ -349,13 +380,26 @@ const loadStatistics = async () => {
 }
 
 onMounted(async () => {
-  await index.get()
-  await loadStatistics()
+  console.log('[Employees] Component mounted')
+  try {
+    console.log('[Employees] Fetching employees...')
+    await index.get()
+    console.log('[Employees] Employees fetched:', index.data)
 
-  if (index.data && index.data.filters) {
-    filters.value = index.data.filters
+    console.log('[Employees] Fetching statistics...')
+    await loadStatistics()
+    console.log('[Employees] Statistics fetched:', statistics.value)
+
+    if (index.data && index.data.filters) {
+      filters.value = index.data.filters
+      console.log('[Employees] Filters set:', filters.value)
+    }
+
+    processing.value = false
+    console.log('[Employees] Processing complete')
+  } catch (error) {
+    console.error('[Employees] ERROR in onMounted:', error)
+    processing.value = false
   }
-
-  processing.value = false
 })
 </script>

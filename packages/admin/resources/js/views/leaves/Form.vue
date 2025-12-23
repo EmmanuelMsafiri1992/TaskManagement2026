@@ -1,5 +1,5 @@
 <template>
-  <FormBase :form="form" @submit="submit">
+  <FormBase :external-form="form" @submit="submit" @cancel="emit('close')">
     <template #title>
       {{ form.id ? __('Edit Leave Request') : __('Request Leave') }}
     </template>

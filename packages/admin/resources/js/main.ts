@@ -32,6 +32,17 @@ console.log('[Main] App:', app)
 console.log('[Main] Router:', router)
 console.log('[Main] SpackPlugin:', SpackPlugin)
 
+// Global error handler for Vue
+app.config.errorHandler = (err, instance, info) => {
+  console.error('[Vue Error Handler] Error:', err)
+  console.error('[Vue Error Handler] Info:', info)
+}
+
+// Global unhandled promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Promise Rejection]:', event.reason)
+})
+
 try {
   console.log('[Main] Mounting app - Step 12')
   app.use(createPinia()).use(SpackPlugin).use(router).mount('#app')

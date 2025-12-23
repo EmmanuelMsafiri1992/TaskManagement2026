@@ -1,5 +1,5 @@
 <template>
-  <FormBase :form="form" @submit="submit">
+  <FormBase :external-form="form" @submit="submit" @cancel="emit('close')">
     <template #title>
       {{ form.id ? __('Edit Employee Record') : __('Create Employee Record') }}
     </template>
@@ -498,7 +498,7 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 import FormBase from '@/thetheme/components/FormBase.vue'
 import { useForm } from '@/composables/useForm'
 
@@ -514,7 +514,7 @@ const emit = defineEmits(['close'])
 const availableUsers = ref([])
 const supervisors = ref([])
 
-const form = useForm('/api/employees', {
+const form = useForm('employees', {
   user_id: '',
   national_id: '',
   phone_number: '',
@@ -555,7 +555,7 @@ const submit = () => {
 
 const loadAvailableUsers = async () => {
   try {
-    const response = await axios.get('/api/employees/available-users')
+    const response = await axios.get('employees/available-users')
     availableUsers.value = response.data.data
   } catch (error) {
     console.error('Failed to load available users:', error)
@@ -564,7 +564,7 @@ const loadAvailableUsers = async () => {
 
 const loadSupervisors = async () => {
   try {
-    const response = await axios.get('/api/employees/supervisors')
+    const response = await axios.get('employees/supervisors')
     supervisors.value = response.data.data
   } catch (error) {
     console.error('Failed to load supervisors:', error)

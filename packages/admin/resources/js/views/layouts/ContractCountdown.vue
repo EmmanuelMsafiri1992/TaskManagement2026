@@ -1,5 +1,5 @@
 <template>
-  <div v-if="contractDaysRemaining !== null && appData.user.contract_type !== 'permanent'">
+  <div v-if="contractDaysRemaining !== null && appData.employment_type === 'Contract'">
     <div
       class="contract-countdown-badge"
       :class="{
