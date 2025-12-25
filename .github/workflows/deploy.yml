@@ -34,9 +34,17 @@ jobs:
               --exclude='public/storage' \
               ./ $DEPLOYPATH/
 
+            chmod 755 $DEPLOYPATH
+            chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
+            chmod 644 $DEPLOYPATH/public/.htaccess 2>/dev/null || true
+            chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
+            chown -R indegnnk:indegnnk $DEPLOYPATH
+
             cd $DEPLOYPATH
+            php artisan storage:link 2>/dev/null || true
             composer install --no-dev --optimize-autoloader --no-interaction
             php artisan migrate --force
             php artisan optimize:clear
+            php artisan view:cache
 
             echo "Deployment completed: $(date)"
