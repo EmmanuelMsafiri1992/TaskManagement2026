@@ -2,11 +2,23 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/indegnnk/task.emphxs.com
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.env' --exclude='/vendor' --exclude='storage/logs/*' --exclude='storage/framework/cache/*' --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' --exclude='node_modules' ./ $DEPLOYPATH/
+    # Sync files - exclude root vendor (not public/vendor), node_modules, and storage temp files
+    - /bin/rsync -av --delete --exclude='.git' --exclude='.env' --exclude='/vendor' --exclude='node_modules' --exclude='storage/logs/*' --exclude='storage/framework/cache/*' --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' --exclude='storage/app/public/*' --exclude='public/storage' ./ $DEPLOYPATH/
+    # Fix ownership and permissions
+    - chown -R indegnnk:indegnnk $DEPLOYPATH
     - chmod 755 $DEPLOYPATH
     - chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
-    - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php composer.phar install --no-dev --optimize-autoloader
+    - chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - chmod 644 $DEPLOYPATH/public/.htaccess 2>/dev/null || true
+    # Install PHP dependencies
+    - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php composer.phar install --no-dev --optimize-autoloader --no-interaction
+    # Run migrations
     - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan migrate --force
+    # Clear all caches first
+    - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan optimize:clear
+    # Ensure storage link exists
+    - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan storage:link 2>/dev/null || true
+    # Rebuild caches
     - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan config:cache
     - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan route:cache
     - cd $DEPLOYPATH && /opt/cpanel/ea-php84/root/usr/bin/php artisan view:cache
