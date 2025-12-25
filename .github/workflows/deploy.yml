@@ -17,10 +17,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /home/username/PROJECT_REPO
+            cd /home/indegnnk/TaskManagement2026Repo
             git pull origin main
 
-            DEPLOYPATH=/home/username/project.com
+            DEPLOYPATH=/home/indegnnk/task.emphxs.com
 
             /bin/rsync -av --delete \
               --exclude='.git' \
