@@ -1,10 +1,10 @@
 <template>
   <div
-    class="fixed inset-0 z-[250] overflow-y-auto bg-gray-500 bg-opacity-75 py-12 px-8"
+    class="fixed inset-0 z-[250] flex min-h-screen items-center justify-center overflow-y-auto bg-gray-500 bg-opacity-75 p-4"
     @click="hide"
   >
     <div
-      class="modal-content mx-auto rounded-lg bg-white shadow-xl"
+      class="modal-content relative w-full rounded-lg bg-white shadow-xl"
       :class="[width]"
       @click.stop
     >
@@ -25,7 +25,10 @@
     },
   )
 
+  const emit = defineEmits(['close'])
+
   function hide() {
+    emit('close')
     useModalsStore().pop()
   }
 </script>

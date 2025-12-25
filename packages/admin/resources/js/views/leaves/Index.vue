@@ -337,114 +337,130 @@
     </section>
 
     <!-- Leave Form Modal -->
-    <FormModal v-model="form.show" size="lg" @saved="index.get()">
+    <FormModal v-if="form.show" size="lg" @saved="index.get()">
       <Form :model-value="form.model" @close="form.show = false" />
     </FormModal>
 
     <!-- Leave Details Modal -->
-    <ModalBase v-model="detailsModal.show" size="lg">
-      <template #title>{{ __('Leave Request Details') }}</template>
+    <ModalBase v-if="detailsModal.show" width="max-w-2xl">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">{{ __('Leave Request Details') }}</h3>
+          <button @click="detailsModal.show = false" class="text-gray-400 hover:text-gray-600">
+            <XCircleIcon class="h-6 w-6" />
+          </button>
+        </div>
 
-      <div v-if="detailsModal.leave" class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('Employee') }}</label>
-            <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.user.name }}</p>
+        <div v-if="detailsModal.leave" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('Employee') }}</label>
+              <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.user?.name }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('Leave Type') }}</label>
+              <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.leave_type }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
+              <p class="mt-1 text-sm text-gray-900">{{ new Date(detailsModal.leave.start_date).toLocaleDateString() }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
+              <p class="mt-1 text-sm text-gray-900">{{ new Date(detailsModal.leave.end_date).toLocaleDateString() }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('Days') }}</label>
+              <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.days }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
+              <p class="mt-1">
+                <span
+                  class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+                  :class="{
+                    'bg-yellow-100 text-yellow-800': detailsModal.leave.status === 'pending',
+                    'bg-green-100 text-green-800': detailsModal.leave.status === 'approved',
+                    'bg-red-100 text-red-800': detailsModal.leave.status === 'rejected'
+                  }"
+                >
+                  {{ detailsModal.leave.status.charAt(0).toUpperCase() + detailsModal.leave.status.slice(1) }}
+                </span>
+              </p>
+            </div>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('Leave Type') }}</label>
-            <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.leave_type }}</p>
+            <label class="block text-sm font-medium text-gray-700">{{ __('Reason') }}</label>
+            <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ detailsModal.leave.reason }}</p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
-            <p class="mt-1 text-sm text-gray-900">{{ new Date(detailsModal.leave.start_date).toLocaleDateString() }}</p>
+
+          <div v-if="detailsModal.leave.admin_notes">
+            <label class="block text-sm font-medium text-gray-700">{{ __('Admin Notes') }}</label>
+            <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ detailsModal.leave.admin_notes }}</p>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
-            <p class="mt-1 text-sm text-gray-900">{{ new Date(detailsModal.leave.end_date).toLocaleDateString() }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('Days') }}</label>
-            <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.days }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
-            <p class="mt-1">
-              <span
-                class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
-                :class="{
-                  'bg-yellow-100 text-yellow-800': detailsModal.leave.status === 'pending',
-                  'bg-green-100 text-green-800': detailsModal.leave.status === 'approved',
-                  'bg-red-100 text-red-800': detailsModal.leave.status === 'rejected'
-                }"
-              >
-                {{ detailsModal.leave.status.charAt(0).toUpperCase() + detailsModal.leave.status.slice(1) }}
-              </span>
-            </p>
+
+          <div v-if="detailsModal.leave.approved_by">
+            <label class="block text-sm font-medium text-gray-700">{{ __('Approved/Rejected By') }}</label>
+            <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.approved_by?.name }}</p>
+            <p class="text-sm text-gray-500">{{ new Date(detailsModal.leave.approved_at).toLocaleString() }}</p>
           </div>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">{{ __('Reason') }}</label>
-          <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ detailsModal.leave.reason }}</p>
-        </div>
-
-        <div v-if="detailsModal.leave.admin_notes">
-          <label class="block text-sm font-medium text-gray-700">{{ __('Admin Notes') }}</label>
-          <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ detailsModal.leave.admin_notes }}</p>
-        </div>
-
-        <div v-if="detailsModal.leave.approved_by">
-          <label class="block text-sm font-medium text-gray-700">{{ __('Approved/Rejected By') }}</label>
-          <p class="mt-1 text-sm text-gray-900">{{ detailsModal.leave.approved_by?.name }}</p>
-          <p class="text-sm text-gray-500">{{ new Date(detailsModal.leave.approved_at).toLocaleString() }}</p>
+        <div class="mt-6 flex justify-end">
+          <TheButton @click="detailsModal.show = false">
+            {{ __('Close') }}
+          </TheButton>
         </div>
       </div>
-
-      <template #footer>
-        <TheButton variant="secondary" @click="detailsModal.show = false">
-          {{ __('Close') }}
-        </TheButton>
-      </template>
     </ModalBase>
 
     <!-- Approval Modal -->
-    <ModalBase v-model="approvalModal.show" size="md">
-      <template #title>{{ approvalModal.action === 'approve' ? __('Approve Leave') : __('Reject Leave') }}</template>
+    <ModalBase v-if="approvalModal.show" width="max-w-md">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            {{ approvalModal.action === 'approve' ? __('Approve Leave') : __('Reject Leave') }}
+          </h3>
+          <button @click="approvalModal.show = false" class="text-gray-400 hover:text-gray-600">
+            <XCircleIcon class="h-6 w-6" />
+          </button>
+        </div>
 
-      <div class="space-y-4">
-        <p class="text-sm text-gray-700">
-          {{ approvalModal.action === 'approve'
-            ? __('Are you sure you want to approve this leave request?')
-            : __('Please provide a reason for rejection:')
-          }}
-        </p>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-700">
+            {{ approvalModal.action === 'approve'
+              ? __('Are you sure you want to approve this leave request?')
+              : __('Please provide a reason for rejection:')
+            }}
+          </p>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">
-            {{ approvalModal.action === 'approve' ? __('Admin Notes (Optional)') : __('Rejection Reason') }}
-          </label>
-          <textarea
-            v-model="approvalModal.notes"
-            rows="3"
-            :required="approvalModal.action === 'reject'"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          ></textarea>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">
+              {{ approvalModal.action === 'approve' ? __('Admin Notes (Optional)') : __('Rejection Reason') }}
+            </label>
+            <textarea
+              v-model="approvalModal.notes"
+              rows="3"
+              :required="approvalModal.action === 'reject'"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <TheButton white @click="approvalModal.show = false">
+            {{ __('Cancel') }}
+          </TheButton>
+          <TheButton
+            :class="approvalModal.action === 'reject' ? 'bg-red-600 hover:bg-red-700' : ''"
+            @click="submitApproval"
+            :disabled="approvalModal.action === 'reject' && !approvalModal.notes"
+          >
+            {{ approvalModal.action === 'approve' ? __('Approve') : __('Reject') }}
+          </TheButton>
         </div>
       </div>
-
-      <template #footer>
-        <TheButton variant="secondary" @click="approvalModal.show = false">
-          {{ __('Cancel') }}
-        </TheButton>
-        <TheButton
-          :variant="approvalModal.action === 'approve' ? 'primary' : 'danger'"
-          @click="submitApproval"
-          :disabled="approvalModal.action === 'reject' && !approvalModal.notes"
-        >
-          {{ approvalModal.action === 'approve' ? __('Approve') : __('Reject') }}
-        </TheButton>
-      </template>
     </ModalBase>
   </div>
 </template>
@@ -452,7 +468,7 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
 import { CalendarIcon, CheckCircleIcon, ClockIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, XCircleIcon } from '@heroicons/vue/24/outline'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import TableTh from '@/thetheme/components/TableTh.vue'
@@ -463,13 +479,14 @@ import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
 import { useIndex } from '@/composables/useIndex'
 import { can } from '@/helpers'
+import { appData } from '@/app-data'
 
 const processing = ref(true)
 const statistics = ref(null)
 const activeTab = ref('my-leaves')
 const currentUserId = ref(null)
 
-const index = useIndex('/api/leaves', {
+const index = useIndex('leaves', {
   search: '',
   status: '',
   leave_type: '',
@@ -530,7 +547,7 @@ const rejectLeave = (leave) => {
 const submitApproval = async () => {
   try {
     const endpoint = approvalModal.action === 'approve' ? 'approve' : 'reject'
-    await axios.post(`/api/leaves/${approvalModal.leave.id}/${endpoint}`, {
+    await axios.post(`leaves/${approvalModal.leave.id}/${endpoint}`, {
       admin_notes: approvalModal.notes
     })
 
@@ -539,25 +556,22 @@ const submitApproval = async () => {
     loadStatistics()
   } catch (error) {
     console.error('Failed to process leave request:', error)
+    alert(error.response?.data?.message || 'Failed to process leave request')
   }
 }
 
 const loadStatistics = async () => {
   try {
-    const response = await axios.get('/api/leaves/statistics')
+    const response = await axios.get('leaves/statistics')
     statistics.value = response.data.data
   } catch (error) {
     console.error('Failed to load statistics:', error)
   }
 }
 
-const loadCurrentUser = async () => {
-  try {
-    const response = await axios.get('/api/profile/create')
-    currentUserId.value = response.data.id
-  } catch (error) {
-    console.error('Failed to load current user:', error)
-  }
+const loadCurrentUser = () => {
+  // Get current user ID from appData
+  currentUserId.value = appData.user?.id
 }
 
 watch(activeTab, (newTab) => {
@@ -573,7 +587,7 @@ watch(activeTab, (newTab) => {
 })
 
 onMounted(async () => {
-  await loadCurrentUser()
+  loadCurrentUser()
   index.params.user_id = currentUserId.value
   await index.get()
   await loadStatistics()

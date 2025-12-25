@@ -96,7 +96,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const form = useForm('/api/holidays', {
+const form = useForm('holidays', {
   name: '',
   date: '',
   description: '',

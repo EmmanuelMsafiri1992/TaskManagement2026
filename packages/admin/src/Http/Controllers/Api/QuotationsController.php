@@ -136,7 +136,13 @@ class QuotationsController extends Controller
             return response()->json($quotation->load('items'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Failed to create quotation', 'error' => $e->getMessage()], 500);
+            \Log::error('Quotation creation failed: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json([
+                'message' => 'Failed to create quotation',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 

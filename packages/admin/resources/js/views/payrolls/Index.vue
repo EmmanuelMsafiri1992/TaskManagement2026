@@ -136,7 +136,12 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
-                  <tr v-for="payroll in index.data.data" :key="payroll.id" class="hover:bg-gray-50">
+                  <tr v-if="!index.data?.data?.length" class="hover:bg-gray-50">
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                      {{ __('No payrolls found') }}
+                    </td>
+                  </tr>
+                  <tr v-for="payroll in (index.data?.data || [])" :key="payroll.id" class="hover:bg-gray-50">
                     <td class="whitespace-nowrap px-6 py-4">
                       <div class="flex items-center">
                         <div class="h-10 w-10 flex-shrink-0">
@@ -214,10 +219,12 @@
     </section>
 
     <!-- Generate Payroll Modal -->
-    <ModalBase v-model="generateModal.show" size="md">
-      <template #title>{{ __('Generate Payroll for Month') }}</template>
+    <ModalBase v-if="generateModal.show" width="max-w-md">
+      <div class="border-b border-gray-200 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900">{{ __('Generate Payroll for Month') }}</h2>
+      </div>
 
-      <div class="space-y-4">
+      <div class="space-y-4 px-6 py-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">{{ __('Month') }}</label>
           <input
@@ -233,18 +240,18 @@
         </p>
       </div>
 
-      <template #footer>
+      <div class="flex justify-end gap-3 bg-gray-50 px-6 py-4">
         <TheButton variant="secondary" @click="generateModal.show = false">
           {{ __('Cancel') }}
         </TheButton>
         <TheButton @click="generatePayroll">
           {{ __('Generate') }}
         </TheButton>
-      </template>
+      </div>
     </ModalBase>
 
     <!-- Payroll Form Modal -->
-    <FormModal v-model="form.show" size="2xl" @saved="index.get()">
+    <FormModal v-if="form.show" size="2xl" @saved="index.get()">
       <FormPayroll :model-value="form.model" @close="form.show = false" />
     </FormModal>
   </div>
@@ -257,7 +264,7 @@ import {
   BanknotesIcon, CheckCircleIcon, CogIcon, CurrencyDollarIcon, DocumentTextIcon,
   EyeIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon
 } from '@heroicons/vue/24/outline'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import TableTh from '@/thetheme/components/TableTh.vue'
@@ -273,7 +280,7 @@ const router = useRouter()
 const processing = ref(true)
 const statistics = ref(null)
 
-const index = useIndex('/api/payrolls', {
+const index = useIndex('payrolls', {
   search: '',
   status: '',
   sort_by: 'created_at',
@@ -310,7 +317,7 @@ const openGenerateModal = () => {
 
 const generatePayroll = async () => {
   try {
-    const response = await axios.post('/api/payrolls/generate', {
+    const response = await axios.post('payrolls/generate', {
       month: generateModal.month
     })
 
@@ -327,7 +334,7 @@ const approvePayroll = async (id) => {
   if (!confirm('Are you sure you want to approve this payroll?')) return
 
   try {
-    await axios.post(`/api/payrolls/${id}/approve`)
+    await axios.post(`payrolls/${id}/approve`)
     index.get()
     loadStatistics()
   } catch (error) {
@@ -339,7 +346,7 @@ const markAsPaid = async (id) => {
   if (!confirm('Mark this payroll as paid?')) return
 
   try {
-    await axios.post(`/api/payrolls/${id}/mark-as-paid`)
+    await axios.post(`payrolls/${id}/mark-as-paid`)
     index.get()
     loadStatistics()
   } catch (error) {
@@ -353,7 +360,7 @@ const viewPayroll = (id) => {
 
 const loadStatistics = async () => {
   try {
-    const response = await axios.get('/api/payrolls/statistics')
+    const response = await axios.get('payrolls/statistics')
     statistics.value = response.data.data
   } catch (error) {
     console.error('Failed to load statistics:', error)
@@ -361,8 +368,21 @@ const loadStatistics = async () => {
 }
 
 onMounted(async () => {
-  await index.get()
-  await loadStatistics()
-  processing.value = false
+  console.log('[Payrolls] Component mounted')
+  try {
+    console.log('[Payrolls] Fetching payrolls...')
+    await index.get()
+    console.log('[Payrolls] Payrolls fetched:', index.data)
+
+    console.log('[Payrolls] Fetching statistics...')
+    await loadStatistics()
+    console.log('[Payrolls] Statistics fetched:', statistics.value)
+
+    processing.value = false
+    console.log('[Payrolls] Processing complete')
+  } catch (error) {
+    console.error('[Payrolls] ERROR in onMounted:', error)
+    processing.value = false
+  }
 })
 </script>

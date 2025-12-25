@@ -1,5 +1,5 @@
 <template>
-  <ModalBase :width="sizeToWidth">
+  <ModalBase :width="sizeToWidth" @close="emit('close')">
     <!-- When using internal form (name and uri provided) -->
     <template v-if="name && uri">
       <FormModalSkeleton v-if="form.fetching" />
@@ -61,6 +61,8 @@
     title?: string
     size?: string
   }>()
+
+  const emit = defineEmits(['close'])
 
   const sizeToWidth = computed(() => {
     const sizeMap: Record<string, string> = {

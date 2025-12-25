@@ -12,7 +12,12 @@
       "Bash(npm run buildjs:*)",
       "Bash(grep:*)",
       "Bash(npm run buildjs:admin:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(dir /b \"C:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\app\")",
+      "Bash(dir /b \"C:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\packages\\\\admin\")",
+      "Bash(npx vue-tsc:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:127.0.0.1)"
     ]
   }
 }
