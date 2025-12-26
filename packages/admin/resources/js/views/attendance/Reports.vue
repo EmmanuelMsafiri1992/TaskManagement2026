@@ -243,10 +243,6 @@
       </div>
     </section>
 
-    <!-- Attendance Form Modal -->
-    <FormModal v-model="form.show" size="md" @saved="loadAttendance">
-      <Form :model-value="form.model" @close="form.show = false" />
-    </FormModal>
   </div>
 </template>
 
@@ -254,9 +250,9 @@
 import { onMounted, reactive, ref } from 'vue'
 import { CalendarIcon, ChartBarIcon, ClockIcon, DocumentArrowDownIcon, PencilIcon, TrashIcon, UsersIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
+import { useModalsStore } from 'spack'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
-import FormModal from '@/thetheme/components/FormModal.vue'
 import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
 import { can } from '@/helpers'
@@ -277,11 +273,6 @@ const filters = reactive({
   startDate: '',
   endDate: '',
   page: 1
-})
-
-const form = reactive({
-  show: false,
-  model: null
 })
 
 const formatTime = (timestamp) => {
@@ -353,8 +344,7 @@ const changePage = (page) => {
 }
 
 const openAttendanceModal = (record = null) => {
-  form.model = record
-  form.show = true
+  useModalsStore().add(Form, { id: record?.id || null })
 }
 
 const deleteRecord = async (id) => {
@@ -369,13 +359,29 @@ const deleteRecord = async (id) => {
   }
 }
 
-const exportReport = () => {
-  const params = new URLSearchParams()
-  if (filters.userId) params.append('user_id', filters.userId)
-  if (filters.startDate) params.append('start_date', filters.startDate)
-  if (filters.endDate) params.append('end_date', filters.endDate)
+const exportReport = async () => {
+  try {
+    const params = new URLSearchParams()
+    if (filters.userId) params.append('user_id', filters.userId)
+    if (filters.startDate) params.append('start_date', filters.startDate)
+    if (filters.endDate) params.append('end_date', filters.endDate)
 
-  window.open(`/api/attendance/export?${params}`, '_blank')
+    const response = await axios.get(`/api/attendance/export?${params}`, {
+      responseType: 'blob'
+    })
+
+    // Create a download link
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `attendance_report_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Failed to export:', error)
+  }
 }
 
 onMounted(async () => {

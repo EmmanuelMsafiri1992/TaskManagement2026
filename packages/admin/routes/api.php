@@ -80,6 +80,7 @@ Route::resource('time-logs', TimeLogsController::class)->only(['index', 'store']
 Route::get('attendance/status', [AttendanceController::class, 'status']);
 Route::get('attendance/report', [AttendanceController::class, 'report']);
 Route::get('attendance/users', [AttendanceController::class, 'users']);
+Route::get('attendance/export', [AttendanceController::class, 'export']);
 Route::resource('attendance', AttendanceController::class);
 
 // Employee Records Routes

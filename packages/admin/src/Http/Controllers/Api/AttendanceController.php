@@ -175,51 +175,42 @@ class AttendanceController
     }
 
     /**
-     * Get attendance report/summary.
+     * Get attendance report/summary statistics.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function report(Request $request)
     {
-        $query = Attendance::query()->with('user');
+        $today = Carbon::today()->format('Y-m-d');
+        $startOfMonth = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $endOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
 
-        // Filter by user
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
+        // Present today - count of unique users who clocked in today
+        $presentToday = Attendance::where('date', $today)->count();
 
-        // Filter by date range
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
+        // Average hours worked today (total_hours is stored in minutes)
+        $todayRecords = Attendance::where('date', $today)->whereNotNull('total_hours')->get();
+        $avgHoursToday = $todayRecords->count() > 0
+            ? round($todayRecords->avg('total_hours') / 60, 1)
+            : 0;
 
-        $attendances = $query->get();
+        // Total attendance records this month
+        $totalThisMonth = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])->count();
 
-        // Calculate summary statistics
-        $totalDays = $attendances->count();
-        $totalHours = $attendances->sum('total_hours');
-        $averageHours = $totalDays > 0 ? round($totalHours / $totalDays, 2) : 0;
-
-        // Group by user for multi-user reports
-        $byUser = $attendances->groupBy('user_id')->map(function ($userAttendances) {
-            $user = $userAttendances->first()->user;
-            return [
-                'user' => $user,
-                'total_days' => $userAttendances->count(),
-                'total_hours' => $userAttendances->sum('total_hours'),
-                'average_hours' => round($userAttendances->avg('total_hours'), 2),
-            ];
-        })->values();
+        // Average hours per record this month (total_hours is stored in minutes)
+        $monthRecords = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->whereNotNull('total_hours')
+            ->get();
+        $avgHoursMonth = $monthRecords->count() > 0
+            ? round($monthRecords->avg('total_hours') / 60, 1)
+            : 0;
 
         return [
-            'summary' => [
-                'total_days' => $totalDays,
-                'total_hours' => $totalHours,
-                'average_hours' => $averageHours,
-            ],
-            'by_user' => $byUser,
-            'attendances' => $attendances,
+            'present_today' => $presentToday,
+            'avg_hours_today' => $avgHoursToday,
+            'total_this_month' => $totalThisMonth,
+            'avg_hours_month' => $avgHoursMonth,
         ];
     }
 
@@ -233,6 +224,66 @@ class AttendanceController
         return User::select('id', 'name', 'email')
                    ->orderBy('name')
                    ->get();
+    }
+
+    /**
+     * Export attendance records to CSV.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function export(Request $request)
+    {
+        $query = Attendance::query()->with('user');
+
+        // Filter by user
+        if ($request->has('user_id') && $request->user_id != '') {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Filter by date range
+        if ($request->has('start_date') && $request->start_date != '') {
+            $query->where('date', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date != '') {
+            $query->where('date', '<=', $request->end_date);
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->get();
+
+        $filename = 'attendance_report_' . Carbon::now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($attendances) {
+            $file = fopen('php://output', 'w');
+
+            // CSV Header
+            fputcsv($file, ['Employee', 'Date', 'Clock In', 'Clock Out', 'Total Hours', 'Notes']);
+
+            // CSV Data
+            foreach ($attendances as $record) {
+                $totalHours = $record->total_hours
+                    ? floor($record->total_hours / 60) . 'h ' . ($record->total_hours % 60) . 'm'
+                    : '-';
+
+                fputcsv($file, [
+                    $record->user->name ?? 'N/A',
+                    $record->date->format('Y-m-d'),
+                    $record->clock_in ? $record->clock_in->format('H:i') : '-',
+                    $record->clock_out ? $record->clock_out->format('H:i') : '-',
+                    $totalHours,
+                    $record->notes ?? '',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
