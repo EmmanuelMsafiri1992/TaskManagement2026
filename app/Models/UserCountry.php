@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\V11\Country as V11Country;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserCountry extends Model
 {
-    use HasFactory;
+    protected $table = 'user_countries';
 
     protected $fillable = [
         'user_id',
@@ -22,35 +22,18 @@ class UserCountry extends Model
         'assigned_at' => 'datetime',
     ];
 
-    /**
-     * Get the user that owns this country assignment
-     */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the country details from v11 database
-     */
-    public function countryDetails()
-    {
-        return V11Country::where('code', $this->country_code)->first();
-    }
-
-    /**
-     * Get the user who assigned this country
-     */
-    public function assignedBy()
+    public function assignedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
-    /**
-     * Get the websites assigned to this user for this country
-     */
-    public function websites()
+    public function websites(): HasMany
     {
-        return $this->hasMany(UserWebsite::class, 'user_country_id');
+        return $this->hasMany(UserWebsite::class);
     }
 }

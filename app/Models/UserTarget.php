@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserTarget extends Model
 {
-    use HasFactory;
+    protected $table = 'user_targets';
 
     protected $fillable = [
         'user_id',
@@ -23,15 +23,12 @@ class UserTarget extends Model
         'daily_impressions_target' => 'integer',
         'daily_page_views_target' => 'integer',
         'daily_clicks_target' => 'integer',
-        'min_cpc_target' => 'decimal:4',
-        'min_rpm_target' => 'decimal:4',
+        'min_cpc_target' => 'decimal:2',
+        'min_rpm_target' => 'decimal:2',
         'daily_earnings_target' => 'decimal:2',
     ];
 
-    /**
-     * Get the user that owns this target
-     */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

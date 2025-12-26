@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\V11\Company;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserWebsite extends Model
 {
-    use HasFactory;
+    protected $table = 'user_websites';
 
     protected $fillable = [
         'user_id',
@@ -23,27 +22,13 @@ class UserWebsite extends Model
         'assigned_at' => 'datetime',
     ];
 
-    /**
-     * Get the user that owns this website assignment
-     */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the user country assignment
-     */
-    public function userCountry()
+    public function userCountry(): BelongsTo
     {
         return $this->belongsTo(UserCountry::class);
-    }
-
-    /**
-     * Get the company details from v11 database
-     */
-    public function companyDetails()
-    {
-        return Company::find($this->company_id);
     }
 }
