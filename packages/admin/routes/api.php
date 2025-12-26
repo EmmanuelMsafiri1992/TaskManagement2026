@@ -49,6 +49,7 @@ use Admin\Http\Controllers\Api\TimeLogsController;
 use Admin\Http\Controllers\Api\UsersController;
 use Admin\Http\Controllers\Api\AdSenseReportController;
 use Admin\Http\Controllers\Api\AttendanceController;
+use Admin\Http\Controllers\Api\GeneratorFuelController;
 use Admin\Http\Controllers\Api\EmployeeRecordsController;
 use Admin\Http\Controllers\Api\ImpersonateController;
 use Admin\Http\Controllers\Api\LeavesController;
@@ -75,6 +76,17 @@ Route::post('avatar', AvatarUpload::class);
 Route::post('file', FileUpload::class);
 Route::resource('profile', ProfileController::class)->only(['create', 'store']);
 Route::resource('time-logs', TimeLogsController::class)->only(['index', 'store']);
+
+// Generator Fuel Routes
+Route::prefix('generator')->group(function () {
+    Route::get('status', [GeneratorFuelController::class, 'status']);
+    Route::get('logs', [GeneratorFuelController::class, 'logs']);
+    Route::get('statistics', [GeneratorFuelController::class, 'statistics']);
+    Route::post('add-fuel', [GeneratorFuelController::class, 'addFuel']);
+    Route::post('start', [GeneratorFuelController::class, 'start']);
+    Route::post('stop', [GeneratorFuelController::class, 'stop']);
+    Route::put('settings', [GeneratorFuelController::class, 'updateSettings']);
+});
 
 // Attendance Routes
 Route::get('attendance/status', [AttendanceController::class, 'status']);
