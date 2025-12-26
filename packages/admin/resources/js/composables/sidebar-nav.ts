@@ -1,4 +1,4 @@
-import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, CurrencyDollarIcon, DocumentChartBarIcon, DocumentTextIcon, HomeIcon, InboxIcon, ReceiptPercentIcon, UserGroupIcon, UserIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, CurrencyDollarIcon, DocumentChartBarIcon, DocumentTextIcon, FilmIcon, HomeIcon, InboxIcon, ReceiptPercentIcon, UserGroupIcon, UserIcon, UsersIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -72,5 +72,10 @@ export const useSidebarNav: SidebarNav[] = [
     label: 'AdSense Reports',
     uri: '/adsense-reports',
     icon: ChartBarIcon,
+  },
+  {
+    label: 'Video Enhancer',
+    uri: '/video-enhancer',
+    icon: FilmIcon,
   },
 ]

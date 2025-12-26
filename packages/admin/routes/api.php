@@ -62,6 +62,7 @@ use Admin\Http\Controllers\Api\IncomeController;
 use App\Http\Controllers\Admin\SettingsCountriesController;
 use App\Http\Controllers\Admin\UserAssignmentController;
 use App\Http\Controllers\Admin\JobShareController;
+use App\Http\Controllers\Admin\VideoEnhancerController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Support\Facades\Route;
 
@@ -246,4 +247,16 @@ Route::prefix('impersonate')->group(function () {
     Route::post('stop', [ImpersonateController::class, 'stopImpersonating']);
     Route::get('status', [ImpersonateController::class, 'status']);
     Route::post('{userId}', [ImpersonateController::class, 'impersonate']);
+});
+
+// Video Enhancer Routes
+Route::prefix('video-enhancer')->group(function () {
+    Route::get('/', [VideoEnhancerController::class, 'index']);
+    Route::post('upload', [VideoEnhancerController::class, 'upload']);
+    Route::post('{id}/estimate', [VideoEnhancerController::class, 'estimate']);
+    Route::post('{id}/process', [VideoEnhancerController::class, 'process']);
+    Route::get('{id}/status', [VideoEnhancerController::class, 'status']);
+    Route::get('{id}/download', [VideoEnhancerController::class, 'download']);
+    Route::delete('{id}', [VideoEnhancerController::class, 'destroy']);
+    Route::delete('{id}/processed', [VideoEnhancerController::class, 'deleteProcessed']);
 });

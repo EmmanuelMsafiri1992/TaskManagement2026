@@ -9,6 +9,7 @@ import SettingsGeneral from 'View/settings/General.vue'
 import SettingsAdSense from 'View/settings/AdSense.vue'
 import SettingsCountries from 'View/settings/Countries.vue'
 import SettingsUserAssignments from 'View/settings/UserAssignments.vue'
+import VideoEnhancer from 'View/VideoEnhancer.vue'
 import RolesIndex from 'View/roles/Index.vue'
 import TasksIndex from 'View/tasks/Index.vue'
 import UsersIndex from 'View/users/Index.vue'
@@ -62,6 +63,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/settings/adsense', component: SettingsAdSense },
   { path: '/settings/countries', component: SettingsCountries },
   { path: '/settings/user-assignments', component: SettingsUserAssignments },
+  { path: '/video-enhancer', component: VideoEnhancer },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
