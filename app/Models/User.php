@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Http\Filters\UserFilters;
 use App\Models\Permission;
+use App\Traits\Auditable;
 use AhsanDev\Support\Authorization\Authorizable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -53,7 +54,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use Authorizable, HasApiTokens, HasFactory, Notifiable;
+    use Authorizable, HasApiTokens, HasFactory, Notifiable, Auditable;
 
     /**
      * The attributes that are mass assignable.

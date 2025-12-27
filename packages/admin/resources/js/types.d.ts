@@ -59,13 +59,20 @@ interface ChartTasksYearly {
   Dec: number
 }
 
-interface SidebarNav {
+interface SidebarNavChild {
   label: string
   uri: string
+  permission?: string
+}
+
+interface SidebarNav {
+  label: string
+  uri?: string
   icon: FunctionalComponent<HTMLAttributes & VNodeProps>
   permission?: string
   create?: string
   createPermission?: string
+  children?: SidebarNavChild[]
 }
 
 interface ProjectForm {

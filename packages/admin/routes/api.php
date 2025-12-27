@@ -64,6 +64,7 @@ use App\Http\Controllers\Admin\UserAssignmentController;
 use App\Http\Controllers\Admin\JobShareController;
 use App\Http\Controllers\Admin\VideoEnhancerController;
 use App\Http\Controllers\UrlShortenerController;
+use Admin\Http\Controllers\Api\AuditTrailController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -259,4 +260,12 @@ Route::prefix('video-enhancer')->group(function () {
     Route::get('{id}/download', [VideoEnhancerController::class, 'download']);
     Route::delete('{id}', [VideoEnhancerController::class, 'destroy']);
     Route::delete('{id}/processed', [VideoEnhancerController::class, 'deleteProcessed']);
+});
+
+// Audit Trail Routes
+Route::prefix('audit-trails')->group(function () {
+    Route::get('/', [AuditTrailController::class, 'index']);
+    Route::get('statistics', [AuditTrailController::class, 'statistics']);
+    Route::get('model-types', [AuditTrailController::class, 'modelTypes']);
+    Route::get('{type}/{id}', [AuditTrailController::class, 'show']);
 });

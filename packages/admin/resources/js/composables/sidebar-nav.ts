@@ -1,4 +1,4 @@
-import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, CurrencyDollarIcon, DocumentChartBarIcon, DocumentTextIcon, FilmIcon, HomeIcon, InboxIcon, ReceiptPercentIcon, UserGroupIcon, UserIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import { BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -6,14 +6,8 @@ export const useSidebarNav: SidebarNav[] = [
   { label: 'My Tasks', uri: '/tasks', icon: InboxIcon },
   {
     label: 'Attendance',
-    uri: '/attendance-page',
+    uri: '/attendance',
     icon: CalendarIcon,
-  },
-  {
-    label: 'Attendance Reports',
-    uri: '/attendance-reports',
-    icon: DocumentChartBarIcon,
-    permission: 'attendance:view-all',
   },
   {
     label: 'Employees',
@@ -33,34 +27,15 @@ export const useSidebarNav: SidebarNav[] = [
     icon: CalendarDaysIcon,
   },
   {
-    label: 'Payroll',
-    uri: '/payrolls',
-    icon: BanknotesIcon,
-    permission: 'payroll:view',
-  },
-  {
-    label: 'Clients',
-    uri: '/clients',
-    icon: UserGroupIcon,
-    permission: 'client:view',
-  },
-  {
-    label: 'Quotations',
-    uri: '/quotations',
-    icon: DocumentTextIcon,
-    permission: 'quotation:view',
-  },
-  {
-    label: 'Expenses',
-    uri: '/expenses',
-    icon: ReceiptPercentIcon,
-    permission: 'expense:view',
-  },
-  {
-    label: 'Income',
-    uri: '/income',
-    icon: CurrencyDollarIcon,
-    permission: 'income:view',
+    label: 'Financial',
+    icon: WalletIcon,
+    children: [
+      { label: 'Payroll', uri: '/payrolls', permission: 'payroll:view' },
+      { label: 'Clients', uri: '/clients', permission: 'client:view' },
+      { label: 'Quotations', uri: '/quotations', permission: 'quotation:view' },
+      { label: 'Expenses', uri: '/expenses', permission: 'expense:view' },
+      { label: 'Income', uri: '/income', permission: 'income:view' },
+    ],
   },
   {
     label: 'Team Members',
@@ -77,5 +52,11 @@ export const useSidebarNav: SidebarNav[] = [
     label: 'Video Enhancer',
     uri: '/video-enhancer',
     icon: FilmIcon,
+  },
+  {
+    label: 'Audit Trail',
+    uri: '/audit-trail',
+    icon: ClipboardDocumentListIcon,
+    permission: 'audit:view',
   },
 ]

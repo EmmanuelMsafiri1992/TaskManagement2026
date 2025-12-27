@@ -17,7 +17,6 @@ import LabelsIndex from 'View/labels/Index.vue'
 import ProjectsIndex from 'View/projects/Index.vue'
 import AdSenseReports from 'View/AdSenseReports.vue'
 import AttendanceIndex from 'View/attendance/IndexWorking.vue'
-import AttendanceReports from 'View/attendance/Reports.vue'
 import EmployeesIndex from 'View/employees/Index.vue'
 import EmployeesDetail from 'View/employees/Detail.vue'
 import LeavesIndex from 'View/leaves/Index.vue'
@@ -28,6 +27,7 @@ import QuotationsIndex from 'View/quotations/Index.vue'
 import QuotationsDetail from 'View/quotations/Detail.vue'
 import ExpensesIndex from 'View/expenses/Index.vue'
 import IncomeIndex from 'View/income/Index.vue'
+import AuditTrailIndex from 'View/audit-trail/Index.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
@@ -45,8 +45,6 @@ export const routes: RouteRecordRaw[] = [
   { path: '/roles', name: 'Roles', component: RolesIndex },
   { path: '/tasks', name: 'Tasks', component: TasksIndex },
   { path: '/attendance', name: 'Attendance', component: AttendanceIndex },
-  { path: '/attendance-page', name: 'AttendancePage', component: AttendanceIndex },
-  { path: '/attendance-reports', name: 'AttendanceReports', component: AttendanceReports },
   { path: '/employees', name: 'Employees', component: EmployeesIndex },
   { path: '/employees/:id', name: 'EmployeeDetail', component: EmployeesDetail },
   { path: '/leaves', name: 'Leaves', component: LeavesIndex },
@@ -64,6 +62,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/settings/countries', component: SettingsCountries },
   { path: '/settings/user-assignments', component: SettingsUserAssignments },
   { path: '/video-enhancer', component: VideoEnhancer },
+  { path: '/audit-trail', name: 'AuditTrail', component: AuditTrailIndex },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
