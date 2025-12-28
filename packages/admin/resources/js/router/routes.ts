@@ -28,6 +28,11 @@ import QuotationsDetail from 'View/quotations/Detail.vue'
 import ExpensesIndex from 'View/expenses/Index.vue'
 import IncomeIndex from 'View/income/Index.vue'
 import AuditTrailIndex from 'View/audit-trail/Index.vue'
+import ServiceProvidersIndex from 'View/service-providers/Index.vue'
+import ServiceProvidersDetail from 'View/service-providers/Detail.vue'
+import RecordingSessionsIndex from 'View/service-providers/RecordingSessions.vue'
+import LessonPlansIndex from 'View/service-providers/LessonPlans.vue'
+import SubjectsIndex from 'View/service-providers/Subjects.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
@@ -63,6 +68,11 @@ export const routes: RouteRecordRaw[] = [
   { path: '/settings/user-assignments', component: SettingsUserAssignments },
   { path: '/video-enhancer', component: VideoEnhancer },
   { path: '/audit-trail', name: 'AuditTrail', component: AuditTrailIndex },
+  { path: '/service-providers', name: 'ServiceProviders', component: ServiceProvidersIndex },
+  { path: '/service-providers/:id', name: 'ServiceProvidersDetail', component: ServiceProvidersDetail },
+  { path: '/recording-sessions', name: 'RecordingSessions', component: RecordingSessionsIndex },
+  { path: '/lesson-plans', name: 'LessonPlans', component: LessonPlansIndex },
+  { path: '/subjects', name: 'Subjects', component: SubjectsIndex },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

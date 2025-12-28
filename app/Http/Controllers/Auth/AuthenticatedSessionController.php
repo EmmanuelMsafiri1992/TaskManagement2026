@@ -32,6 +32,19 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Handle teacher login redirect
+        if ($request->isTeacherLogin()) {
+            $provider = Auth::guard('service_provider')->user();
+
+            // Check if agreement is signed
+            if (!$provider->agreement_signed) {
+                return redirect()->route('service-provider.agreement');
+            }
+
+            return redirect()->route('service-provider.dashboard');
+        }
+
+        // Handle employee login redirect
         // Clear any invalid intended URL
         $intended = session()->pull('url.intended', RouteServiceProvider::HOME);
 
@@ -51,7 +64,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
+        // Logout from both guards
         Auth::guard('web')->logout();
+        Auth::guard('service_provider')->logout();
 
         $request->session()->invalidate();
 

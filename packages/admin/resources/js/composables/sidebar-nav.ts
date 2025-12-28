@@ -1,4 +1,4 @@
-import { BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -42,6 +42,16 @@ export const useSidebarNav: SidebarNav[] = [
     uri: '/users',
     icon: UsersIcon,
     permission: 'user:view',
+  },
+  {
+    label: 'Service Providers',
+    icon: AcademicCapIcon,
+    children: [
+      { label: 'All Providers', uri: '/service-providers', permission: 'service_provider:view' },
+      { label: 'Recording Sessions', uri: '/recording-sessions', permission: 'service_provider:view' },
+      { label: 'Lesson Plans', uri: '/lesson-plans', permission: 'service_provider:view' },
+      { label: 'Subjects', uri: '/subjects', permission: 'service_provider:view' },
+    ],
   },
   {
     label: 'AdSense Reports',

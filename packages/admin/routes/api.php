@@ -65,6 +65,11 @@ use App\Http\Controllers\Admin\JobShareController;
 use App\Http\Controllers\Admin\VideoEnhancerController;
 use App\Http\Controllers\UrlShortenerController;
 use Admin\Http\Controllers\Api\AuditTrailController;
+use Admin\Http\Controllers\Api\ServiceProviderController;
+use Admin\Http\Controllers\Api\RecordingSessionController;
+use Admin\Http\Controllers\Api\LessonPlanController;
+use Admin\Http\Controllers\Api\SubjectController;
+use Admin\Http\Controllers\Api\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -269,3 +274,56 @@ Route::prefix('audit-trails')->group(function () {
     Route::get('model-types', [AuditTrailController::class, 'modelTypes']);
     Route::get('{type}/{id}', [AuditTrailController::class, 'show']);
 });
+
+// Service Providers Routes
+Route::prefix('service-providers')->group(function () {
+    Route::get('statistics', [ServiceProviderController::class, 'statistics']);
+    Route::get('{serviceProvider}/recording-sessions', [ServiceProviderController::class, 'recordingSessions']);
+    Route::get('{serviceProvider}/lesson-plans', [ServiceProviderController::class, 'lessonPlans']);
+    Route::get('{serviceProvider}/payments', [ServiceProviderController::class, 'payments']);
+    Route::get('{serviceProvider}/payment-summary', [ServiceProviderController::class, 'paymentSummary']);
+    Route::get('{serviceProvider}/download-agreement', [ServiceProviderController::class, 'downloadAgreement']);
+    Route::post('{serviceProvider}/activate', [ServiceProviderController::class, 'activate']);
+    Route::post('{serviceProvider}/suspend', [ServiceProviderController::class, 'suspend']);
+    Route::post('{serviceProvider}/sign-agreement', [ServiceProviderController::class, 'signAgreement']);
+});
+Route::resource('service-providers', ServiceProviderController::class);
+
+// Payments Routes
+Route::prefix('payments')->group(function () {
+    Route::get('statistics', [PaymentController::class, 'statistics']);
+    Route::post('bulk', [PaymentController::class, 'bulkPayment']);
+    Route::get('{payment}/receipt', [PaymentController::class, 'generateReceipt']);
+    Route::post('{payment}/complete', [PaymentController::class, 'markAsCompleted']);
+});
+Route::resource('payments', PaymentController::class);
+
+// Recording Sessions Routes
+Route::prefix('recording-sessions')->group(function () {
+    Route::get('statistics', [RecordingSessionController::class, 'statistics']);
+    Route::get('pending-review', [RecordingSessionController::class, 'pendingReview']);
+    Route::post('{recordingSession}/approve', [RecordingSessionController::class, 'approve']);
+    Route::post('{recordingSession}/reject', [RecordingSessionController::class, 'reject']);
+    Route::post('{recordingSession}/upload-video', [RecordingSessionController::class, 'uploadVideo']);
+});
+Route::resource('recording-sessions', RecordingSessionController::class);
+
+// Lesson Plans Routes
+Route::prefix('lesson-plans')->group(function () {
+    Route::get('statistics', [LessonPlanController::class, 'statistics']);
+    Route::get('pending-review', [LessonPlanController::class, 'pendingReview']);
+    Route::post('{lessonPlan}/approve', [LessonPlanController::class, 'approve']);
+    Route::post('{lessonPlan}/reject', [LessonPlanController::class, 'reject']);
+});
+Route::resource('lesson-plans', LessonPlanController::class);
+
+// Subjects & Topics Routes
+Route::prefix('subjects')->group(function () {
+    Route::get('statistics', [SubjectController::class, 'statistics']);
+    Route::get('by-form', [SubjectController::class, 'byForm']);
+    Route::get('{subject}/topics', [SubjectController::class, 'topics']);
+    Route::post('{subject}/topics', [SubjectController::class, 'storeTopic']);
+    Route::put('{subject}/topics/{topic}', [SubjectController::class, 'updateTopic']);
+    Route::delete('{subject}/topics/{topic}', [SubjectController::class, 'destroyTopic']);
+});
+Route::resource('subjects', SubjectController::class);
