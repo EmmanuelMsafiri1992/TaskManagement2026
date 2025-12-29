@@ -68,13 +68,39 @@ class DashboardController extends Controller
         $provider = Auth::guard('service_provider')->user();
 
         $validated = $request->validate([
-            'payment_preference' => 'required|in:monthly,lump_sum',
+            'payment_preference' => 'required|in:bi_weekly,monthly,lump_sum,daily',
             'monthly_amount' => 'nullable|numeric|min:0',
+            'daily_rate' => 'nullable|numeric|min:1000',
         ]);
+
+        // If daily preference is selected, ensure daily_rate is provided
+        if ($validated['payment_preference'] === 'daily' && empty($validated['daily_rate'])) {
+            return redirect()->back()->withErrors(['daily_rate' => 'Daily rate is required when selecting daily payment preference.']);
+        }
+
+        // Clear daily_rate if not using daily preference
+        if ($validated['payment_preference'] !== 'daily') {
+            $validated['daily_rate'] = null;
+        }
+
+        // Clear monthly_amount if using daily or lump_sum preference
+        if (in_array($validated['payment_preference'], ['daily', 'lump_sum'])) {
+            $validated['monthly_amount'] = null;
+        }
 
         $provider->update($validated);
 
-        return redirect()->back()->with('success', 'Payment preferences updated successfully');
+        $message = 'Payment preferences updated successfully';
+
+        // Add info about daily rate requirements
+        if ($validated['payment_preference'] === 'daily' && $validated['daily_rate']) {
+            $maxDays = $provider->getMaxPayableDays();
+            $topicsPerDay = $provider->getRequiredTopicsPerDay();
+            $message .= ". With your daily rate of MK " . number_format($validated['daily_rate'], 2) .
+                ", you have {$maxDays} payable days and must complete at least {$topicsPerDay} topics per day.";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function updatePaymentMethod(Request $request)

@@ -33,6 +33,9 @@ class ServiceProvider extends Authenticatable
         'total_agreed_amount',
         'payment_preference',
         'monthly_amount',
+        'daily_rate',
+        'amount_per_subject',
+        'assigned_subjects_count',
         'payment_method',
         'bank_name',
         'bank_account_number',
@@ -55,11 +58,14 @@ class ServiceProvider extends Authenticatable
         'hourly_rate' => 'decimal:2',
         'total_agreed_amount' => 'decimal:2',
         'monthly_amount' => 'decimal:2',
+        'daily_rate' => 'decimal:2',
+        'amount_per_subject' => 'decimal:2',
+        'assigned_subjects_count' => 'integer',
         'total_paid' => 'decimal:2',
         'meta' => 'array',
     ];
 
-    protected $appends = ['balance_remaining', 'payment_progress_percent'];
+    protected $appends = ['balance_remaining', 'payment_progress_percent', 'daily_payment_info'];
 
     public function agreements()
     {
@@ -153,5 +159,232 @@ class ServiceProvider extends Authenticatable
             ];
         }
         return null;
+    }
+
+    /**
+     * Get assigned subjects for this service provider
+     * Based on their recorded sessions or specialty
+     */
+    public function getAssignedSubjects()
+    {
+        return Subject::whereIn('id', function ($query) {
+            $query->select('subject_id')
+                ->from('recording_sessions')
+                ->where('service_provider_id', $this->id)
+                ->distinct();
+        })->orWhere('name', 'like', '%' . $this->specialty . '%')->get();
+    }
+
+    /**
+     * Get total topics count for assigned subjects
+     */
+    public function getTotalTopicsCount(): int
+    {
+        $subjectIds = $this->recordingSessions()->distinct()->pluck('subject_id')->toArray();
+
+        if (empty($subjectIds)) {
+            // Default to counting all active topics if no sessions yet
+            return Topic::where('is_active', true)->count();
+        }
+
+        return Topic::whereIn('subject_id', $subjectIds)
+            ->where('is_active', true)
+            ->count();
+    }
+
+    /**
+     * Get completed topics count (topics with approved recording sessions)
+     */
+    public function getCompletedTopicsCount(): int
+    {
+        return $this->recordingSessions()
+            ->where('status', 'approved')
+            ->distinct('topic_id')
+            ->count('topic_id');
+    }
+
+    /**
+     * Calculate maximum payable days based on daily rate and total budget
+     * Formula: Total Budget / Daily Rate = Max Days
+     */
+    public function getMaxPayableDays(): int
+    {
+        if (!$this->daily_rate || $this->daily_rate <= 0) {
+            return 0;
+        }
+
+        return (int) floor($this->total_agreed_amount / $this->daily_rate);
+    }
+
+    /**
+     * Calculate maximum payable days per subject
+     * Formula: Amount Per Subject / Daily Rate = Max Days Per Subject
+     */
+    public function getMaxPayableDaysPerSubject(): int
+    {
+        if (!$this->daily_rate || $this->daily_rate <= 0) {
+            return 0;
+        }
+
+        return (int) floor($this->amount_per_subject / $this->daily_rate);
+    }
+
+    /**
+     * Calculate required topics per day to complete all topics within budget
+     * Formula: Total Topics / Max Payable Days = Topics Per Day
+     */
+    public function getRequiredTopicsPerDay(): float
+    {
+        $maxDays = $this->getMaxPayableDays();
+
+        if ($maxDays <= 0) {
+            return 0;
+        }
+
+        $totalTopics = $this->getTotalTopicsCount();
+
+        return round($totalTopics / $maxDays, 2);
+    }
+
+    /**
+     * Calculate required topics per day per subject
+     */
+    public function getRequiredTopicsPerDayPerSubject(): float
+    {
+        $maxDaysPerSubject = $this->getMaxPayableDaysPerSubject();
+
+        if ($maxDaysPerSubject <= 0) {
+            return 0;
+        }
+
+        // Get topics per subject (total / number of subjects)
+        $topicsPerSubject = $this->getTotalTopicsCount() / max(1, $this->assigned_subjects_count);
+
+        return round($topicsPerSubject / $maxDaysPerSubject, 2);
+    }
+
+    /**
+     * Get remaining topics to complete
+     */
+    public function getRemainingTopicsCount(): int
+    {
+        return max(0, $this->getTotalTopicsCount() - $this->getCompletedTopicsCount());
+    }
+
+    /**
+     * Get remaining payable days based on balance
+     */
+    public function getRemainingPayableDays(): int
+    {
+        if (!$this->daily_rate || $this->daily_rate <= 0) {
+            return 0;
+        }
+
+        return (int) floor($this->balance_remaining / $this->daily_rate);
+    }
+
+    /**
+     * Check if provider is on track (completed enough topics for days paid)
+     */
+    public function isOnTrack(): bool
+    {
+        if ($this->payment_preference !== 'daily' || !$this->daily_rate) {
+            return true; // Not applicable for non-daily payment
+        }
+
+        $daysPaid = (int) floor($this->total_paid / $this->daily_rate);
+        $expectedTopics = $daysPaid * $this->getRequiredTopicsPerDay();
+
+        return $this->getCompletedTopicsCount() >= $expectedTopics;
+    }
+
+    /**
+     * Get comprehensive daily payment information
+     */
+    public function getDailyPaymentInfoAttribute(): ?array
+    {
+        if ($this->payment_preference !== 'daily' || !$this->daily_rate) {
+            return null;
+        }
+
+        $totalTopics = $this->getTotalTopicsCount();
+        $completedTopics = $this->getCompletedTopicsCount();
+        $maxDays = $this->getMaxPayableDays();
+        $requiredTopicsPerDay = $this->getRequiredTopicsPerDay();
+        $daysPaid = $this->daily_rate > 0 ? (int) floor($this->total_paid / $this->daily_rate) : 0;
+        $remainingDays = $this->getRemainingPayableDays();
+        $remainingTopics = $this->getRemainingTopicsCount();
+
+        // Calculate if on track
+        $expectedTopicsCompleted = $daysPaid * $requiredTopicsPerDay;
+        $topicsAhead = $completedTopics - $expectedTopicsCompleted;
+        $isOnTrack = $topicsAhead >= 0;
+
+        // Calculate days worth of work completed
+        $daysWorthCompleted = $requiredTopicsPerDay > 0
+            ? round($completedTopics / $requiredTopicsPerDay, 1)
+            : 0;
+
+        return [
+            'daily_rate' => $this->daily_rate,
+            'formatted_daily_rate' => 'MK ' . number_format($this->daily_rate, 2),
+            'total_topics' => $totalTopics,
+            'completed_topics' => $completedTopics,
+            'remaining_topics' => $remainingTopics,
+            'max_payable_days' => $maxDays,
+            'required_topics_per_day' => $requiredTopicsPerDay,
+            'days_paid' => $daysPaid,
+            'remaining_payable_days' => $remainingDays,
+            'days_worth_completed' => $daysWorthCompleted,
+            'expected_topics_completed' => round($expectedTopicsCompleted, 1),
+            'topics_ahead_behind' => round($topicsAhead, 1),
+            'is_on_track' => $isOnTrack,
+            'status_message' => $isOnTrack
+                ? ($topicsAhead > 0 ? "Ahead by " . abs(round($topicsAhead)) . " topics" : "On track")
+                : "Behind by " . abs(round($topicsAhead)) . " topics",
+            'amount_per_subject' => $this->amount_per_subject,
+            'assigned_subjects_count' => $this->assigned_subjects_count,
+        ];
+    }
+
+    /**
+     * Calculate payment amount for daily rate based on topics completed today
+     */
+    public function calculateDailyPayment(int $topicsCompletedToday): array
+    {
+        if ($this->payment_preference !== 'daily' || !$this->daily_rate) {
+            return [
+                'eligible' => false,
+                'reason' => 'Not on daily payment plan',
+                'amount' => 0,
+            ];
+        }
+
+        $requiredTopics = $this->getRequiredTopicsPerDay();
+
+        if ($topicsCompletedToday < $requiredTopics) {
+            return [
+                'eligible' => false,
+                'reason' => "Need to complete at least {$requiredTopics} topics per day. Completed: {$topicsCompletedToday}",
+                'amount' => 0,
+                'topics_needed' => ceil($requiredTopics) - $topicsCompletedToday,
+            ];
+        }
+
+        // Check if there's balance remaining
+        if ($this->balance_remaining < $this->daily_rate) {
+            return [
+                'eligible' => false,
+                'reason' => 'Insufficient balance remaining',
+                'amount' => $this->balance_remaining,
+                'partial' => true,
+            ];
+        }
+
+        return [
+            'eligible' => true,
+            'reason' => 'Eligible for full daily payment',
+            'amount' => $this->daily_rate,
+        ];
     }
 }

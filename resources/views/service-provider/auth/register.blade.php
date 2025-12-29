@@ -123,8 +123,22 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">Payment Preference *</label>
             <div class="grid grid-cols-1 gap-3">
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all payment-option" id="bi_weekly-option">
+                    <input type="radio" name="payment_preference" value="bi_weekly" class="sr-only" {{ old('payment_preference', 'bi_weekly') == 'bi_weekly' ? 'checked' : '' }} onchange="togglePaymentPreference()">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center radio-indicator">
+                                <div class="w-2.5 h-2.5 bg-indigo-600 rounded-full hidden check-mark"></div>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <div class="font-medium text-gray-900">Bi-Weekly (Every 2 Weeks)</div>
+                            <div class="text-sm text-gray-500">Receive payments every two weeks during your contract period</div>
+                        </div>
+                    </div>
+                </label>
                 <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all payment-option" id="monthly-option">
-                    <input type="radio" name="payment_preference" value="monthly" class="sr-only" {{ old('payment_preference', 'monthly') == 'monthly' ? 'checked' : '' }} onchange="togglePaymentPreference()">
+                    <input type="radio" name="payment_preference" value="monthly" class="sr-only" {{ old('payment_preference') == 'monthly' ? 'checked' : '' }} onchange="togglePaymentPreference()">
                     <div class="flex items-start">
                         <div class="flex-shrink-0">
                             <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center radio-indicator">
@@ -137,6 +151,20 @@
                         </div>
                     </div>
                 </label>
+                <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all payment-option" id="daily-option">
+                    <input type="radio" name="payment_preference" value="daily" class="sr-only" {{ old('payment_preference') == 'daily' ? 'checked' : '' }} onchange="togglePaymentPreference()">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center radio-indicator">
+                                <div class="w-2.5 h-2.5 bg-indigo-600 rounded-full hidden check-mark"></div>
+                            </div>
+                        </div>
+                        <div class="ml-3">
+                            <div class="font-medium text-gray-900">Daily (Per Day Rate)</div>
+                            <div class="text-sm text-gray-500">Get paid per day based on topics completed</div>
+                        </div>
+                    </div>
+                </label>
                 <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all payment-option" id="lump_sum-option">
                     <input type="radio" name="payment_preference" value="lump_sum" class="sr-only" {{ old('payment_preference') == 'lump_sum' ? 'checked' : '' }} onchange="togglePaymentPreference()">
                     <div class="flex items-start">
@@ -146,21 +174,62 @@
                             </div>
                         </div>
                         <div class="ml-3">
-                            <div class="font-medium text-gray-900">Lump Sum</div>
-                            <div class="text-sm text-gray-500">Receive full payment after completing all work</div>
+                            <div class="font-medium text-gray-900">Lump Sum (After Completion)</div>
+                            <div class="text-sm text-gray-500">Receive full payment after completing all recordings</div>
                         </div>
                     </div>
                 </label>
             </div>
         </div>
 
-        <!-- Monthly Amount (shown only for monthly preference) -->
+        <!-- Monthly Amount (shown for bi_weekly and monthly preference) -->
         <div id="monthly-amount-section">
             <label for="monthly_amount" class="block text-sm font-medium text-gray-700">Preferred Monthly Amount (MK)</label>
             <input type="number" name="monthly_amount" id="monthly_amount" value="{{ old('monthly_amount') }}"
                    placeholder="e.g., 100000"
                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
             <p class="mt-1 text-xs text-gray-500">How much would you like to receive per month from your MK 700,000 contract?</p>
+        </div>
+
+        <!-- Daily Rate Section (shown only for daily preference) -->
+        <div id="daily-rate-section" class="hidden">
+            <label for="daily_rate" class="block text-sm font-medium text-gray-700">Daily Rate (MK) *</label>
+            <input type="number" name="daily_rate" id="daily_rate" value="{{ old('daily_rate') }}"
+                   placeholder="e.g., 40000"
+                   min="1000"
+                   class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                   onchange="calculateDailyRequirements()" oninput="calculateDailyRequirements()">
+            <p class="mt-1 text-xs text-gray-500">How much do you want to be paid per day?</p>
+            @error('daily_rate')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+
+            <!-- Daily Rate Calculator -->
+            <div id="daily-rate-calculator" class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 hidden">
+                <h4 class="font-medium text-amber-800 mb-2">Daily Payment Requirements</h4>
+                <p class="text-sm text-amber-700 mb-3">Based on your chosen daily rate:</p>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="bg-white rounded p-2">
+                        <span class="text-gray-600 block text-xs">Total Budget</span>
+                        <span class="font-bold text-gray-900">MK 700,000</span>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                        <span class="text-gray-600 block text-xs">Your Daily Rate</span>
+                        <span class="font-bold text-gray-900" id="calc-daily-rate-display">MK 0</span>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                        <span class="text-gray-600 block text-xs">Max Payable Days</span>
+                        <span class="font-bold text-indigo-600" id="calc-max-days-display">0 days</span>
+                    </div>
+                    <div class="bg-white rounded p-2">
+                        <span class="text-gray-600 block text-xs">Est. Topics (100 total)</span>
+                        <span class="font-bold text-indigo-600" id="calc-topics-per-day-display">0 per day</span>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-amber-600">
+                    <strong>Note:</strong> You must complete the required number of topics per day to receive your daily payment.
+                </p>
+            </div>
         </div>
 
         <!-- Payment Method -->
@@ -295,10 +364,35 @@ function showStep(step) {
 }
 
 function togglePaymentPreference() {
+    const biWeeklyOption = document.querySelector('input[name="payment_preference"][value="bi_weekly"]');
     const monthlyOption = document.querySelector('input[name="payment_preference"][value="monthly"]');
-    const monthlySection = document.getElementById('monthly-amount-section');
+    const dailyOption = document.querySelector('input[name="payment_preference"][value="daily"]');
+    const amountSection = document.getElementById('monthly-amount-section');
+    const dailyRateSection = document.getElementById('daily-rate-section');
+    const amountLabel = document.querySelector('#monthly-amount-section label');
+    const amountHint = document.querySelector('#monthly-amount-section .text-xs');
 
-    monthlySection.classList.toggle('hidden', !monthlyOption.checked);
+    // Show amount section for bi_weekly and monthly
+    const showAmount = biWeeklyOption.checked || monthlyOption.checked;
+    amountSection.classList.toggle('hidden', !showAmount);
+
+    // Show daily rate section for daily preference
+    const showDailyRate = dailyOption && dailyOption.checked;
+    dailyRateSection.classList.toggle('hidden', !showDailyRate);
+
+    // Update label based on selection
+    if (biWeeklyOption.checked) {
+        amountLabel.textContent = 'Preferred Bi-Weekly Amount (MK)';
+        amountHint.textContent = 'How much would you like to receive every 2 weeks from your contract?';
+    } else if (monthlyOption.checked) {
+        amountLabel.textContent = 'Preferred Monthly Amount (MK)';
+        amountHint.textContent = 'How much would you like to receive per month from your contract?';
+    }
+
+    // Calculate daily requirements if daily is selected
+    if (showDailyRate) {
+        calculateDailyRequirements();
+    }
 
     // Update visual selection
     document.querySelectorAll('.payment-option').forEach(option => {
@@ -316,6 +410,37 @@ function togglePaymentPreference() {
             checkMark.classList.add('hidden');
         }
     });
+}
+
+function calculateDailyRequirements() {
+    const dailyRateInput = document.getElementById('daily_rate');
+    const calculator = document.getElementById('daily-rate-calculator');
+
+    if (!dailyRateInput) return;
+
+    const dailyRate = parseFloat(dailyRateInput.value) || 0;
+
+    if (dailyRate <= 0) {
+        if (calculator) calculator.classList.add('hidden');
+        return;
+    }
+
+    // Show calculator
+    if (calculator) calculator.classList.remove('hidden');
+
+    // Calculate values (700,000 total budget, estimated 100 topics)
+    const totalBudget = 700000;
+    const estimatedTopics = 100;
+    const maxDays = Math.floor(totalBudget / dailyRate);
+    const topicsPerDay = maxDays > 0 ? Math.ceil(estimatedTopics / maxDays) : 0;
+
+    // Format money
+    const formatMoney = (amount) => 'MK ' + amount.toLocaleString('en-US');
+
+    // Update display
+    document.getElementById('calc-daily-rate-display').textContent = formatMoney(dailyRate);
+    document.getElementById('calc-max-days-display').textContent = maxDays + ' days';
+    document.getElementById('calc-topics-per-day-display').textContent = topicsPerDay + ' per day';
 }
 
 function togglePaymentMethod() {

@@ -107,31 +107,105 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-3">Payment Preference</label>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all {{ ($provider->payment_preference ?? 'monthly') === 'monthly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300' }}">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all {{ ($provider->payment_preference ?? 'bi_weekly') === 'bi_weekly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300' }}">
+                            <input type="radio" name="payment_preference" value="bi_weekly" class="sr-only"
+                                   {{ ($provider->payment_preference ?? 'bi_weekly') === 'bi_weekly' ? 'checked' : '' }}
+                                   onchange="togglePaymentPreference()">
+                            <div class="font-medium text-gray-900">Bi-Weekly</div>
+                            <div class="text-sm text-gray-500">Every 2 weeks</div>
+                        </label>
+                        <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all {{ $provider->payment_preference === 'monthly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300' }}">
                             <input type="radio" name="payment_preference" value="monthly" class="sr-only"
-                                   {{ ($provider->payment_preference ?? 'monthly') === 'monthly' ? 'checked' : '' }}
-                                   onchange="toggleMonthlyAmount()">
-                            <div class="font-medium text-gray-900">Monthly Payments</div>
-                            <div class="text-sm text-gray-500">Receive payments each month</div>
+                                   {{ $provider->payment_preference === 'monthly' ? 'checked' : '' }}
+                                   onchange="togglePaymentPreference()">
+                            <div class="font-medium text-gray-900">Monthly</div>
+                            <div class="text-sm text-gray-500">Each month</div>
+                        </label>
+                        <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all {{ $provider->payment_preference === 'daily' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300' }}">
+                            <input type="radio" name="payment_preference" value="daily" class="sr-only"
+                                   {{ $provider->payment_preference === 'daily' ? 'checked' : '' }}
+                                   onchange="togglePaymentPreference()">
+                            <div class="font-medium text-gray-900">Daily</div>
+                            <div class="text-sm text-gray-500">Per day rate</div>
                         </label>
                         <label class="relative border rounded-lg p-4 cursor-pointer hover:border-indigo-400 transition-all {{ $provider->payment_preference === 'lump_sum' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300' }}">
                             <input type="radio" name="payment_preference" value="lump_sum" class="sr-only"
                                    {{ $provider->payment_preference === 'lump_sum' ? 'checked' : '' }}
-                                   onchange="toggleMonthlyAmount()">
+                                   onchange="togglePaymentPreference()">
                             <div class="font-medium text-gray-900">Lump Sum</div>
-                            <div class="text-sm text-gray-500">Full payment after completion</div>
+                            <div class="text-sm text-gray-500">After completion</div>
                         </label>
                     </div>
                 </div>
 
-                <div id="monthly-amount-field" class="{{ $provider->payment_preference === 'lump_sum' ? 'hidden' : '' }}">
-                    <label for="monthly_amount" class="block text-sm font-medium text-gray-700">Preferred Monthly Amount (MK)</label>
+                <div id="monthly-amount-field" class="{{ in_array($provider->payment_preference, ['lump_sum', 'daily']) ? 'hidden' : '' }}">
+                    <label for="monthly_amount" id="amount-label" class="block text-sm font-medium text-gray-700">Preferred {{ $provider->payment_preference === 'bi_weekly' ? 'Bi-Weekly' : 'Monthly' }} Amount (MK)</label>
                     <input type="number" name="monthly_amount" id="monthly_amount"
                            value="{{ old('monthly_amount', $provider->monthly_amount) }}"
                            placeholder="e.g., 100000"
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    <p class="mt-1 text-xs text-gray-500">How much would you like to receive per month?</p>
+                    <p id="amount-hint" class="mt-1 text-xs text-gray-500">How much would you like to receive {{ $provider->payment_preference === 'bi_weekly' ? 'every 2 weeks' : 'per month' }}?</p>
+                </div>
+
+                <!-- Daily Rate Fields -->
+                <div id="daily-rate-field" class="{{ $provider->payment_preference !== 'daily' ? 'hidden' : '' }}">
+                    <label for="daily_rate" class="block text-sm font-medium text-gray-700">Daily Rate (MK)</label>
+                    <input type="number" name="daily_rate" id="daily_rate"
+                           value="{{ old('daily_rate', $provider->daily_rate) }}"
+                           placeholder="e.g., 40000"
+                           min="1000"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                           onchange="calculateDailyRequirements()">
+                    <p class="mt-1 text-xs text-gray-500">How much do you want to be paid per day?</p>
+
+                    <!-- Daily Rate Calculator Info -->
+                    <div id="daily-rate-info" class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 {{ !$provider->daily_rate ? 'hidden' : '' }}">
+                        <h4 class="font-medium text-amber-800 mb-2">Daily Payment Requirements</h4>
+                        <p class="text-sm text-amber-700 mb-3">
+                            Based on your daily rate, here's what you need to complete to ensure full payment:
+                        </p>
+
+                        @php
+                            $totalTopics = $provider->getTotalTopicsCount() ?: 100; // Default estimate if no topics assigned
+                            $amountPerSubject = $provider->amount_per_subject ?? 350000;
+                            $subjectCount = $provider->assigned_subjects_count ?? 2;
+                            $dailyRate = $provider->daily_rate ?? 40000;
+                            $maxDays = $dailyRate > 0 ? floor(($amountPerSubject * $subjectCount) / $dailyRate) : 0;
+                            $topicsPerDay = $maxDays > 0 ? ceil($totalTopics / $maxDays) : 0;
+                        @endphp
+
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="bg-white rounded p-3">
+                                <span class="text-gray-600 block">Total Budget</span>
+                                <span class="font-bold text-lg text-gray-900" id="calc-total-budget">MK {{ number_format($amountPerSubject * $subjectCount, 2) }}</span>
+                            </div>
+                            <div class="bg-white rounded p-3">
+                                <span class="text-gray-600 block">Your Daily Rate</span>
+                                <span class="font-bold text-lg text-gray-900" id="calc-daily-rate">MK {{ number_format($dailyRate, 2) }}</span>
+                            </div>
+                            <div class="bg-white rounded p-3">
+                                <span class="text-gray-600 block">Max Payable Days</span>
+                                <span class="font-bold text-lg text-indigo-600" id="calc-max-days">{{ $maxDays }} days</span>
+                            </div>
+                            <div class="bg-white rounded p-3">
+                                <span class="text-gray-600 block">Total Topics</span>
+                                <span class="font-bold text-lg text-gray-900" id="calc-total-topics">{{ $totalTopics }} topics</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 bg-indigo-100 rounded-lg p-4 text-center">
+                            <p class="text-indigo-800 font-medium">Required Topics Per Day</p>
+                            <p class="text-3xl font-bold text-indigo-600" id="calc-topics-per-day">{{ $topicsPerDay }}</p>
+                            <p class="text-sm text-indigo-700 mt-1">
+                                You must complete at least <span id="calc-topics-per-day-text">{{ $topicsPerDay }}</span> topic(s) per day to receive your daily payment of <span id="calc-daily-rate-text">MK {{ number_format($dailyRate, 2) }}</span>
+                            </p>
+                        </div>
+
+                        <div class="mt-3 text-xs text-amber-600">
+                            <strong>Note:</strong> This ensures you complete all topics before exhausting your budget. If you don't complete the required topics, payment may be withheld until you catch up.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex justify-end">
@@ -348,12 +422,48 @@
 </div>
 
 <script>
-function toggleMonthlyAmount() {
-    const monthlyOption = document.querySelector('input[name="payment_preference"][value="monthly"]');
-    const monthlyField = document.getElementById('monthly-amount-field');
+// Configuration from server
+const dailyRateConfig = {
+    totalBudget: {{ ($provider->amount_per_subject ?? 350000) * ($provider->assigned_subjects_count ?? 2) }},
+    totalTopics: {{ $provider->getTotalTopicsCount() ?: 100 }},
+    amountPerSubject: {{ $provider->amount_per_subject ?? 350000 }},
+    subjectCount: {{ $provider->assigned_subjects_count ?? 2 }}
+};
 
-    if (monthlyOption && monthlyField) {
-        monthlyField.classList.toggle('hidden', !monthlyOption.checked);
+function togglePaymentPreference() {
+    const biWeeklyOption = document.querySelector('input[name="payment_preference"][value="bi_weekly"]');
+    const monthlyOption = document.querySelector('input[name="payment_preference"][value="monthly"]');
+    const dailyOption = document.querySelector('input[name="payment_preference"][value="daily"]');
+    const lumpSumOption = document.querySelector('input[name="payment_preference"][value="lump_sum"]');
+
+    const amountField = document.getElementById('monthly-amount-field');
+    const dailyRateField = document.getElementById('daily-rate-field');
+    const amountLabel = document.getElementById('amount-label');
+    const amountHint = document.getElementById('amount-hint');
+
+    // Show/hide amount fields based on selection
+    if (amountField) {
+        const showMonthlyAmount = (biWeeklyOption && biWeeklyOption.checked) || (monthlyOption && monthlyOption.checked);
+        amountField.classList.toggle('hidden', !showMonthlyAmount);
+
+        // Update label and hint based on selection
+        if (biWeeklyOption && biWeeklyOption.checked) {
+            if (amountLabel) amountLabel.textContent = 'Preferred Bi-Weekly Amount (MK)';
+            if (amountHint) amountHint.textContent = 'How much would you like to receive every 2 weeks?';
+        } else if (monthlyOption && monthlyOption.checked) {
+            if (amountLabel) amountLabel.textContent = 'Preferred Monthly Amount (MK)';
+            if (amountHint) amountHint.textContent = 'How much would you like to receive per month?';
+        }
+    }
+
+    // Show/hide daily rate field
+    if (dailyRateField) {
+        const showDailyRate = dailyOption && dailyOption.checked;
+        dailyRateField.classList.toggle('hidden', !showDailyRate);
+
+        if (showDailyRate) {
+            calculateDailyRequirements();
+        }
     }
 
     // Update visual selection
@@ -367,6 +477,38 @@ function toggleMonthlyAmount() {
             label.classList.add('border-gray-300');
         }
     });
+}
+
+function calculateDailyRequirements() {
+    const dailyRateInput = document.getElementById('daily_rate');
+    const dailyRateInfo = document.getElementById('daily-rate-info');
+
+    if (!dailyRateInput) return;
+
+    const dailyRate = parseFloat(dailyRateInput.value) || 0;
+
+    if (dailyRate <= 0) {
+        if (dailyRateInfo) dailyRateInfo.classList.add('hidden');
+        return;
+    }
+
+    // Show the info box
+    if (dailyRateInfo) dailyRateInfo.classList.remove('hidden');
+
+    // Calculate values
+    const totalBudget = dailyRateConfig.totalBudget;
+    const totalTopics = dailyRateConfig.totalTopics;
+    const maxDays = Math.floor(totalBudget / dailyRate);
+    const topicsPerDay = maxDays > 0 ? Math.ceil(totalTopics / maxDays) : 0;
+
+    // Update display
+    const formatMoney = (amount) => 'MK ' + amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    document.getElementById('calc-daily-rate').textContent = formatMoney(dailyRate);
+    document.getElementById('calc-max-days').textContent = maxDays + ' days';
+    document.getElementById('calc-topics-per-day').textContent = topicsPerDay;
+    document.getElementById('calc-topics-per-day-text').textContent = topicsPerDay;
+    document.getElementById('calc-daily-rate-text').textContent = formatMoney(dailyRate);
 }
 
 function togglePaymentMethodFields() {
@@ -394,8 +536,14 @@ function togglePaymentMethodFields() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    toggleMonthlyAmount();
+    togglePaymentPreference();
     togglePaymentMethodFields();
+
+    // Add input event listener for real-time calculation
+    const dailyRateInput = document.getElementById('daily_rate');
+    if (dailyRateInput) {
+        dailyRateInput.addEventListener('input', calculateDailyRequirements);
+    }
 });
 </script>
 @endsection

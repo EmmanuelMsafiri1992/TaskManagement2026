@@ -81,8 +81,9 @@ class AuthController extends Controller
             'qualification' => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
             // Payment fields
-            'payment_preference' => 'nullable|in:monthly,lump_sum',
+            'payment_preference' => 'nullable|in:bi_weekly,monthly,lump_sum,daily',
             'monthly_amount' => 'nullable|numeric|min:0',
+            'daily_rate' => 'nullable|numeric|min:1000',
             'payment_method' => 'nullable|in:bank,mobile_money',
             'bank_name' => 'nullable|string|max:255',
             'bank_branch' => 'nullable|string|max:255',
@@ -93,9 +94,26 @@ class AuthController extends Controller
             'mobile_money_name' => 'nullable|string|max:255',
         ]);
 
+        // If daily preference is selected, require daily_rate
+        if (($validated['payment_preference'] ?? null) === 'daily' && empty($validated['daily_rate'])) {
+            return back()->withErrors(['daily_rate' => 'Daily rate is required when selecting daily payment preference.'])->withInput();
+        }
+
+        // Clear daily_rate if not using daily preference
+        if (($validated['payment_preference'] ?? null) !== 'daily') {
+            $validated['daily_rate'] = null;
+        }
+
+        // Clear monthly_amount if using daily or lump_sum preference
+        if (in_array($validated['payment_preference'] ?? null, ['daily', 'lump_sum'])) {
+            $validated['monthly_amount'] = null;
+        }
+
         $validated['password'] = Hash::make($validated['password']);
         $validated['status'] = 'pending';
         $validated['total_agreed_amount'] = 700000.00; // Default contract amount
+        $validated['amount_per_subject'] = 350000.00; // Default per subject (700,000 / 2 subjects)
+        $validated['assigned_subjects_count'] = 2; // Default 2 subjects
 
         $provider = ServiceProvider::create($validated);
 
