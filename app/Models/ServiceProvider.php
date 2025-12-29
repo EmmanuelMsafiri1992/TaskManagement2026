@@ -45,6 +45,9 @@ class ServiceProvider extends Authenticatable
         'mobile_money_number',
         'mobile_money_name',
         'total_paid',
+        'daily_subject_name',
+        'daily_total_topics',
+        'daily_payment_setup_complete',
     ];
 
     protected $hidden = [
@@ -63,6 +66,8 @@ class ServiceProvider extends Authenticatable
         'assigned_subjects_count' => 'integer',
         'total_paid' => 'decimal:2',
         'meta' => 'array',
+        'daily_total_topics' => 'integer',
+        'daily_payment_setup_complete' => 'boolean',
     ];
 
     protected $appends = ['balance_remaining', 'payment_progress_percent', 'daily_payment_info'];
@@ -80,6 +85,36 @@ class ServiceProvider extends Authenticatable
     public function lessonPlans()
     {
         return $this->hasMany(LessonPlan::class);
+    }
+
+    /**
+     * Get all subjects with the daily subject name (across all forms)
+     */
+    public function getDailySubjects()
+    {
+        if (!$this->daily_subject_name) {
+            return collect();
+        }
+
+        return Subject::where('name', $this->daily_subject_name)
+            ->where('is_active', true)
+            ->orderBy('form')
+            ->get();
+    }
+
+    /**
+     * Get total topics count for the daily subject across all forms (1-4)
+     */
+    public function getDailySubjectTotalTopics(): int
+    {
+        if (!$this->daily_subject_name) {
+            return 0;
+        }
+
+        return Topic::whereHas('subject', function ($query) {
+            $query->where('name', $this->daily_subject_name)
+                  ->where('is_active', true);
+        })->where('is_active', true)->count();
     }
 
     public function latestAgreement()

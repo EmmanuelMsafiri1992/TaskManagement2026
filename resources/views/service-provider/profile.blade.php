@@ -14,6 +14,144 @@
     </div>
 @endif
 
+<!-- Daily Payment Setup Modal -->
+<div id="dailyPaymentSetupModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeDailyPaymentModal()"></div>
+
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            Daily Payment Setup
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Please provide the following information to set up your daily payment plan. This will help us calculate how many topics you need to complete per day.
+                        </p>
+
+                        <div class="mt-4 space-y-4">
+                            <!-- Number of Subjects -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">How many subjects will you be teaching?</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="relative border rounded-lg p-3 cursor-pointer hover:border-indigo-400 transition-all border-indigo-500 bg-indigo-50" id="subject-count-1-label">
+                                        <input type="radio" name="modal_subject_count" value="1" class="sr-only" onchange="updateSubjectCount(1)">
+                                        <div class="text-center">
+                                            <div class="font-bold text-lg text-indigo-600">1 Subject</div>
+                                            <div class="text-sm text-gray-600">MK 350,000</div>
+                                        </div>
+                                    </label>
+                                    <label class="relative border rounded-lg p-3 cursor-pointer hover:border-indigo-400 transition-all border-gray-300" id="subject-count-2-label">
+                                        <input type="radio" name="modal_subject_count" value="2" class="sr-only" onchange="updateSubjectCount(2)" checked>
+                                        <div class="text-center">
+                                            <div class="font-bold text-lg text-indigo-600">2 Subjects</div>
+                                            <div class="text-sm text-gray-600">MK 700,000</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Starting Subject -->
+                            <div>
+                                <label for="modal_starting_subject" class="block text-sm font-medium text-gray-700">Subject you are starting with *</label>
+                                <select id="modal_starting_subject" name="modal_starting_subject" required
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        onchange="onSubjectSelected()">
+                                    <option value="">Select Subject</option>
+                                    @foreach($subjects as $subject)
+                                        <option value="{{ $subject['name'] }}" data-topics="{{ $subject['total_topics'] }}">
+                                            {{ $subject['name'] }} (Forms 1-4) - {{ $subject['total_topics'] }} topics
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">This covers all topics for the subject across Forms 1 to 4</p>
+                            </div>
+
+                            <!-- Total Topics -->
+                            <div>
+                                <label for="modal_total_topics" class="block text-sm font-medium text-gray-700">Total topics according to syllabus *</label>
+                                <input type="number" id="modal_total_topics" name="modal_total_topics" min="1" required
+                                       placeholder="Auto-filled from selected subject"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                       oninput="calculateModalRequirements()">
+                                <p class="mt-1 text-xs text-gray-500">This is auto-filled when you select a subject. You can adjust if your syllabus differs.</p>
+                            </div>
+
+                            <!-- Calculation Result -->
+                            <div id="modal-calculation-result" class="hidden bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+                                <h4 class="font-medium text-indigo-800 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Your Daily Requirements
+                                </h4>
+
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                                        <span class="text-xs text-gray-500 block">Total Budget</span>
+                                        <span class="font-bold text-lg text-gray-900" id="modal-total-budget">MK 700,000.00</span>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                                        <span class="text-xs text-gray-500 block">Your Daily Rate</span>
+                                        <span class="font-bold text-lg text-gray-900" id="modal-daily-rate">MK 0.00</span>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                                        <span class="text-xs text-gray-500 block">Max Payable Days</span>
+                                        <span class="font-bold text-lg text-indigo-600" id="modal-max-days">0 days</span>
+                                    </div>
+                                    <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                                        <span class="text-xs text-gray-500 block">Total Topics</span>
+                                        <span class="font-bold text-lg text-gray-900" id="modal-total-topics">0 topics</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-indigo-100 rounded-lg p-4 text-center">
+                                    <p class="text-indigo-800 font-medium text-sm">Topics You Must Complete Per Day</p>
+                                    <p class="text-4xl font-bold text-indigo-600 my-2" id="modal-topics-per-day">0</p>
+                                    <p class="text-sm text-indigo-700" id="modal-summary-text">
+                                        Complete at least <span id="modal-topics-count">0</span> topic(s) per day to receive your daily payment
+                                    </p>
+                                </div>
+
+                                <div class="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    <p class="text-xs text-amber-700 mb-2">
+                                        <strong>How it works:</strong>
+                                    </p>
+                                    <ul class="text-xs text-amber-700 list-disc list-inside space-y-1">
+                                        <li>Your budget covers all topics for this subject (Forms 1-4)</li>
+                                        <li>Max Payable Days = Total Budget / Daily Rate</li>
+                                        <li>Topics Per Day = Total Topics / Max Payable Days</li>
+                                        <li>Complete the required topics each day to receive your daily payment</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="saveDailySetupBtn" onclick="saveDailyPaymentSetup()"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                    Save & Continue
+                </button>
+                <button type="button" onclick="closeDailyPaymentModal()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Profile Form -->
     <div class="lg:col-span-2 space-y-6">
@@ -99,9 +237,9 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="font-medium text-indigo-800">Contract Amount</h3>
-                            <p class="text-sm text-indigo-600">Your total agreed contract value</p>
+                            <p class="text-sm text-indigo-600">Your total agreed contract value ({{ $provider->assigned_subjects_count ?? 1 }} subject{{ ($provider->assigned_subjects_count ?? 1) > 1 ? 's' : '' }})</p>
                         </div>
-                        <div class="text-2xl font-bold text-indigo-600">MK {{ number_format($provider->total_agreed_amount ?? 700000, 2) }}</div>
+                        <div class="text-2xl font-bold text-indigo-600" id="contract-amount-display">MK {{ number_format($provider->total_agreed_amount ?? 350000, 2) }}</div>
                     </div>
                 </div>
 
@@ -162,23 +300,42 @@
                     <!-- Daily Rate Calculator Info -->
                     <div id="daily-rate-info" class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 {{ !$provider->daily_rate ? 'hidden' : '' }}">
                         <h4 class="font-medium text-amber-800 mb-2">Daily Payment Requirements</h4>
+
+                        @if($provider->daily_payment_setup_complete && $provider->daily_subject_name)
+                        <div class="mb-3 bg-white rounded-lg p-3 border border-amber-100">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-600">Subject:</span>
+                                <span class="font-medium text-gray-900">{{ $provider->daily_subject_name }} (Forms 1-4)</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm mt-1">
+                                <span class="text-gray-600">Number of Subjects:</span>
+                                <span class="font-medium text-gray-900">{{ $provider->assigned_subjects_count }} subject(s) @ MK 350,000 each</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm mt-1">
+                                <span class="text-gray-600">Total Topics (Syllabus):</span>
+                                <span class="font-medium text-gray-900">{{ $provider->daily_total_topics }} topics</span>
+                            </div>
+                        </div>
+                        @endif
+
                         <p class="text-sm text-amber-700 mb-3">
                             Based on your daily rate, here's what you need to complete to ensure full payment:
                         </p>
 
                         @php
-                            $totalTopics = $provider->getTotalTopicsCount() ?: 100; // Default estimate if no topics assigned
+                            $totalTopics = $provider->daily_total_topics ?? ($provider->getTotalTopicsCount() ?: 100);
                             $amountPerSubject = $provider->amount_per_subject ?? 350000;
-                            $subjectCount = $provider->assigned_subjects_count ?? 2;
+                            $subjectCount = $provider->assigned_subjects_count ?? 1;
                             $dailyRate = $provider->daily_rate ?? 40000;
-                            $maxDays = $dailyRate > 0 ? floor(($amountPerSubject * $subjectCount) / $dailyRate) : 0;
+                            $totalBudget = $amountPerSubject * $subjectCount;
+                            $maxDays = $dailyRate > 0 ? floor($totalBudget / $dailyRate) : 0;
                             $topicsPerDay = $maxDays > 0 ? ceil($totalTopics / $maxDays) : 0;
                         @endphp
 
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div class="bg-white rounded p-3">
                                 <span class="text-gray-600 block">Total Budget</span>
-                                <span class="font-bold text-lg text-gray-900" id="calc-total-budget">MK {{ number_format($amountPerSubject * $subjectCount, 2) }}</span>
+                                <span class="font-bold text-lg text-gray-900" id="calc-total-budget">MK {{ number_format($totalBudget, 2) }}</span>
                             </div>
                             <div class="bg-white rounded p-3">
                                 <span class="text-gray-600 block">Your Daily Rate</span>
@@ -204,6 +361,16 @@
 
                         <div class="mt-3 text-xs text-amber-600">
                             <strong>Note:</strong> This ensures you complete all topics before exhausting your budget. If you don't complete the required topics, payment may be withheld until you catch up.
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-amber-200">
+                            <button type="button" onclick="openDailyPaymentModal()"
+                                    class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Update Subject & Topics Setup
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -424,11 +591,174 @@
 <script>
 // Configuration from server
 const dailyRateConfig = {
-    totalBudget: {{ ($provider->amount_per_subject ?? 350000) * ($provider->assigned_subjects_count ?? 2) }},
-    totalTopics: {{ $provider->getTotalTopicsCount() ?: 100 }},
+    totalBudget: {{ ($provider->amount_per_subject ?? 350000) * ($provider->assigned_subjects_count ?? 1) }},
+    totalTopics: {{ $provider->daily_total_topics ?? ($provider->getTotalTopicsCount() ?: 100) }},
     amountPerSubject: {{ $provider->amount_per_subject ?? 350000 }},
-    subjectCount: {{ $provider->assigned_subjects_count ?? 2 }}
+    subjectCount: {{ $provider->assigned_subjects_count ?? 1 }},
+    dailyPaymentSetupComplete: {{ $provider->daily_payment_setup_complete ? 'true' : 'false' }},
+    currentDailyRate: {{ $provider->daily_rate ?? 0 }}
 };
+
+// Modal state
+let modalSubjectCount = 1;
+
+function openDailyPaymentModal() {
+    document.getElementById('dailyPaymentSetupModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    // Reset form with saved values
+    document.getElementById('modal_starting_subject').value = '{{ $provider->daily_subject_name ?? '' }}';
+    document.getElementById('modal_total_topics').value = '{{ $provider->daily_total_topics ?? '' }}';
+    updateSubjectCount({{ $provider->assigned_subjects_count ?? 1 }});
+    calculateModalRequirements();
+}
+
+function onSubjectSelected() {
+    const subjectSelect = document.getElementById('modal_starting_subject');
+    const topicsInput = document.getElementById('modal_total_topics');
+    const selectedOption = subjectSelect.options[subjectSelect.selectedIndex];
+
+    if (selectedOption && selectedOption.dataset.topics) {
+        // Auto-populate total topics from the subject's actual topic count
+        const totalTopics = parseInt(selectedOption.dataset.topics) || 0;
+        topicsInput.value = totalTopics;
+        topicsInput.placeholder = `${totalTopics} topics from syllabus`;
+    }
+
+    calculateModalRequirements();
+}
+
+function closeDailyPaymentModal() {
+    document.getElementById('dailyPaymentSetupModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+function updateSubjectCount(count) {
+    modalSubjectCount = count;
+
+    // Update visual selection
+    const label1 = document.getElementById('subject-count-1-label');
+    const label2 = document.getElementById('subject-count-2-label');
+
+    if (count === 1) {
+        label1.classList.add('border-indigo-500', 'bg-indigo-50');
+        label1.classList.remove('border-gray-300');
+        label2.classList.remove('border-indigo-500', 'bg-indigo-50');
+        label2.classList.add('border-gray-300');
+        document.querySelector('input[name="modal_subject_count"][value="1"]').checked = true;
+    } else {
+        label2.classList.add('border-indigo-500', 'bg-indigo-50');
+        label2.classList.remove('border-gray-300');
+        label1.classList.remove('border-indigo-500', 'bg-indigo-50');
+        label1.classList.add('border-gray-300');
+        document.querySelector('input[name="modal_subject_count"][value="2"]').checked = true;
+    }
+
+    calculateModalRequirements();
+}
+
+function calculateModalRequirements() {
+    const subjectSelect = document.getElementById('modal_starting_subject');
+    const topicsInput = document.getElementById('modal_total_topics');
+    const resultDiv = document.getElementById('modal-calculation-result');
+    const saveBtn = document.getElementById('saveDailySetupBtn');
+
+    const subjectId = subjectSelect.value;
+    const totalTopics = parseInt(topicsInput.value) || 0;
+    const dailyRate = parseFloat(document.getElementById('daily_rate')?.value) || dailyRateConfig.currentDailyRate || 40000;
+
+    // Enable save button if both fields are filled
+    if (subjectId && totalTopics > 0) {
+        saveBtn.disabled = false;
+    } else {
+        saveBtn.disabled = true;
+        resultDiv.classList.add('hidden');
+        return;
+    }
+
+    // Calculate values
+    const amountPerSubject = 350000;
+    const totalBudget = amountPerSubject * modalSubjectCount;
+    const maxDays = dailyRate > 0 ? Math.floor(totalBudget / dailyRate) : 0;
+    const topicsPerDay = maxDays > 0 ? Math.ceil(totalTopics / maxDays) : 0;
+
+    // Format money
+    const formatMoney = (amount) => 'MK ' + amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+    // Update display
+    document.getElementById('modal-total-budget').textContent = formatMoney(totalBudget);
+    document.getElementById('modal-daily-rate').textContent = formatMoney(dailyRate);
+    document.getElementById('modal-max-days').textContent = maxDays + ' days';
+    document.getElementById('modal-total-topics').textContent = totalTopics + ' topics';
+    document.getElementById('modal-topics-per-day').textContent = topicsPerDay;
+    document.getElementById('modal-topics-count').textContent = topicsPerDay;
+
+    // Show result
+    resultDiv.classList.remove('hidden');
+}
+
+async function saveDailyPaymentSetup() {
+    const subjectName = document.getElementById('modal_starting_subject').value;
+    const totalTopics = document.getElementById('modal_total_topics').value;
+    const saveBtn = document.getElementById('saveDailySetupBtn');
+
+    if (!subjectName || !totalTopics) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+        const response = await fetch('{{ route("service-provider.daily-payment-setup") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                daily_subject_name: subjectName,
+                daily_total_topics: parseInt(totalTopics),
+                assigned_subjects_count: modalSubjectCount
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update the config
+            dailyRateConfig.totalBudget = data.data.total_amount;
+            dailyRateConfig.totalTopics = parseInt(totalTopics);
+            dailyRateConfig.subjectCount = modalSubjectCount;
+            dailyRateConfig.dailyPaymentSetupComplete = true;
+
+            // Update the page display
+            document.getElementById('calc-total-budget').textContent = 'MK ' + data.data.total_amount.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('calc-total-topics').textContent = totalTopics + ' topics';
+
+            // Recalculate daily requirements
+            calculateDailyRequirements();
+
+            // Close modal
+            closeDailyPaymentModal();
+
+            // Show success message
+            alert('Daily payment setup saved successfully!\n\nSubject: ' + data.data.subject_name + ' (Forms 1-4)\nTotal Topics: ' + totalTopics + '\nTopics Per Day Required: ' + data.data.topics_per_day);
+
+            // Reload page to reflect changes
+            window.location.reload();
+        } else {
+            alert('Error saving setup: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving setup. Please try again.');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save & Continue';
+    }
+}
 
 function togglePaymentPreference() {
     const biWeeklyOption = document.querySelector('input[name="payment_preference"][value="bi_weekly"]');
@@ -456,13 +786,21 @@ function togglePaymentPreference() {
         }
     }
 
-    // Show/hide daily rate field
+    // Show/hide daily rate field and show modal if daily is selected and setup not complete
     if (dailyRateField) {
         const showDailyRate = dailyOption && dailyOption.checked;
         dailyRateField.classList.toggle('hidden', !showDailyRate);
 
         if (showDailyRate) {
             calculateDailyRequirements();
+
+            // Show modal if setup is not complete
+            if (!dailyRateConfig.dailyPaymentSetupComplete) {
+                // Small delay to let the UI update first
+                setTimeout(() => {
+                    openDailyPaymentModal();
+                }, 100);
+            }
         }
     }
 
@@ -495,7 +833,7 @@ function calculateDailyRequirements() {
     // Show the info box
     if (dailyRateInfo) dailyRateInfo.classList.remove('hidden');
 
-    // Calculate values
+    // Calculate values using the config (which gets updated when modal saves)
     const totalBudget = dailyRateConfig.totalBudget;
     const totalTopics = dailyRateConfig.totalTopics;
     const maxDays = Math.floor(totalBudget / dailyRate);
@@ -504,11 +842,16 @@ function calculateDailyRequirements() {
     // Update display
     const formatMoney = (amount) => 'MK ' + amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
+    document.getElementById('calc-total-budget').textContent = formatMoney(totalBudget);
     document.getElementById('calc-daily-rate').textContent = formatMoney(dailyRate);
     document.getElementById('calc-max-days').textContent = maxDays + ' days';
+    document.getElementById('calc-total-topics').textContent = totalTopics + ' topics';
     document.getElementById('calc-topics-per-day').textContent = topicsPerDay;
     document.getElementById('calc-topics-per-day-text').textContent = topicsPerDay;
     document.getElementById('calc-daily-rate-text').textContent = formatMoney(dailyRate);
+
+    // Update the config with current daily rate
+    dailyRateConfig.currentDailyRate = dailyRate;
 }
 
 function togglePaymentMethodFields() {

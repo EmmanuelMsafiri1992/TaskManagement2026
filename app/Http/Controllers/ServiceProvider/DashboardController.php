@@ -4,6 +4,7 @@ namespace App\Http\Controllers\ServiceProvider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,7 +43,27 @@ class DashboardController extends Controller
     {
         $provider = Auth::guard('service_provider')->user();
 
-        return view('service-provider.profile', compact('provider'));
+        // Get distinct subject names with total topics count across all forms
+        $subjectNames = Subject::where('is_active', true)
+            ->select('name')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
+
+        // Calculate total topics for each subject name across all forms
+        $subjects = $subjectNames->map(function ($name) {
+            $totalTopics = Topic::whereHas('subject', function ($query) use ($name) {
+                $query->where('name', $name)->where('is_active', true);
+            })->where('is_active', true)->count();
+
+            return [
+                'name' => $name,
+                'total_topics' => $totalTopics,
+                'forms' => '1-4',
+            ];
+        });
+
+        return view('service-provider.profile', compact('provider', 'subjects'));
     }
 
     public function updateProfile(Request $request)
@@ -101,6 +122,60 @@ class DashboardController extends Controller
         }
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function saveDailyPaymentSetup(Request $request)
+    {
+        $provider = Auth::guard('service_provider')->user();
+
+        $validated = $request->validate([
+            'daily_subject_name' => 'required|string|max:255',
+            'daily_total_topics' => 'required|integer|min:1',
+            'assigned_subjects_count' => 'required|integer|in:1,2',
+        ]);
+
+        // Verify the subject name exists
+        $subjectExists = Subject::where('name', $validated['daily_subject_name'])
+            ->where('is_active', true)
+            ->exists();
+
+        if (!$subjectExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid subject name selected'
+            ], 422);
+        }
+
+        // Calculate amount based on number of subjects (350k per subject)
+        $amountPerSubject = 350000;
+        $totalAmount = $amountPerSubject * $validated['assigned_subjects_count'];
+
+        $provider->update([
+            'daily_subject_name' => $validated['daily_subject_name'],
+            'daily_total_topics' => $validated['daily_total_topics'],
+            'assigned_subjects_count' => $validated['assigned_subjects_count'],
+            'amount_per_subject' => $amountPerSubject,
+            'total_agreed_amount' => $totalAmount,
+            'daily_payment_setup_complete' => true,
+        ]);
+
+        // Calculate topics per day
+        $dailyRate = $provider->daily_rate ?? 40000;
+        $maxDays = $dailyRate > 0 ? floor($totalAmount / $dailyRate) : 0;
+        $topicsPerDay = $maxDays > 0 ? ceil($validated['daily_total_topics'] / $maxDays) : 0;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daily payment setup saved successfully',
+            'data' => [
+                'subject_name' => $validated['daily_subject_name'],
+                'total_amount' => $totalAmount,
+                'amount_per_subject' => $amountPerSubject,
+                'max_days' => $maxDays,
+                'topics_per_day' => $topicsPerDay,
+                'daily_rate' => $dailyRate,
+            ]
+        ]);
     }
 
     public function updatePaymentMethod(Request $request)

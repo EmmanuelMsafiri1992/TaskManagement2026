@@ -62,6 +62,7 @@ Route::middleware('auth:service_provider')->group(function () {
         // Payment Settings
         Route::put('payment-settings', [DashboardController::class, 'updatePaymentSettings'])->name('service-provider.payment-settings');
         Route::put('payment-method', [DashboardController::class, 'updatePaymentMethod'])->name('service-provider.payment-method');
+        Route::post('daily-payment-setup', [DashboardController::class, 'saveDailyPaymentSetup'])->name('service-provider.daily-payment-setup');
 
         // Payments History
         Route::get('payments', [DashboardController::class, 'payments'])->name('service-provider.payments');
