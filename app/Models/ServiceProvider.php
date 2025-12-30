@@ -48,6 +48,8 @@ class ServiceProvider extends Authenticatable
         'daily_subject_name',
         'daily_total_topics',
         'daily_payment_setup_complete',
+        'syllabus_commitment_acknowledged',
+        'syllabus_commitment_acknowledged_at',
     ];
 
     protected $hidden = [
@@ -68,6 +70,8 @@ class ServiceProvider extends Authenticatable
         'meta' => 'array',
         'daily_total_topics' => 'integer',
         'daily_payment_setup_complete' => 'boolean',
+        'syllabus_commitment_acknowledged' => 'boolean',
+        'syllabus_commitment_acknowledged_at' => 'datetime',
     ];
 
     protected $appends = ['balance_remaining', 'payment_progress_percent', 'daily_payment_info'];

@@ -70,6 +70,9 @@ Route::middleware('auth:service_provider')->group(function () {
         // Agreement Download
         Route::get('download-agreement', [DashboardController::class, 'downloadAgreement'])->name('service-provider.download-agreement');
 
+        // Syllabus Commitment Acknowledgment
+        Route::post('acknowledge-syllabus-commitment', [DashboardController::class, 'acknowledgeSyllabusCommitment'])->name('service-provider.acknowledge-syllabus-commitment');
+
         // API endpoints for Vue components
         Route::prefix('api')->group(function () {
             Route::get('subjects', [DashboardController::class, 'subjects']);

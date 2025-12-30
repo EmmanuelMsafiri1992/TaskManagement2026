@@ -225,6 +225,25 @@ class DashboardController extends Controller
         return $pdf->download("my-agreement-{$provider->name}.pdf");
     }
 
+    public function acknowledgeSyllabusCommitment(Request $request)
+    {
+        $provider = Auth::guard('service_provider')->user();
+
+        $request->validate([
+            'acknowledge' => 'required|accepted',
+        ], [
+            'acknowledge.required' => 'You must check the acknowledgment checkbox.',
+            'acknowledge.accepted' => 'You must acknowledge your commitment to complete the entire syllabus.',
+        ]);
+
+        $provider->update([
+            'syllabus_commitment_acknowledged' => true,
+            'syllabus_commitment_acknowledged_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Thank you for acknowledging your commitment to complete the entire syllabus for each assigned subject.');
+    }
+
     public function payments()
     {
         $provider = Auth::guard('service_provider')->user();

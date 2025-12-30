@@ -201,6 +201,11 @@
         <li>Participating in quality review sessions when required</li>
     </ul>
 
+    <div class="highlight-box" style="background: #FEF3C7; border-left-color: #D97706;">
+        <h3 style="color: #92400E; margin-top: 0;">1.1 Full Syllabus Completion Commitment</h3>
+        <p style="margin-bottom: 0;"><strong>The Service Provider expressly commits to completing the ENTIRE syllabus for each subject assigned.</strong> This includes recording all topics, lessons, and learning objectives as defined in the Malawian Secondary School curriculum. Partial completion of any assigned subject is not acceptable. The Service Provider acknowledges that signing this agreement constitutes a binding commitment to deliver complete curriculum coverage for all assigned subjects.</p>
+    </div>
+
     <h2>2. Compensation</h2>
     <div class="highlight-box">
         <table class="payment-table">

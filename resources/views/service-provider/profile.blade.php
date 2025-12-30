@@ -577,6 +577,63 @@
         </div>
         @endif
 
+        <!-- Syllabus Commitment Acknowledgment -->
+        @if($provider->agreement_signed)
+        <div class="bg-white rounded-lg shadow p-6 {{ !$provider->syllabus_commitment_acknowledged ? 'ring-2 ring-amber-400' : '' }}">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                @if($provider->syllabus_commitment_acknowledged)
+                    <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                @else
+                    <svg class="w-5 h-5 text-amber-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                @endif
+                Syllabus Commitment
+            </h2>
+
+            @if($provider->syllabus_commitment_acknowledged)
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <p class="text-sm text-green-800 font-medium mb-2">Commitment Acknowledged</p>
+                    <p class="text-sm text-green-700">
+                        You have acknowledged your commitment to complete the entire syllabus for each subject assigned to you.
+                    </p>
+                    @if($provider->syllabus_commitment_acknowledged_at)
+                        <p class="text-xs text-green-600 mt-2">
+                            Acknowledged on: {{ $provider->syllabus_commitment_acknowledged_at->format('M j, Y \a\t g:i A') }}
+                        </p>
+                    @endif
+                </div>
+            @else
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-amber-800 font-medium mb-2">Action Required</p>
+                    <p class="text-sm text-amber-700">
+                        Please acknowledge your commitment to completing the <strong>entire syllabus</strong> for each subject assigned to you. This means covering all topics and lessons in full - no partial completion.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('service-provider.acknowledge-syllabus-commitment') }}">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="flex items-start cursor-pointer">
+                            <input type="checkbox" name="acknowledge" id="acknowledge_commitment" required
+                                   class="mt-1 h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <span class="ml-3 text-sm text-gray-700">
+                                I understand and commit to completing the <strong class="text-gray-900">entire syllabus</strong> for each subject assigned to me, covering all topics and lessons in full. I acknowledge that partial completion is not acceptable.
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium transition-colors">
+                        Acknowledge Commitment
+                    </button>
+                </form>
+            @endif
+        </div>
+        @endif
+
         @if($provider->status === 'pending')
             <div class="bg-yellow-50 rounded-lg shadow p-6">
                 <h3 class="text-lg font-medium text-yellow-800 mb-2">Account Pending</h3>
