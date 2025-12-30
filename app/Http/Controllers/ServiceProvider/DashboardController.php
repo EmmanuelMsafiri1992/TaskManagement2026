@@ -43,18 +43,20 @@ class DashboardController extends Controller
     {
         $provider = Auth::guard('service_provider')->user();
 
-        // Get distinct subject names with total topics count across all forms
-        $subjectNames = Subject::where('is_active', true)
-            ->select('name')
-            ->distinct()
-            ->orderBy('name')
-            ->pluck('name');
+        // Get all active subjects grouped by name with total topics count
+        $allSubjects = Subject::where('is_active', true)->get();
 
-        // Calculate total topics for each subject name across all forms
-        $subjects = $subjectNames->map(function ($name) {
-            $totalTopics = Topic::whereHas('subject', function ($query) use ($name) {
-                $query->where('name', $name)->where('is_active', true);
-            })->where('is_active', true)->count();
+        // Group by name and calculate totals
+        $subjectNames = $allSubjects->pluck('name')->unique()->sort()->values();
+
+        $subjects = $subjectNames->map(function ($name) use ($allSubjects) {
+            // Get all subject IDs with this name
+            $subjectIds = $allSubjects->where('name', $name)->pluck('id');
+
+            // Count topics for these subjects
+            $totalTopics = Topic::whereIn('subject_id', $subjectIds)
+                ->where('is_active', true)
+                ->count();
 
             return [
                 'name' => $name,
