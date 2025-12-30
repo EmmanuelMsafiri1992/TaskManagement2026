@@ -314,7 +314,7 @@ onMounted(() => {
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white rounded-lg shadow overflow-visible">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -376,7 +376,7 @@ onMounted(() => {
                 <MenuButton class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
                   <EllipsisVerticalIcon class="w-5 h-5" />
                 </MenuButton>
-                <MenuItems class="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                <MenuItems class="absolute right-0 mt-2 w-48 origin-top-right bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                   <div class="py-1">
                     <MenuItem v-slot="{ active }">
                       <button
