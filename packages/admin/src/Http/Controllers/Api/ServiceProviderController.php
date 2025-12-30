@@ -7,7 +7,9 @@ use App\Models\ServiceProviderAgreement;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 
 class ServiceProviderController extends Controller
 {
@@ -306,6 +308,58 @@ class ServiceProviderController extends Controller
             'payment_method' => $serviceProvider->payment_method,
             'payment_details' => $serviceProvider->payment_details,
             'payments_count' => $serviceProvider->payments()->where('status', 'completed')->count(),
+        ]);
+    }
+
+    public function impersonate(ServiceProvider $serviceProvider)
+    {
+        // Store the admin user ID in session so we can return later
+        $adminUser = Auth::user();
+
+        if (!$adminUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be logged in as admin to impersonate',
+            ], 403);
+        }
+
+        // Store admin info in session for later return
+        Session::put('impersonating_service_provider', true);
+        Session::put('impersonator_admin_id', $adminUser->id);
+        Session::put('impersonator_admin_name', $adminUser->name);
+
+        // Log in as the service provider
+        Auth::guard('service_provider')->login($serviceProvider);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Now impersonating ' . $serviceProvider->name,
+            'redirect_url' => '/service-provider/dashboard',
+        ]);
+    }
+
+    public function stopImpersonating()
+    {
+        if (!Session::has('impersonating_service_provider')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not currently impersonating anyone',
+            ], 400);
+        }
+
+        // Log out from service provider
+        Auth::guard('service_provider')->logout();
+
+        // Clear impersonation session data
+        $adminId = Session::get('impersonator_admin_id');
+        Session::forget('impersonating_service_provider');
+        Session::forget('impersonator_admin_id');
+        Session::forget('impersonator_admin_name');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Stopped impersonating',
+            'redirect_url' => '/admin/service-providers',
         ]);
     }
 }

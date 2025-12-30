@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { ArrowLeftIcon, DocumentArrowDownIcon, PlusIcon, CheckCircleIcon, BanknotesIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftIcon, DocumentArrowDownIcon, PlusIcon, CheckCircleIcon, BanknotesIcon, EyeIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
@@ -121,6 +121,28 @@ const signAgreement = async () => {
   }
 }
 
+const impersonating = ref(false)
+
+const impersonateProvider = async () => {
+  if (!confirm(`Are you sure you want to impersonate ${provider.value?.name}? You will be logged in as this service provider.`)) {
+    return
+  }
+
+  impersonating.value = true
+  try {
+    const response = await axios.post(`/api/service-providers/${provider.value?.id}/impersonate`)
+    if (response.data.success) {
+      // Redirect to the service provider dashboard
+      window.location.href = response.data.redirect_url
+    }
+  } catch (error) {
+    console.error('Error impersonating provider:', error)
+    alert('Failed to impersonate service provider')
+  } finally {
+    impersonating.value = false
+  }
+}
+
 const resetPaymentForm = () => {
   paymentForm.value = {
     amount: provider.value?.monthly_amount?.toString() || '',
@@ -171,6 +193,14 @@ onMounted(() => {
         </div>
       </div>
       <div class="flex space-x-3" v-if="provider">
+        <button
+          @click="impersonateProvider"
+          :disabled="impersonating"
+          class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
+        >
+          <EyeIcon class="w-5 h-5 mr-2" />
+          {{ impersonating ? 'Switching...' : 'View as Provider' }}
+        </button>
         <button
           @click="downloadAgreement"
           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"

@@ -12,6 +12,57 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <!-- Impersonation Banner -->
+    @if(session('impersonating_service_provider'))
+    <div class="bg-amber-500 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <span class="font-medium">
+                        You are viewing as: <strong>{{ Auth::guard('service_provider')->user()->name }}</strong>
+                        @if(session('impersonator_admin_name'))
+                            (Logged in as {{ session('impersonator_admin_name') }})
+                        @endif
+                    </span>
+                </div>
+                <button onclick="stopImpersonating()" class="inline-flex items-center px-3 py-1 bg-white text-amber-600 rounded-md text-sm font-medium hover:bg-amber-50 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+                    </svg>
+                    Return to Admin
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function stopImpersonating() {
+            try {
+                const response = await fetch('/api/service-providers/stop-impersonating', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert('Failed to stop impersonating: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to stop impersonating');
+            }
+        }
+    </script>
+    @endif
+
     <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

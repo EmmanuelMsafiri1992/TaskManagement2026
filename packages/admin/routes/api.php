@@ -278,6 +278,7 @@ Route::prefix('audit-trails')->group(function () {
 // Service Providers Routes
 Route::prefix('service-providers')->group(function () {
     Route::get('statistics', [ServiceProviderController::class, 'statistics']);
+    Route::post('stop-impersonating', [ServiceProviderController::class, 'stopImpersonating']);
     Route::get('{serviceProvider}/recording-sessions', [ServiceProviderController::class, 'recordingSessions']);
     Route::get('{serviceProvider}/lesson-plans', [ServiceProviderController::class, 'lessonPlans']);
     Route::get('{serviceProvider}/payments', [ServiceProviderController::class, 'payments']);
@@ -286,6 +287,7 @@ Route::prefix('service-providers')->group(function () {
     Route::post('{serviceProvider}/activate', [ServiceProviderController::class, 'activate']);
     Route::post('{serviceProvider}/suspend', [ServiceProviderController::class, 'suspend']);
     Route::post('{serviceProvider}/sign-agreement', [ServiceProviderController::class, 'signAgreement']);
+    Route::post('{serviceProvider}/impersonate', [ServiceProviderController::class, 'impersonate']);
 });
 Route::resource('service-providers', ServiceProviderController::class);
 
