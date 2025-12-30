@@ -65,12 +65,14 @@
                                 <select id="modal_starting_subject" name="modal_starting_subject" required
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                                         onchange="onSubjectSelected()">
-                                    <option value="">Select Subject</option>
-                                    @foreach($subjects as $subject)
+                                    <option value="">Select Subject ({{ count($subjects) }} available)</option>
+                                    @forelse($subjects as $subject)
                                         <option value="{{ $subject['name'] }}" data-topics="{{ $subject['total_topics'] }}">
                                             {{ $subject['name'] }} (Forms 1-4) - {{ $subject['total_topics'] }} topics
                                         </option>
-                                    @endforeach
+                                    @empty
+                                        <option value="" disabled>No subjects found in database</option>
+                                    @endforelse
                                 </select>
                                 <p class="mt-1 text-xs text-gray-500">This covers all topics for the subject across Forms 1 to 4</p>
                             </div>
