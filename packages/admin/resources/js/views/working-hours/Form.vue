@@ -1,8 +1,13 @@
 <template>
-  <FormBase :external-form="form" @submit="submit" @cancel="emit('close')">
-    <template #title>
-      {{ form.id ? __('Edit Working Hours') : __('Assign Working Hours') }}
-    </template>
+  <div>
+    <!-- Title Header -->
+    <div class="border-b border-gray-200 px-6 py-4">
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ form.id ? __('Edit Working Hours') : __('Assign Working Hours') }}
+      </h2>
+    </div>
+
+    <div class="px-6 py-4">
 
     <div class="space-y-6">
       <!-- User Selection -->
@@ -221,13 +226,40 @@
         </div>
       </div>
     </div>
-  </FormBase>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="flex justify-end rounded-b-lg bg-gray-50 py-5 px-6">
+      <button
+        type="button"
+        class="mr-3 rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        :disabled="form.processing?.value"
+        @click="emit('close')"
+      >
+        {{ __('Cancel') }}
+      </button>
+
+      <button
+        type="button"
+        class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+        :disabled="form.processing?.value"
+        @click="submit"
+      >
+        <svg v-if="form.processing?.value" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ form.id ? __('Update') : __('Assign') }}
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import FormBase from '@/thetheme/components/FormBase.vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useForm } from '@/composables/useForm'
+
+const __ = inject('__')
 
 const props = defineProps({
   modelValue: {
