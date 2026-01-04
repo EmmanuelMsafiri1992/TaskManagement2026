@@ -17,6 +17,16 @@ interface InactivityReport {
   detected_at: string
 }
 
+interface ActivitySettings {
+  enabled: boolean
+  exception_urls: string[]
+  same_page_threshold: number
+  inactivity_threshold: number
+  heartbeat_interval: number
+  lunch_start: string
+  lunch_end: string
+}
+
 interface ActivityTrackerOptions {
   heartbeatInterval?: number // in milliseconds
   inactivityThreshold?: number // in milliseconds
@@ -25,8 +35,6 @@ interface ActivityTrackerOptions {
 
 export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   const {
-    heartbeatInterval = 60000, // 1 minute
-    inactivityThreshold = 300000, // 5 minutes (for local detection)
     checkPendingInterval = 30000, // 30 seconds
   } = options
 
@@ -40,6 +48,8 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   const showInactivityModal = ref(false)
   const currentReport = ref<InactivityReport | null>(null)
   const isInitialized = ref(false)
+  const settings = ref<ActivitySettings | null>(null)
+  const isMonitoringEnabled = ref(true)
 
   // Timers
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
@@ -59,8 +69,41 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    */
   function getPageInfo() {
     return {
-      page_url: window.location.pathname + window.location.search,
+      page_url: window.location.href,
       page_title: document.title,
+    }
+  }
+
+  /**
+   * Check if current URL is an exception URL (company pages).
+   */
+  function isExceptionUrl(): boolean {
+    if (!settings.value?.exception_urls) return false
+
+    const currentHost = window.location.hostname.replace(/^www\./, '')
+
+    return settings.value.exception_urls.some((url) => {
+      try {
+        const exceptionHost = new URL(url).hostname.replace(/^www\./, '')
+        return currentHost === exceptionHost
+      } catch {
+        return false
+      }
+    })
+  }
+
+  /**
+   * Fetch activity monitoring settings.
+   */
+  async function fetchSettings() {
+    try {
+      const response = await axios.get('activity/settings')
+      settings.value = response.data
+      isMonitoringEnabled.value = response.data.enabled ?? true
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch activity settings:', error)
+      return null
     }
   }
 
@@ -69,6 +112,23 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    */
   async function startSession() {
     try {
+      // First fetch settings
+      await fetchSettings()
+
+      // If monitoring is disabled, don't start tracking
+      if (!isMonitoringEnabled.value) {
+        console.log('Activity monitoring is disabled')
+        return
+      }
+
+      // If on exception URL, don't start tracking but still check for pending
+      if (isExceptionUrl()) {
+        console.log('On exception URL, skipping activity tracking')
+        // Still check for pending reports
+        await checkPendingReports()
+        return
+      }
+
       sessionId.value = generateSessionId()
       const { page_url } = getPageInfo()
 
@@ -94,6 +154,12 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    */
   async function sendHeartbeat() {
     if (!sessionId.value || !isActive.value) return
+
+    // Skip if on exception URL
+    if (isExceptionUrl()) return
+
+    // Skip if monitoring is disabled
+    if (!isMonitoringEnabled.value) return
 
     try {
       const pageInfo = getPageInfo()
@@ -161,6 +227,12 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   async function reportReturn() {
     if (!awayStartTime) return
 
+    // Skip if on exception URL or monitoring disabled
+    if (isExceptionUrl() || !isMonitoringEnabled.value) {
+      awayStartTime = null
+      return
+    }
+
     try {
       const pageInfo = getPageInfo()
 
@@ -215,6 +287,10 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    * Check for local inactivity.
    */
   function checkLocalInactivity() {
+    // Skip if monitoring disabled or on exception URL
+    if (!isMonitoringEnabled.value || isExceptionUrl()) return
+
+    const inactivityThreshold = (settings.value?.inactivity_threshold ?? 5) * 60 * 1000 // Convert minutes to ms
     const now = Date.now()
     const timeSinceActivity = now - lastActivityTime.value
 
@@ -228,6 +304,8 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    * Start all timers.
    */
   function startTimers() {
+    const heartbeatInterval = (settings.value?.heartbeat_interval ?? 60) * 1000 // Convert seconds to ms
+
     // Heartbeat timer
     heartbeatTimer = setInterval(sendHeartbeat, heartbeatInterval)
 
@@ -296,6 +374,7 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     } else {
       // User returned to tab
       if (awayStartTime) {
+        const inactivityThreshold = (settings.value?.inactivity_threshold ?? 5) * 60 * 1000
         const awayDuration = Date.now() - awayStartTime
 
         // Only report if away for more than threshold
@@ -353,6 +432,8 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     showInactivityModal,
     currentReport,
     isInitialized,
+    settings,
+    isMonitoringEnabled,
 
     // Methods
     submitExplanation,

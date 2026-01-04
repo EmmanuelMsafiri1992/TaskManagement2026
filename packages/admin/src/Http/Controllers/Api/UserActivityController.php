@@ -3,6 +3,7 @@
 namespace Admin\Http\Controllers\Api;
 
 use App\Models\InactivityReport;
+use App\Models\Option;
 use App\Models\UserActivityLog;
 use App\Models\UserActivitySession;
 use Carbon\Carbon;
@@ -96,7 +97,23 @@ class UserActivityController extends Controller
         $pageTitle = $request->input('page_title');
         $sessionId = $request->input('session_id');
 
-        // Skip tracking during lunch time (12:00 PM - 1:00 PM)
+        // Check if monitoring is enabled
+        if (!$this->isMonitoringEnabled()) {
+            return response()->json([
+                'status' => 'skipped',
+                'reason' => 'monitoring_disabled',
+            ]);
+        }
+
+        // Check if URL is in exception list (company pages)
+        if ($this->isExceptionUrl($pageUrl)) {
+            return response()->json([
+                'status' => 'skipped',
+                'reason' => 'exception_url',
+            ]);
+        }
+
+        // Skip tracking during lunch time
         if ($this->isLunchTime()) {
             return response()->json([
                 'status' => 'skipped',
@@ -156,10 +173,26 @@ class UserActivityController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
+        // Check if monitoring is enabled
+        if (!$this->isMonitoringEnabled()) {
+            return response()->json([
+                'status' => 'skipped',
+                'reason' => 'monitoring_disabled',
+            ]);
+        }
+
         $awayFrom = Carbon::parse($request->input('away_from'));
         $awayUntil = now();
         $pageUrl = $request->input('page_url');
         $pageTitle = $request->input('page_title');
+
+        // Check if URL is in exception list (company pages)
+        if ($this->isExceptionUrl($pageUrl)) {
+            return response()->json([
+                'status' => 'skipped',
+                'reason' => 'exception_url',
+            ]);
+        }
 
         // Skip if during lunch time
         if ($this->wasEntirelyDuringLunch($awayFrom, $awayUntil)) {
@@ -454,13 +487,132 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Check if current time is during lunch (12:00 PM - 1:00 PM).
+     * Get activity monitoring settings for frontend.
+     */
+    public function getSettings(): JsonResponse
+    {
+        $settings = $this->getActivitySettings();
+
+        return response()->json($settings);
+    }
+
+    /**
+     * Save activity monitoring settings (admin only).
+     */
+    public function saveSettings(Request $request): JsonResponse
+    {
+        $request->validate([
+            'enabled' => 'required|boolean',
+            'exception_urls' => 'nullable|array',
+            'exception_urls.*' => 'nullable|string|url',
+            'same_page_threshold' => 'required|integer|min:5|max:120',
+            'inactivity_threshold' => 'required|integer|min:5|max:120',
+            'heartbeat_interval' => 'required|integer|min:30|max:300',
+            'lunch_start' => 'required|string',
+            'lunch_end' => 'required|string',
+        ]);
+
+        $option = new Option();
+        $option->set('activity_monitoring_settings', [
+            'enabled' => $request->input('enabled'),
+            'exception_urls' => array_filter($request->input('exception_urls', [])),
+            'same_page_threshold' => $request->input('same_page_threshold'),
+            'inactivity_threshold' => $request->input('inactivity_threshold'),
+            'heartbeat_interval' => $request->input('heartbeat_interval'),
+            'lunch_start' => $request->input('lunch_start'),
+            'lunch_end' => $request->input('lunch_end'),
+        ]);
+
+        return response()->json([
+            'status' => 'saved',
+            'message' => 'Settings saved successfully.',
+            'settings' => $this->getActivitySettings(),
+        ]);
+    }
+
+    /**
+     * Get activity settings from options.
+     */
+    private function getActivitySettings(): array
+    {
+        $option = new Option();
+        $settings = $option->get('activity_monitoring_settings', []);
+
+        // Default settings
+        $defaults = [
+            'enabled' => true,
+            'exception_urls' => [
+                'https://nyasajob.com',
+                'https://studyseco.com',
+                'https://malawirents.com',
+                'https://emphxs.com',
+                'https://zoswa.com',
+            ],
+            'same_page_threshold' => 15,
+            'inactivity_threshold' => 10,
+            'heartbeat_interval' => 60,
+            'lunch_start' => '12:00',
+            'lunch_end' => '13:00',
+        ];
+
+        return array_merge($defaults, $settings);
+    }
+
+    /**
+     * Check if a URL matches any exception URL.
+     */
+    private function isExceptionUrl(?string $pageUrl): bool
+    {
+        if (!$pageUrl) {
+            return false;
+        }
+
+        $settings = $this->getActivitySettings();
+        $exceptionUrls = $settings['exception_urls'] ?? [];
+
+        foreach ($exceptionUrls as $exceptionUrl) {
+            // Extract domain from exception URL
+            $exceptionDomain = parse_url($exceptionUrl, PHP_URL_HOST);
+            $pageDomain = parse_url($pageUrl, PHP_URL_HOST);
+
+            if ($exceptionDomain && $pageDomain) {
+                // Remove www. prefix for comparison
+                $exceptionDomain = preg_replace('/^www\./', '', $exceptionDomain);
+                $pageDomain = preg_replace('/^www\./', '', $pageDomain);
+
+                if ($exceptionDomain === $pageDomain) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if activity monitoring is enabled.
+     */
+    private function isMonitoringEnabled(): bool
+    {
+        $settings = $this->getActivitySettings();
+        return $settings['enabled'] ?? true;
+    }
+
+    /**
+     * Check if current time is during lunch.
      */
     private function isLunchTime(): bool
     {
+        $settings = $this->getActivitySettings();
+        $lunchStartTime = $settings['lunch_start'] ?? '12:00';
+        $lunchEndTime = $settings['lunch_end'] ?? '13:00';
+
         $now = now();
-        $lunchStart = $now->copy()->setTime(12, 0, 0);
-        $lunchEnd = $now->copy()->setTime(13, 0, 0);
+        [$startHour, $startMinute] = explode(':', $lunchStartTime);
+        [$endHour, $endMinute] = explode(':', $lunchEndTime);
+
+        $lunchStart = $now->copy()->setTime((int)$startHour, (int)$startMinute, 0);
+        $lunchEnd = $now->copy()->setTime((int)$endHour, (int)$endMinute, 0);
 
         return $now->between($lunchStart, $lunchEnd);
     }

@@ -354,4 +354,6 @@ Route::prefix('activity')->group(function () {
     Route::put('reports/{id}', [UserActivityController::class, 'update']);
     Route::delete('reports/{id}', [UserActivityController::class, 'destroy']);
     Route::get('users', [UserActivityController::class, 'users']);
+    Route::get('settings', [UserActivityController::class, 'getSettings']);
+    Route::post('settings', [UserActivityController::class, 'saveSettings']);
 });

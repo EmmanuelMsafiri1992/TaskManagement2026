@@ -35,6 +35,7 @@ import LessonPlansIndex from 'View/service-providers/LessonPlans.vue'
 import SubjectsIndex from 'View/service-providers/Subjects.vue'
 import WorkingHoursIndex from 'View/working-hours/Index.vue'
 import ActivityReportsIndex from 'View/activity-reports/Index.vue'
+import ActivityReportsSettings from 'View/activity-reports/Settings.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
@@ -77,6 +78,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/subjects', name: 'Subjects', component: SubjectsIndex },
   { path: '/working-hours', name: 'WorkingHours', component: WorkingHoursIndex },
   { path: '/activity-reports', name: 'ActivityReports', component: ActivityReportsIndex },
+  { path: '/activity-reports/settings', name: 'ActivityReportsSettings', component: ActivityReportsSettings },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

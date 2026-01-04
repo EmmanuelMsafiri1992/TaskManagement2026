@@ -5,11 +5,20 @@
 
   <div v-else>
     <!-- Page Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">{{ __('Activity Reports') }}</h1>
-      <p class="mt-1 text-sm text-gray-500">
-        {{ __('Monitor employee activity and view inactivity explanations') }}
-      </p>
+    <div class="mb-6 flex items-start justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">{{ __('Activity Reports') }}</h1>
+        <p class="mt-1 text-sm text-gray-500">
+          {{ __('Monitor employee activity and view inactivity explanations') }}
+        </p>
+      </div>
+      <router-link
+        to="/activity-reports/settings"
+        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      >
+        <Cog6ToothIcon class="mr-2 h-4 w-4" />
+        {{ __('Settings') }}
+      </router-link>
     </div>
 
     <!-- Statistics Cards -->
@@ -520,6 +529,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ClockIcon,
+  Cog6ToothIcon,
   DocumentTextIcon,
   EyeIcon,
   PencilIcon,
