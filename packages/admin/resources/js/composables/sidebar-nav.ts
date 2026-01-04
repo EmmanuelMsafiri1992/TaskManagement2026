@@ -1,4 +1,4 @@
-import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -19,6 +19,12 @@ export const useSidebarNav: SidebarNav[] = [
     label: 'Working Hours',
     uri: '/working-hours',
     icon: ClockIcon,
+    attendanceAdminOnly: true,
+  },
+  {
+    label: 'Activity Reports',
+    uri: '/activity-reports',
+    icon: ChartPieIcon,
     attendanceAdminOnly: true,
   },
   {

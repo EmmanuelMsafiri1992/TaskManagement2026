@@ -350,4 +350,6 @@ Route::prefix('activity')->group(function () {
     Route::get('pending', [UserActivityController::class, 'getPendingReports']);
     Route::post('explain/{reportId}', [UserActivityController::class, 'submitExplanation']);
     Route::get('statistics', [UserActivityController::class, 'getStatistics']);
+    Route::get('reports', [UserActivityController::class, 'index']);
+    Route::get('users', [UserActivityController::class, 'users']);
 });

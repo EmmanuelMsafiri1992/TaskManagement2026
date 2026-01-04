@@ -271,6 +271,59 @@ class UserActivityController extends Controller
     }
 
     /**
+     * Get all inactivity reports for admin view.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = InactivityReport::with('user')
+            ->orderBy('detected_at', 'desc');
+
+        // Filter by user
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            if ($request->input('status') === 'pending') {
+                $query->where('is_pending', true);
+            } elseif ($request->input('status') === 'acknowledged') {
+                $query->where('is_pending', false);
+            }
+        }
+
+        // Filter by reason type
+        if ($request->filled('reason_type')) {
+            $query->where('reason_type', $request->input('reason_type'));
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('detected_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('detected_at', '<=', $request->input('date_to'));
+        }
+
+        $reports = $query->paginate($request->input('per_page', 15));
+
+        return response()->json($reports);
+    }
+
+    /**
+     * Get users for filter dropdown.
+     */
+    public function users(): JsonResponse
+    {
+        $users = \App\Models\User::select('id', 'name', 'email')
+            ->whereHas('attendances')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($users);
+    }
+
+    /**
      * Check if current time is during lunch (12:00 PM - 1:00 PM).
      */
     private function isLunchTime(): bool
