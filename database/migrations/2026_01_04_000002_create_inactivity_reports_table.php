@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->string('page_url', 500);
                 $table->string('page_title', 255)->nullable();
-                $table->timestamp('last_activity_at');
+                $table->timestamp('last_activity_at')->useCurrent();
                 $table->boolean('is_active')->default(true);
                 $table->string('session_id', 100)->nullable();
                 $table->timestamps();
@@ -33,9 +33,9 @@ return new class extends Migration
             Schema::create('inactivity_reports', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
-                $table->timestamp('inactive_from');
+                $table->timestamp('inactive_from')->useCurrent();
                 $table->timestamp('inactive_until')->nullable();
-                $table->timestamp('detected_at');
+                $table->timestamp('detected_at')->useCurrent();
                 $table->enum('reason_type', [
                     'same_page',           // User stayed on same page too long
                     'computer_inactive',   // No mouse/keyboard activity
@@ -61,8 +61,8 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->string('session_id', 100);
-                $table->timestamp('started_at');
-                $table->timestamp('last_heartbeat_at');
+                $table->timestamp('started_at')->useCurrent();
+                $table->timestamp('last_heartbeat_at')->useCurrent();
                 $table->timestamp('ended_at')->nullable();
                 $table->boolean('graceful_logout')->default(false);
                 $table->string('last_page_url', 500)->nullable();
