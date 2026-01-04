@@ -25,6 +25,7 @@ interface ActivitySettings {
   heartbeat_interval: number
   lunch_start: string
   lunch_end: string
+  is_clocked_in: boolean
 }
 
 interface ActivityTrackerOptions {
@@ -50,6 +51,7 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   const isInitialized = ref(false)
   const settings = ref<ActivitySettings | null>(null)
   const isMonitoringEnabled = ref(true)
+  const isClockedIn = ref(false)
 
   // Timers
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
@@ -100,6 +102,7 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
       const response = await axios.get('activity/settings')
       settings.value = response.data
       isMonitoringEnabled.value = response.data.enabled ?? true
+      isClockedIn.value = response.data.is_clocked_in ?? false
       return response.data
     } catch (error) {
       console.error('Failed to fetch activity settings:', error)
@@ -121,10 +124,16 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
         return
       }
 
+      // If user is not clocked in, don't start tracking or show popups
+      if (!isClockedIn.value) {
+        console.log('User is not clocked in, skipping activity tracking')
+        return
+      }
+
       // If on exception URL, don't start tracking but still check for pending
       if (isExceptionUrl()) {
         console.log('On exception URL, skipping activity tracking')
-        // Still check for pending reports
+        // Still check for pending reports (user might have pending from before)
         await checkPendingReports()
         return
       }
@@ -161,6 +170,9 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     // Skip if monitoring is disabled
     if (!isMonitoringEnabled.value) return
 
+    // Skip if user is not clocked in
+    if (!isClockedIn.value) return
+
     try {
       const pageInfo = getPageInfo()
 
@@ -177,6 +189,9 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    * Check for pending inactivity reports.
    */
   async function checkPendingReports() {
+    // Skip if user is not clocked in
+    if (!isClockedIn.value) return
+
     try {
       const response = await axios.get('activity/pending')
 
@@ -227,8 +242,8 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   async function reportReturn() {
     if (!awayStartTime) return
 
-    // Skip if on exception URL or monitoring disabled
-    if (isExceptionUrl() || !isMonitoringEnabled.value) {
+    // Skip if on exception URL, monitoring disabled, or not clocked in
+    if (isExceptionUrl() || !isMonitoringEnabled.value || !isClockedIn.value) {
       awayStartTime = null
       return
     }
@@ -287,8 +302,8 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
    * Check for local inactivity.
    */
   function checkLocalInactivity() {
-    // Skip if monitoring disabled or on exception URL
-    if (!isMonitoringEnabled.value || isExceptionUrl()) return
+    // Skip if monitoring disabled, on exception URL, or not clocked in
+    if (!isMonitoringEnabled.value || isExceptionUrl() || !isClockedIn.value) return
 
     const inactivityThreshold = (settings.value?.inactivity_threshold ?? 5) * 60 * 1000 // Convert minutes to ms
     const now = Date.now()
@@ -434,6 +449,7 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     isInitialized,
     settings,
     isMonitoringEnabled,
+    isClockedIn,
 
     // Methods
     submitExplanation,

@@ -491,7 +491,11 @@ class UserActivityController extends Controller
      */
     public function getSettings(): JsonResponse
     {
+        $user = request()->user();
         $settings = $this->getActivitySettings();
+
+        // Add clock-in status for the current user
+        $settings['is_clocked_in'] = $user ? $this->isUserClockedIn($user) : false;
 
         return response()->json($settings);
     }
