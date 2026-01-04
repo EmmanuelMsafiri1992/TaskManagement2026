@@ -404,6 +404,56 @@ class UserActivityController extends Controller
     }
 
     /**
+     * Update an inactivity report (admin only).
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        try {
+            $report = InactivityReport::findOrFail($id);
+
+            $request->validate([
+                'user_explanation' => 'nullable|string|max:1000',
+            ]);
+
+            $report->update([
+                'user_explanation' => $request->input('user_explanation'),
+                'is_pending' => empty($request->input('user_explanation')),
+                'acknowledged_at' => $request->filled('user_explanation') ? now() : null,
+            ]);
+
+            return response()->json([
+                'status' => 'updated',
+                'message' => 'Report updated successfully.',
+                'report' => $report->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete an inactivity report (admin only).
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        try {
+            $report = InactivityReport::findOrFail($id);
+            $report->delete();
+
+            return response()->json([
+                'status' => 'deleted',
+                'message' => 'Report deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Check if current time is during lunch (12:00 PM - 1:00 PM).
      */
     private function isLunchTime(): bool

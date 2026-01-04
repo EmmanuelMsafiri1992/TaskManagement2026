@@ -351,5 +351,7 @@ Route::prefix('activity')->group(function () {
     Route::post('explain/{reportId}', [UserActivityController::class, 'submitExplanation']);
     Route::get('statistics', [UserActivityController::class, 'getStatistics']);
     Route::get('reports', [UserActivityController::class, 'index']);
+    Route::put('reports/{id}', [UserActivityController::class, 'update']);
+    Route::delete('reports/{id}', [UserActivityController::class, 'destroy']);
     Route::get('users', [UserActivityController::class, 'users']);
 });

@@ -188,6 +188,9 @@
             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               {{ __('Explanation') }}
             </th>
+            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+              {{ __('Actions') }}
+            </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
@@ -236,9 +239,38 @@
               </div>
               <span v-else class="italic text-gray-400">{{ __('Awaiting response...') }}</span>
             </td>
+            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  class="text-indigo-600 hover:text-indigo-900"
+                  :title="__('View Details')"
+                  @click="viewReport(report)"
+                >
+                  <EyeIcon class="h-5 w-5" />
+                </button>
+                <button
+                  v-if="report.user_explanation"
+                  type="button"
+                  class="text-blue-600 hover:text-blue-900"
+                  :title="__('Edit Explanation')"
+                  @click="editReport(report)"
+                >
+                  <PencilIcon class="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  class="text-red-600 hover:text-red-900"
+                  :title="__('Delete Report')"
+                  @click="confirmDelete(report)"
+                >
+                  <TrashIcon class="h-5 w-5" />
+                </button>
+              </div>
+            </td>
           </tr>
           <tr v-if="!reports.data?.length">
-            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
               {{ __('No activity reports found') }}
             </td>
           </tr>
@@ -296,6 +328,186 @@
         </div>
       </div>
     </div>
+
+    <!-- View Modal -->
+    <Teleport to="body">
+      <div v-if="showViewModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 transition-opacity" @click="showViewModal = false">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <span class="hidden sm:inline-block sm:h-screen sm:align-middle"></span>
+          <div class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div class="flex items-start justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">{{ __('Activity Report Details') }}</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" @click="showViewModal = false">
+                  <XMarkIcon class="h-6 w-6" />
+                </button>
+              </div>
+              <div v-if="selectedReport" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Employee') }}</label>
+                  <p class="text-sm text-gray-900">{{ selectedReport.user?.name }} ({{ selectedReport.user?.email }})</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Type') }}</label>
+                  <span
+                    class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+                    :class="getTypeClass(selectedReport.reason_type)"
+                  >
+                    {{ getTypeLabel(selectedReport.reason_type) }}
+                  </span>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Duration') }}</label>
+                  <p class="text-sm text-gray-900">{{ selectedReport.inactive_duration_minutes }} {{ __('minutes') }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Time Period') }}</label>
+                  <p class="text-sm text-gray-900">
+                    {{ formatDateTime(selectedReport.inactive_from) }} - {{ formatDateTime(selectedReport.inactive_until) }}
+                  </p>
+                </div>
+                <div v-if="selectedReport.page_url">
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Page') }}</label>
+                  <p class="text-sm text-gray-900">{{ selectedReport.page_title || selectedReport.page_url }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Status') }}</label>
+                  <span
+                    class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+                    :class="selectedReport.is_pending ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                  >
+                    {{ selectedReport.is_pending ? __('Pending') : __('Acknowledged') }}
+                  </span>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Explanation') }}</label>
+                  <div v-if="selectedReport.user_explanation" class="mt-1 rounded-md bg-gray-50 p-3 text-sm text-gray-900 whitespace-pre-wrap">
+                    {{ selectedReport.user_explanation }}
+                  </div>
+                  <p v-else class="text-sm italic text-gray-400">{{ __('No explanation provided yet') }}</p>
+                </div>
+                <div v-if="selectedReport.acknowledged_at">
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Acknowledged At') }}</label>
+                  <p class="text-sm text-gray-900">{{ formatDateTime(selectedReport.acknowledged_at) }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+              <button
+                type="button"
+                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm"
+                @click="showViewModal = false"
+              >
+                {{ __('Close') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Edit Modal -->
+    <Teleport to="body">
+      <div v-if="showEditModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 transition-opacity">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <span class="hidden sm:inline-block sm:h-screen sm:align-middle"></span>
+          <div class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div class="flex items-start justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">{{ __('Edit Explanation') }}</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" @click="showEditModal = false">
+                  <XMarkIcon class="h-6 w-6" />
+                </button>
+              </div>
+              <div v-if="selectedReport" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-500">{{ __('Employee') }}</label>
+                  <p class="text-sm text-gray-900">{{ selectedReport.user?.name }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">{{ __('Explanation') }}</label>
+                  <textarea
+                    v-model="editExplanation"
+                    rows="4"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    :placeholder="__('Enter explanation...')"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+              <button
+                type="button"
+                class="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm"
+                :disabled="saving"
+                @click="saveExplanation"
+              >
+                {{ saving ? __('Saving...') : __('Save') }}
+              </button>
+              <button
+                type="button"
+                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm"
+                @click="showEditModal = false"
+              >
+                {{ __('Cancel') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 transition-opacity">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+          <span class="hidden sm:inline-block sm:h-screen sm:align-middle"></span>
+          <div class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div class="sm:flex sm:items-start">
+                <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <TrashIcon class="h-6 w-6 text-red-600" />
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <h3 class="text-lg font-medium leading-6 text-gray-900">{{ __('Delete Report') }}</h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">
+                      {{ __('Are you sure you want to delete this activity report? This action cannot be undone.') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+              <button
+                type="button"
+                class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm"
+                :disabled="deleting"
+                @click="deleteReport"
+              >
+                {{ deleting ? __('Deleting...') : __('Delete') }}
+              </button>
+              <button
+                type="button"
+                class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm"
+                @click="showDeleteModal = false"
+              >
+                {{ __('Cancel') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -309,6 +521,9 @@ import {
   ChevronRightIcon,
   ClockIcon,
   DocumentTextIcon,
+  EyeIcon,
+  PencilIcon,
+  TrashIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
@@ -321,6 +536,15 @@ const processing = ref(true)
 const statistics = ref(null)
 const users = ref([])
 const reports = ref({ data: [] })
+
+// Modal states
+const showViewModal = ref(false)
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const selectedReport = ref(null)
+const editExplanation = ref('')
+const saving = ref(false)
+const deleting = ref(false)
 
 const filters = reactive({
   user_id: '',
@@ -419,6 +643,72 @@ const getTypeLabel = (type) => {
       return __('Power Outage')
     default:
       return type
+  }
+}
+
+// Modal functions
+const viewReport = (report) => {
+  selectedReport.value = report
+  showViewModal.value = true
+}
+
+const editReport = (report) => {
+  selectedReport.value = report
+  editExplanation.value = report.user_explanation || ''
+  showEditModal.value = true
+}
+
+const confirmDelete = (report) => {
+  selectedReport.value = report
+  showDeleteModal.value = true
+}
+
+const saveExplanation = async () => {
+  if (!selectedReport.value) return
+
+  saving.value = true
+  try {
+    await axios.put(`activity/reports/${selectedReport.value.id}`, {
+      user_explanation: editExplanation.value
+    })
+
+    // Update the report in the list
+    const index = reports.value.data.findIndex(r => r.id === selectedReport.value.id)
+    if (index !== -1) {
+      reports.value.data[index].user_explanation = editExplanation.value
+    }
+
+    showEditModal.value = false
+    selectedReport.value = null
+    editExplanation.value = ''
+  } catch (error) {
+    console.error('Failed to save explanation:', error)
+    alert(__('Failed to save explanation'))
+  } finally {
+    saving.value = false
+  }
+}
+
+const deleteReport = async () => {
+  if (!selectedReport.value) return
+
+  deleting.value = true
+  try {
+    await axios.delete(`activity/reports/${selectedReport.value.id}`)
+
+    // Remove from the list
+    reports.value.data = reports.value.data.filter(r => r.id !== selectedReport.value.id)
+
+    showDeleteModal.value = false
+    selectedReport.value = null
+
+    // Reload statistics
+    loadStatistics()
+  } catch (error) {
+    console.error('Failed to delete report:', error)
+    alert(__('Failed to delete report'))
+  } finally {
+    deleting.value = false
   }
 }
 
