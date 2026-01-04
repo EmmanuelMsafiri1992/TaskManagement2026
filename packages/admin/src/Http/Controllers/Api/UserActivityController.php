@@ -33,6 +33,11 @@ class UserActivityController extends Controller
     public function startSession(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $sessionId = $request->input('session_id', uniqid('sess_', true));
 
         // Check for ungraceful previous sessions (power outage detection)
@@ -67,6 +72,11 @@ class UserActivityController extends Controller
     public function heartbeat(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $pageUrl = $request->input('page_url');
         $pageTitle = $request->input('page_title');
         $sessionId = $request->input('session_id');
@@ -126,6 +136,11 @@ class UserActivityController extends Controller
     public function reportReturn(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $awayFrom = Carbon::parse($request->input('away_from'));
         $awayUntil = now();
         $pageUrl = $request->input('page_url');
@@ -174,6 +189,10 @@ class UserActivityController extends Controller
     {
         $user = $request->user();
 
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $reports = InactivityReport::forUser($user->id)
             ->pending()
             ->orderBy('detected_at', 'desc')
@@ -206,11 +225,16 @@ class UserActivityController extends Controller
      */
     public function submitExplanation(Request $request, int $reportId): JsonResponse
     {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $request->validate([
             'explanation' => 'required|string|min:10|max:1000',
         ]);
 
-        $user = $request->user();
         $report = InactivityReport::forUser($user->id)
             ->pending()
             ->findOrFail($reportId);
@@ -229,6 +253,11 @@ class UserActivityController extends Controller
     public function endSession(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
         $sessionId = $request->input('session_id');
 
         $session = UserActivitySession::forUser($user->id)

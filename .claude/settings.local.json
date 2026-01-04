@@ -22,7 +22,10 @@
       "Bash(dir:*)",
       "Bash(git log:*)",
       "Bash(find:*)",
-      "Bash(php -l:*)"
+      "Bash(php -l:*)",
+      "WebFetch(domain:task.emphxs.com)",
+      "Bash(git show:*)",
+      "Bash(git add:*)"
     ]
   }
 }
