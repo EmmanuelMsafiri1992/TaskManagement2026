@@ -272,7 +272,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'saved'])
 
 const scheduleType = ref('permanent')
 
@@ -295,16 +295,21 @@ const calculateDuration = computed(() => {
   return ((endMinutes - startMinutes) / 60).toFixed(1)
 })
 
-const submit = () => {
+const submit = async () => {
   // Clear dates if permanent
   if (scheduleType.value === 'permanent') {
     form.effective_from = null
     form.effective_until = null
   }
 
-  form.submit(() => {
+  try {
+    await form.submit()
+    emit('saved')
     emit('close')
-  })
+  } catch (error) {
+    // Errors are handled by useForm and displayed in the form
+    console.error('Form submission error:', error)
+  }
 }
 
 watch(() => props.modelValue, (record) => {

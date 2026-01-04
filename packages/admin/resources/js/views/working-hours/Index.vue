@@ -204,7 +204,7 @@
                       </span>
                     </td>
                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {{ record.assigned_by_user?.name || '-' }}
+                      {{ record.assigned_by?.name || '-' }}
                     </td>
                     <td class="flex items-center justify-end whitespace-nowrap px-6 py-4 text-right text-sm font-medium leading-5">
                       <PencilIcon
@@ -229,8 +229,8 @@
     </section>
 
     <!-- Form Modal -->
-    <FormModal v-if="form.show" size="lg" @saved="handleSaved">
-      <Form :model-value="form.model" :users="users" @close="form.show = false" />
+    <FormModal v-if="form.show" size="lg">
+      <Form :model-value="form.model" :users="users" @close="form.show = false" @saved="handleSaved" />
     </FormModal>
   </div>
 </template>
@@ -279,6 +279,7 @@ const openFormModal = (record = null) => {
 }
 
 const handleSaved = () => {
+  form.show = false
   index.get()
   loadStatistics()
 }
