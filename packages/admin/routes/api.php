@@ -70,6 +70,7 @@ use Admin\Http\Controllers\Api\RecordingSessionController;
 use Admin\Http\Controllers\Api\LessonPlanController;
 use Admin\Http\Controllers\Api\SubjectController;
 use Admin\Http\Controllers\Api\PaymentController;
+use Admin\Http\Controllers\Api\UserWorkingHoursController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -329,3 +330,12 @@ Route::prefix('subjects')->group(function () {
     Route::delete('{subject}/topics/{topic}', [SubjectController::class, 'destroyTopic']);
 });
 Route::resource('subjects', SubjectController::class);
+
+// Working Hours Routes
+Route::get('working-hours/statistics', [UserWorkingHoursController::class, 'statistics']);
+Route::get('working-hours/users', [UserWorkingHoursController::class, 'users']);
+Route::get('working-hours/my-hours', [UserWorkingHoursController::class, 'myWorkingHours']);
+Route::get('working-hours/history/{userId}', [UserWorkingHoursController::class, 'history']);
+Route::resource('working-hours', UserWorkingHoursController::class)->parameters([
+    'working-hours' => 'workingHour'
+]);

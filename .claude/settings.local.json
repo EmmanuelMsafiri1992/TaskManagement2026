@@ -20,7 +20,8 @@
       "WebFetch(domain:127.0.0.1)",
       "Bash(git check-ignore:*)",
       "Bash(dir:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(find:*)"
     ]
   }
 }

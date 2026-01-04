@@ -272,6 +272,43 @@ class User extends Authenticatable
     }
 
     /**
+     * Get working hours assignments for this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function workingHours()
+    {
+        return $this->hasMany(UserWorkingHours::class);
+    }
+
+    /**
+     * Get current active working hours for this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function currentWorkingHours()
+    {
+        return $this->hasOne(UserWorkingHours::class)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $today = now()->format('Y-m-d');
+                $query->where(function ($q) {
+                    $q->whereNull('effective_from')
+                      ->whereNull('effective_until');
+                })->orWhere(function ($q) use ($today) {
+                    $q->where(function ($from) use ($today) {
+                        $from->whereNull('effective_from')
+                             ->orWhere('effective_from', '<=', $today);
+                    })->where(function ($until) use ($today) {
+                        $until->whereNull('effective_until')
+                              ->orWhere('effective_until', '>=', $today);
+                    });
+                });
+            })
+            ->latest();
+    }
+
+    /**
      * Apply all relevant filters.
      *
      * @param  Illuminate\Database\Eloquent\Builder  $query

@@ -12,12 +12,19 @@
       inline
     />
   </FormBase>
+
+  <!-- Working Hours Section -->
+  <div class="mt-8">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">{{ __('Working Hours') }}</h2>
+    <WorkingHoursWidget />
+  </div>
 </template>
 
 <script setup lang="ts">
   import { useFormStore } from 'spack'
   import { FormBase, Topbar, useFieldText } from 'thetheme'
   import FieldAvatar from 'Component/FieldAvatar.vue'
+  import WorkingHoursWidget from './layouts/WorkingHoursWidget.vue'
   import type { ProfileForm } from 'types'
 
   const form = useFormStore<ProfileForm>('profile')()

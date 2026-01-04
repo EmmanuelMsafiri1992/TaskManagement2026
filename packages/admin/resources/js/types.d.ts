@@ -19,6 +19,7 @@ interface AppData {
   app_name: string
   app_logo: string
   is_super_admin: boolean
+  is_attendance_admin: boolean
   permissions: string[]
   translations: any
   locale: string
@@ -70,6 +71,8 @@ interface SidebarNav {
   uri?: string
   icon: FunctionalComponent<HTMLAttributes & VNodeProps>
   permission?: string
+  superAdminOnly?: boolean
+  attendanceAdminOnly?: boolean
   create?: string
   createPermission?: string
   children?: SidebarNavChild[]

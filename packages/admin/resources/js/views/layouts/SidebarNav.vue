@@ -67,7 +67,7 @@
 
       <!-- Regular Menu Item -->
       <RouterLink
-        v-else-if="item.uri && (!item.permission || can(item.permission))"
+        v-else-if="item.uri && shouldShowItem(item)"
         v-slot="{ href, navigate }"
         custom
         :to="item.uri"
@@ -118,6 +118,7 @@
   import { useSidebarNav } from 'Use/sidebar-nav'
   import { useRouter } from 'vue-router'
   import { PlusIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+  import { appData } from '@/app-data'
 
   const can = inject('can') as (permission: string | undefined) => boolean
   const __ = inject('__') as (word: string) => string
@@ -144,6 +145,22 @@
 
   function toggleDropdown(label: string) {
     openDropdowns[label] = !openDropdowns[label]
+  }
+
+  function shouldShowItem(item: { permission?: string; superAdminOnly?: boolean; attendanceAdminOnly?: boolean }) {
+    // Check super admin only first
+    if (item.superAdminOnly && !appData.is_super_admin) {
+      return false
+    }
+    // Check attendance admin (emmanuel@emphxs.com or super admin)
+    if (item.attendanceAdminOnly && !appData.is_attendance_admin) {
+      return false
+    }
+    // Then check permission
+    if (item.permission && !can(item.permission)) {
+      return false
+    }
+    return true
   }
 
   function create(uri: string) {

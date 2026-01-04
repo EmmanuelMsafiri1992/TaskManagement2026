@@ -16,6 +16,11 @@
 
     <Metrics />
 
+    <!-- Working Hours Widget -->
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <WorkingHoursWidget />
+    </div>
+
     <Charts />
   </div>
 </template>
@@ -26,6 +31,7 @@
   import { Loader } from 'thetheme'
   import Charts from './_Charts.vue'
   import Metrics from './_Metrics.vue'
+  import WorkingHoursWidget from './layouts/WorkingHoursWidget.vue'
 
   const __ = inject('__')
   const home = useHomeStore()
