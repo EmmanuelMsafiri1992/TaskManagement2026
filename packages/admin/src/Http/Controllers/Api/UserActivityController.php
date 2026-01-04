@@ -32,38 +32,53 @@ class UserActivityController extends Controller
      */
     public function startSession(Request $request): JsonResponse
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
+            if (!$user) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
 
-        $sessionId = $request->input('session_id', uniqid('sess_', true));
+            // Check if tables exist
+            if (!\Schema::hasTable('user_activity_sessions')) {
+                return response()->json([
+                    'error' => 'Database tables not created',
+                    'session_id' => null,
+                ]);
+            }
 
-        // Check for ungraceful previous sessions (power outage detection)
-        $this->detectPowerOutage($user);
+            $sessionId = $request->input('session_id', uniqid('sess_', true));
 
-        // End any existing active sessions for this user
-        UserActivitySession::forUser($user->id)
-            ->active()
-            ->update([
-                'ended_at' => now(),
-                'graceful_logout' => false,
+            // Check for ungraceful previous sessions (power outage detection)
+            $this->detectPowerOutage($user);
+
+            // End any existing active sessions for this user
+            UserActivitySession::forUser($user->id)
+                ->active()
+                ->update([
+                    'ended_at' => now(),
+                    'graceful_logout' => false,
+                ]);
+
+            // Create new session
+            $session = UserActivitySession::create([
+                'user_id' => $user->id,
+                'session_id' => $sessionId,
+                'started_at' => now(),
+                'last_heartbeat_at' => now(),
+                'last_page_url' => $request->input('page_url'),
             ]);
 
-        // Create new session
-        $session = UserActivitySession::create([
-            'user_id' => $user->id,
-            'session_id' => $sessionId,
-            'started_at' => now(),
-            'last_heartbeat_at' => now(),
-            'last_page_url' => $request->input('page_url'),
-        ]);
-
-        return response()->json([
-            'session_id' => $session->session_id,
-            'message' => 'Session started',
-        ]);
+            return response()->json([
+                'session_id' => $session->session_id,
+                'message' => 'Session started',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'session_id' => null,
+            ]);
+        }
     }
 
     /**
@@ -285,18 +300,39 @@ class UserActivityController extends Controller
      */
     public function getStatistics(Request $request): JsonResponse
     {
-        $today = Carbon::today();
+        try {
+            // Check if tables exist first
+            if (!\Schema::hasTable('inactivity_reports')) {
+                return response()->json([
+                    'error' => 'Database tables not created. Please run: php artisan migrate',
+                    'total_reports_today' => 0,
+                    'pending_reports' => 0,
+                    'acknowledged_today' => 0,
+                    'power_outages_today' => 0,
+                ]);
+            }
 
-        $stats = [
-            'total_reports_today' => InactivityReport::whereDate('detected_at', $today)->count(),
-            'pending_reports' => InactivityReport::pending()->count(),
-            'acknowledged_today' => InactivityReport::whereDate('acknowledged_at', $today)->count(),
-            'power_outages_today' => InactivityReport::byType('power_outage')
-                ->whereDate('detected_at', $today)
-                ->count(),
-        ];
+            $today = Carbon::today();
 
-        return response()->json($stats);
+            $stats = [
+                'total_reports_today' => InactivityReport::whereDate('detected_at', $today)->count(),
+                'pending_reports' => InactivityReport::pending()->count(),
+                'acknowledged_today' => InactivityReport::whereDate('acknowledged_at', $today)->count(),
+                'power_outages_today' => InactivityReport::byType('power_outage')
+                    ->whereDate('detected_at', $today)
+                    ->count(),
+            ];
+
+            return response()->json($stats);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'total_reports_today' => 0,
+                'pending_reports' => 0,
+                'acknowledged_today' => 0,
+                'power_outages_today' => 0,
+            ]);
+        }
     }
 
     /**
@@ -304,39 +340,54 @@ class UserActivityController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = InactivityReport::with('user')
-            ->orderBy('detected_at', 'desc');
-
-        // Filter by user
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->input('user_id'));
-        }
-
-        // Filter by status
-        if ($request->filled('status')) {
-            if ($request->input('status') === 'pending') {
-                $query->where('is_pending', true);
-            } elseif ($request->input('status') === 'acknowledged') {
-                $query->where('is_pending', false);
+        try {
+            // Check if tables exist
+            if (!\Schema::hasTable('inactivity_reports')) {
+                return response()->json([
+                    'data' => [],
+                    'error' => 'Database tables not created. Please run: php artisan migrate',
+                ]);
             }
-        }
 
-        // Filter by reason type
-        if ($request->filled('reason_type')) {
-            $query->where('reason_type', $request->input('reason_type'));
-        }
+            $query = InactivityReport::with('user')
+                ->orderBy('detected_at', 'desc');
 
-        // Filter by date range
-        if ($request->filled('date_from')) {
-            $query->whereDate('detected_at', '>=', $request->input('date_from'));
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('detected_at', '<=', $request->input('date_to'));
-        }
+            // Filter by user
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->input('user_id'));
+            }
 
-        $reports = $query->paginate($request->input('per_page', 15));
+            // Filter by status
+            if ($request->filled('status')) {
+                if ($request->input('status') === 'pending') {
+                    $query->where('is_pending', true);
+                } elseif ($request->input('status') === 'acknowledged') {
+                    $query->where('is_pending', false);
+                }
+            }
 
-        return response()->json($reports);
+            // Filter by reason type
+            if ($request->filled('reason_type')) {
+                $query->where('reason_type', $request->input('reason_type'));
+            }
+
+            // Filter by date range
+            if ($request->filled('date_from')) {
+                $query->whereDate('detected_at', '>=', $request->input('date_from'));
+            }
+            if ($request->filled('date_to')) {
+                $query->whereDate('detected_at', '<=', $request->input('date_to'));
+            }
+
+            $reports = $query->paginate($request->input('per_page', 15));
+
+            return response()->json($reports);
+        } catch (\Exception $e) {
+            return response()->json([
+                'data' => [],
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

@@ -25,7 +25,9 @@
       "Bash(php -l:*)",
       "WebFetch(domain:task.emphxs.com)",
       "Bash(git show:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
