@@ -71,6 +71,7 @@ use Admin\Http\Controllers\Api\LessonPlanController;
 use Admin\Http\Controllers\Api\SubjectController;
 use Admin\Http\Controllers\Api\PaymentController;
 use Admin\Http\Controllers\Api\UserWorkingHoursController;
+use Admin\Http\Controllers\Api\UserActivityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -339,3 +340,14 @@ Route::get('working-hours/history/{userId}', [UserWorkingHoursController::class,
 Route::resource('working-hours', UserWorkingHoursController::class)->parameters([
     'working-hours' => 'workingHour'
 ]);
+
+// Activity Tracking Routes
+Route::prefix('activity')->group(function () {
+    Route::post('session/start', [UserActivityController::class, 'startSession']);
+    Route::post('session/end', [UserActivityController::class, 'endSession']);
+    Route::post('heartbeat', [UserActivityController::class, 'heartbeat']);
+    Route::post('return', [UserActivityController::class, 'reportReturn']);
+    Route::get('pending', [UserActivityController::class, 'getPendingReports']);
+    Route::post('explain/{reportId}', [UserActivityController::class, 'submitExplanation']);
+    Route::get('statistics', [UserActivityController::class, 'getStatistics']);
+});
