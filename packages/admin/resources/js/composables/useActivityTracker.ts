@@ -2,21 +2,6 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { axios } from 'spack/axios'
 
-interface InactivityReport {
-  id: number
-  inactive_from: string
-  inactive_until: string
-  inactive_from_full: string
-  inactive_until_full: string
-  duration: string
-  duration_minutes: number
-  reason_type: 'same_page' | 'computer_inactive' | 'power_outage' | 'session_gap'
-  reason_label: string
-  page_url: string | null
-  page_title: string | null
-  detected_at: string
-}
-
 interface ActivitySettings {
   enabled: boolean
   exception_urls: string[]
@@ -31,23 +16,15 @@ interface ActivitySettings {
 interface ActivityTrackerOptions {
   heartbeatInterval?: number // in milliseconds
   inactivityThreshold?: number // in milliseconds
-  checkPendingInterval?: number // in milliseconds
 }
 
 export function useActivityTracker(options: ActivityTrackerOptions = {}) {
-  const {
-    checkPendingInterval = 30000, // 30 seconds
-  } = options
-
   const router = useRouter()
 
   // State
   const sessionId = ref<string | null>(null)
   const isActive = ref(true)
   const lastActivityTime = ref(Date.now())
-  const pendingReports = ref<InactivityReport[]>([])
-  const showInactivityModal = ref(false)
-  const currentReport = ref<InactivityReport | null>(null)
   const isInitialized = ref(false)
   const settings = ref<ActivitySettings | null>(null)
   const isMonitoringEnabled = ref(true)
@@ -55,7 +32,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
 
   // Timers
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null
-  let pendingCheckTimer: ReturnType<typeof setInterval> | null = null
   let inactivityCheckTimer: ReturnType<typeof setInterval> | null = null
   let awayStartTime: number | null = null
 
@@ -124,17 +100,15 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
         return
       }
 
-      // If user is not clocked in, don't start tracking or show popups
+      // If user is not clocked in, don't start tracking
       if (!isClockedIn.value) {
         console.log('User is not clocked in, skipping activity tracking')
         return
       }
 
-      // If on exception URL, don't start tracking but still check for pending
+      // If on exception URL, don't start tracking
       if (isExceptionUrl()) {
         console.log('On exception URL, skipping activity tracking')
-        // Still check for pending reports (user might have pending from before)
-        await checkPendingReports()
         return
       }
 
@@ -147,9 +121,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
       })
 
       isInitialized.value = true
-
-      // Check for pending reports immediately
-      await checkPendingReports()
 
       // Start timers
       startTimers()
@@ -186,57 +157,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
   }
 
   /**
-   * Check for pending inactivity reports.
-   */
-  async function checkPendingReports() {
-    // Skip if user is not clocked in
-    if (!isClockedIn.value) return
-
-    try {
-      const response = await axios.get('activity/pending')
-
-      if (response.data.has_pending) {
-        pendingReports.value = response.data.reports
-
-        // Show modal for first pending report
-        if (pendingReports.value.length > 0 && !showInactivityModal.value) {
-          currentReport.value = pendingReports.value[0]
-          showInactivityModal.value = true
-        }
-      } else {
-        pendingReports.value = []
-      }
-    } catch (error) {
-      console.error('Failed to check pending reports:', error)
-    }
-  }
-
-  /**
-   * Submit explanation for a report.
-   */
-  async function submitExplanation(reportId: number, explanation: string): Promise<boolean> {
-    try {
-      await axios.post(`activity/explain/${reportId}`, { explanation })
-
-      // Remove from pending list
-      pendingReports.value = pendingReports.value.filter((r) => r.id !== reportId)
-
-      // Show next pending report or close modal
-      if (pendingReports.value.length > 0) {
-        currentReport.value = pendingReports.value[0]
-      } else {
-        showInactivityModal.value = false
-        currentReport.value = null
-      }
-
-      return true
-    } catch (error) {
-      console.error('Failed to submit explanation:', error)
-      return false
-    }
-  }
-
-  /**
    * Report return from being away.
    */
   async function reportReturn() {
@@ -257,9 +177,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
       })
 
       awayStartTime = null
-
-      // Check for new pending reports
-      await checkPendingReports()
     } catch (error) {
       console.error('Failed to report return:', error)
     }
@@ -324,9 +241,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     // Heartbeat timer
     heartbeatTimer = setInterval(sendHeartbeat, heartbeatInterval)
 
-    // Pending reports check timer
-    pendingCheckTimer = setInterval(checkPendingReports, checkPendingInterval)
-
     // Local inactivity check timer
     inactivityCheckTimer = setInterval(checkLocalInactivity, 10000) // Check every 10 seconds
   }
@@ -338,11 +252,6 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     if (heartbeatTimer) {
       clearInterval(heartbeatTimer)
       heartbeatTimer = null
-    }
-
-    if (pendingCheckTimer) {
-      clearInterval(pendingCheckTimer)
-      pendingCheckTimer = null
     }
 
     if (inactivityCheckTimer) {
@@ -443,16 +352,9 @@ export function useActivityTracker(options: ActivityTrackerOptions = {}) {
     sessionId,
     isActive,
     lastActivityTime,
-    pendingReports,
-    showInactivityModal,
-    currentReport,
     isInitialized,
     settings,
     isMonitoringEnabled,
     isClockedIn,
-
-    // Methods
-    submitExplanation,
-    checkPendingReports,
   }
 }

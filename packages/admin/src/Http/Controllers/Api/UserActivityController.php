@@ -216,7 +216,9 @@ class UserActivityController extends Controller
                 'page_url' => $pageUrl,
                 'page_title' => $pageTitle,
                 'inactive_duration_minutes' => $inactiveDuration,
-                'is_pending' => true,
+                'is_pending' => false,
+                'acknowledged_at' => now(),
+                'user_explanation' => 'Background tracked',
             ]);
 
             return response()->json([
@@ -704,7 +706,9 @@ class UserActivityController extends Controller
                         'page_url' => $pageUrl,
                         'page_title' => $pageTitle,
                         'inactive_duration_minutes' => $minutesOnPage,
-                        'is_pending' => true,
+                        'is_pending' => false,
+                        'acknowledged_at' => now(),
+                        'user_explanation' => 'Background tracked',
                     ]);
 
                     // Reset the activity log timestamp
@@ -759,7 +763,9 @@ class UserActivityController extends Controller
                         'reason_type' => 'power_outage',
                         'page_url' => $lastSession->last_page_url,
                         'inactive_duration_minutes' => $inactiveDuration,
-                        'is_pending' => true,
+                        'is_pending' => false,
+                        'acknowledged_at' => now(),
+                        'user_explanation' => 'Background tracked',
                     ]);
                 }
             }
