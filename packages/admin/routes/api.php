@@ -72,6 +72,7 @@ use Admin\Http\Controllers\Api\SubjectController;
 use Admin\Http\Controllers\Api\PaymentController;
 use Admin\Http\Controllers\Api\UserWorkingHoursController;
 use Admin\Http\Controllers\Api\UserActivityController;
+use Admin\Http\Controllers\Api\LeadsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -357,3 +358,23 @@ Route::prefix('activity')->group(function () {
     Route::get('settings', [UserActivityController::class, 'getSettings']);
     Route::post('settings', [UserActivityController::class, 'saveSettings']);
 });
+
+// Lead Management Routes
+Route::prefix('leads')->group(function () {
+    Route::get('statistics', [LeadsController::class, 'statistics']);
+    Route::get('pipeline', [LeadsController::class, 'pipeline']);
+    Route::get('options', [LeadsController::class, 'options']);
+    Route::get('export', [LeadsController::class, 'export']);
+    Route::get('email-templates', [LeadsController::class, 'emailTemplates']);
+    Route::post('email-templates', [LeadsController::class, 'storeEmailTemplate']);
+    Route::put('email-templates/{id}', [LeadsController::class, 'updateEmailTemplate']);
+    Route::delete('email-templates/{id}', [LeadsController::class, 'deleteEmailTemplate']);
+    Route::get('{id}/activities', [LeadsController::class, 'activities']);
+    Route::post('{id}/status', [LeadsController::class, 'updateStatus']);
+    Route::post('{id}/assign', [LeadsController::class, 'assignUser']);
+    Route::post('{id}/follow-up', [LeadsController::class, 'scheduleFollowUp']);
+    Route::post('{id}/note', [LeadsController::class, 'addNote']);
+    Route::post('{id}/log-call', [LeadsController::class, 'logCall']);
+    Route::post('{id}/convert', [LeadsController::class, 'convertToClient']);
+});
+Route::resource('leads', LeadsController::class);
