@@ -364,7 +364,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
-import Loader from '@/components/Loader.vue'
+import Loader from '@/thetheme/components/Loader.vue'
 
 const route = useRoute()
 

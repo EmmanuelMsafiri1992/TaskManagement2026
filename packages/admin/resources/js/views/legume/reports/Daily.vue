@@ -177,7 +177,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import Loader from '@/components/Loader.vue'
+import Loader from '@/thetheme/components/Loader.vue'
 
 const processing = ref(true)
 const report = ref(null)
