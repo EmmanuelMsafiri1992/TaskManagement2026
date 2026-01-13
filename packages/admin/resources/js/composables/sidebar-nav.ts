@@ -1,4 +1,4 @@
-import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon, UserPlusIcon, BuildingStorefrontIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -52,6 +52,24 @@ export const useSidebarNav: SidebarNav[] = [
       { label: 'Quotations', uri: '/quotations', permission: 'quotation:view' },
       { label: 'Expenses', uri: '/expenses', permission: 'expense:view' },
       { label: 'Income', uri: '/income', permission: 'income:view' },
+    ],
+  },
+  {
+    label: 'Legume Business',
+    icon: BuildingStorefrontIcon,
+    children: [
+      { label: 'Dashboard', uri: '/legume' },
+      { label: 'Products', uri: '/legume/products' },
+      { label: 'Suppliers', uri: '/legume/suppliers' },
+      { label: 'Purchases', uri: '/legume/purchases' },
+      { label: 'Inventory', uri: '/legume/inventory' },
+      { label: 'Customers', uri: '/legume/customers' },
+      { label: 'Orders', uri: '/legume/orders' },
+      { label: 'Payments', uri: '/legume/payments' },
+      { label: 'Deliveries', uri: '/legume/deliveries' },
+      { label: 'Budget', uri: '/legume/budget' },
+      { label: 'Stock Alerts', uri: '/legume/alerts' },
+      { label: 'Reports', uri: '/legume/reports/monthly' },
     ],
   },
   {
