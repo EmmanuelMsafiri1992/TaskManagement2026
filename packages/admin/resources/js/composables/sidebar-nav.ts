@@ -52,6 +52,7 @@ export const useSidebarNav: SidebarNav[] = [
       { label: 'Quotations', uri: '/quotations', permission: 'quotation:view' },
       { label: 'Expenses', uri: '/expenses', permission: 'expense:view' },
       { label: 'Income', uri: '/income', permission: 'income:view' },
+      { label: 'Profit & Loss', uri: '/profit-loss' },
     ],
   },
   {

@@ -73,6 +73,7 @@ use Admin\Http\Controllers\Api\PaymentController;
 use Admin\Http\Controllers\Api\UserWorkingHoursController;
 use Admin\Http\Controllers\Api\UserActivityController;
 use Admin\Http\Controllers\Api\LeadsController;
+use Admin\Http\Controllers\Api\ProfitLossController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -151,6 +152,14 @@ Route::resource('expenses', ExpensesController::class);
 Route::get('income/statistics', [IncomeController::class, 'statistics']);
 Route::post('income/{id}/mark-as-received', [IncomeController::class, 'markAsReceived']);
 Route::resource('income', IncomeController::class);
+
+// Profit & Loss Report Routes
+Route::prefix('profit-loss')->group(function () {
+    Route::get('dashboard', [ProfitLossController::class, 'dashboard']);
+    Route::get('monthly', [ProfitLossController::class, 'monthlyReport']);
+    Route::get('yearly', [ProfitLossController::class, 'yearlyReport']);
+    Route::get('custom', [ProfitLossController::class, 'customPeriod']);
+});
 
 Route::resource('favorites', FavoritesController::class)->only(['index', 'store', 'destroy']);
 Route::get('projects/options', ProjectsOptions::class);

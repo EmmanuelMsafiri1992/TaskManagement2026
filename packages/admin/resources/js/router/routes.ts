@@ -27,6 +27,7 @@ import QuotationsIndex from 'View/quotations/Index.vue'
 import QuotationsDetail from 'View/quotations/Detail.vue'
 import ExpensesIndex from 'View/expenses/Index.vue'
 import IncomeIndex from 'View/income/Index.vue'
+import ProfitLossReport from 'View/finances/ProfitLoss.vue'
 import AuditTrailIndex from 'View/audit-trail/Index.vue'
 import ServiceProvidersIndex from 'View/service-providers/Index.vue'
 import ServiceProvidersDetail from 'View/service-providers/Detail.vue'
@@ -84,6 +85,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/quotations/:id', name: 'QuotationDetail', component: QuotationsDetail },
   { path: '/expenses', name: 'Expenses', component: ExpensesIndex },
   { path: '/income', name: 'Income', component: IncomeIndex },
+  { path: '/profit-loss', name: 'ProfitLoss', component: ProfitLossReport },
   { path: '/adsense-reports', name: 'AdSenseReports', component: AdSenseReports },
   { path: '/settings/general', component: SettingsGeneral },
   { path: '/settings/email', component: SettingsEmail },
