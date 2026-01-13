@@ -39,26 +39,6 @@ import ActivityReportsIndex from 'View/activity-reports/Index.vue'
 import ActivityReportsSettings from 'View/activity-reports/Settings.vue'
 import LeadsIndex from 'View/leads/Index.vue'
 
-// Legume Business Management
-import LegumeDashboard from 'View/legume/Dashboard.vue'
-import LegumeProductsIndex from 'View/legume/products/Index.vue'
-import LegumeSuppliersIndex from 'View/legume/suppliers/Index.vue'
-import LegumeBudgetIndex from 'View/legume/budget/Index.vue'
-import LegumePurchasesIndex from 'View/legume/purchases/Index.vue'
-import LegumePurchasesForm from 'View/legume/purchases/Form.vue'
-import LegumeInventoryIndex from 'View/legume/inventory/Index.vue'
-import LegumeInventoryMovements from 'View/legume/inventory/Movements.vue'
-import LegumeCustomersIndex from 'View/legume/customers/Index.vue'
-import LegumeOrdersIndex from 'View/legume/orders/Index.vue'
-import LegumeOrdersForm from 'View/legume/orders/Form.vue'
-import LegumeOrdersDetail from 'View/legume/orders/Detail.vue'
-import LegumePaymentsIndex from 'View/legume/payments/Index.vue'
-import LegumeDeliveriesIndex from 'View/legume/deliveries/Index.vue'
-import LegumeAlertsIndex from 'View/legume/alerts/Index.vue'
-import LegumeReportsDaily from 'View/legume/reports/Daily.vue'
-import LegumeReportsMonthly from 'View/legume/reports/Monthly.vue'
-import LegumeReportsByProduct from 'View/legume/reports/ProfitByProduct.vue'
-
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
   { path: '/profile', component: Profile },
@@ -103,26 +83,6 @@ export const routes: RouteRecordRaw[] = [
   { path: '/activity-reports', name: 'ActivityReports', component: ActivityReportsIndex },
   { path: '/activity-reports/settings', name: 'ActivityReportsSettings', component: ActivityReportsSettings },
   { path: '/leads', name: 'Leads', component: LeadsIndex },
-
-  // Legume Business Management Routes
-  { path: '/legume', name: 'LegumeDashboard', component: LegumeDashboard },
-  { path: '/legume/products', name: 'LegumeProducts', component: LegumeProductsIndex },
-  { path: '/legume/suppliers', name: 'LegumeSuppliers', component: LegumeSuppliersIndex },
-  { path: '/legume/budget', name: 'LegumeBudget', component: LegumeBudgetIndex },
-  { path: '/legume/purchases', name: 'LegumePurchases', component: LegumePurchasesIndex },
-  { path: '/legume/purchases/create', name: 'LegumePurchaseCreate', component: LegumePurchasesForm },
-  { path: '/legume/inventory', name: 'LegumeInventory', component: LegumeInventoryIndex },
-  { path: '/legume/inventory/movements', name: 'LegumeInventoryMovements', component: LegumeInventoryMovements },
-  { path: '/legume/customers', name: 'LegumeCustomers', component: LegumeCustomersIndex },
-  { path: '/legume/orders', name: 'LegumeOrders', component: LegumeOrdersIndex },
-  { path: '/legume/orders/create', name: 'LegumeOrderCreate', component: LegumeOrdersForm },
-  { path: '/legume/orders/:id', name: 'LegumeOrderDetail', component: LegumeOrdersDetail },
-  { path: '/legume/payments', name: 'LegumePayments', component: LegumePaymentsIndex },
-  { path: '/legume/deliveries', name: 'LegumeDeliveries', component: LegumeDeliveriesIndex },
-  { path: '/legume/alerts', name: 'LegumeAlerts', component: LegumeAlertsIndex },
-  { path: '/legume/reports/daily', name: 'LegumeReportsDaily', component: LegumeReportsDaily },
-  { path: '/legume/reports/monthly', name: 'LegumeReportsMonthly', component: LegumeReportsMonthly },
-  { path: '/legume/reports/by-product', name: 'LegumeReportsByProduct', component: LegumeReportsByProduct },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
