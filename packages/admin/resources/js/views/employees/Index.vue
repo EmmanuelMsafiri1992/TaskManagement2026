@@ -428,7 +428,7 @@
     </section>
 
     <!-- Employee Form Modal -->
-    <FormModal v-if="form.show" size="2xl" @saved="index.get()">
+    <FormModal v-if="form.show" size="2xl" @saved="index.get()" @close="form.show = false">
       <Form :model-value="form.model" @close="form.show = false" />
     </FormModal>
   </div>
