@@ -269,7 +269,7 @@
     </div>
 
     <!-- Edit Modal -->
-    <FormModal v-model="editModalOpen" size="2xl" @saved="loadEmployee">
+    <FormModal v-if="editModalOpen" size="2xl" @saved="loadEmployee" @close="editModalOpen = false">
       <Form :model-value="employee" @close="editModalOpen = false" />
     </FormModal>
   </div>
