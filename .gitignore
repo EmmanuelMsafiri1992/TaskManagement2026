@@ -25,3 +25,4 @@ taskhub.sql
 # Large archive files
 storage.zip
 *.zip
+tmpclaude-*-cwd

@@ -1,52 +1,82 @@
 import { reactive, ref } from 'vue'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 
-export const useForm = (initialData: Record<string, any> = {}) => {
-  const data = reactive({ ...initialData })
-  const errors = ref<Record<string, string[]>>({})
+export const useForm = (endpoint: string, initialData: Record<string, any> = {}) => {
+  const formData = reactive<Record<string, any>>({ ...initialData })
+  const errors = reactive<Record<string, string>>({})
   const processing = ref(false)
+  let currentId: number | string | null = null
 
-  const submit = async (method: 'post' | 'put' | 'patch' | 'delete', url: string, config: any = {}) => {
+  const submit = async (onSuccess?: () => void) => {
     processing.value = true
-    errors.value = {}
+    // Clear errors
+    Object.keys(errors).forEach(key => delete errors[key])
 
     try {
-      const response = await axios[method](url, data, config)
+      const method = currentId ? 'put' : 'post'
+      const url = currentId ? `${endpoint}/${currentId}` : endpoint
+      const response = await axios[method](url, formData)
 
-      if (config.onSuccess) {
-        config.onSuccess(response.data)
+      if (onSuccess) {
+        onSuccess()
       }
 
       return response
     } catch (error: any) {
       if (error.response?.data?.errors) {
-        errors.value = error.response.data.errors
+        const responseErrors = error.response.data.errors
+        Object.keys(responseErrors).forEach(key => {
+          errors[key] = Array.isArray(responseErrors[key])
+            ? responseErrors[key][0]
+            : responseErrors[key]
+        })
       }
-
-      if (config.onError) {
-        config.onError(error)
-      }
-
       throw error
     } finally {
       processing.value = false
     }
   }
 
-  const reset = () => {
-    Object.assign(data, initialData)
-    errors.value = {}
+  const setData = (data: Record<string, any>) => {
+    if (data.id) {
+      currentId = data.id
+    }
+    Object.keys(data).forEach(key => {
+      if (key in formData || key === 'id') {
+        formData[key] = data[key]
+      }
+    })
   }
 
-  return {
-    data,
-    errors,
-    processing,
-    submit,
-    reset,
-    post: (url: string, config?: any) => submit('post', url, config),
-    put: (url: string, config?: any) => submit('put', url, config),
-    patch: (url: string, config?: any) => submit('patch', url, config),
-    delete: (url: string, config?: any) => submit('delete', url, config),
+  const reset = () => {
+    currentId = null
+    Object.keys(initialData).forEach(key => {
+      formData[key] = initialData[key]
+    })
+    Object.keys(errors).forEach(key => delete errors[key])
+  }
+
+  // Return a proxy that allows direct access to form fields
+  return new Proxy(formData, {
+    get(target, prop) {
+      if (prop === 'submit') return submit
+      if (prop === 'setData') return setData
+      if (prop === 'reset') return reset
+      if (prop === 'errors') return errors
+      if (prop === 'processing') return processing
+      if (prop === 'id') return currentId
+      return target[prop as string]
+    },
+    set(target, prop, value) {
+      target[prop as string] = value
+      return true
+    }
+  }) as Record<string, any> & {
+    submit: (onSuccess?: () => void) => Promise<any>
+    setData: (data: Record<string, any>) => void
+    reset: () => void
+    errors: Record<string, string>
+    processing: { value: boolean }
+    id: number | string | null
   }
 }

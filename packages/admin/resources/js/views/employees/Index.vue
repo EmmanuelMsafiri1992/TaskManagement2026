@@ -3,291 +3,534 @@
     <Loader size="40" color="#5850ec" />
   </div>
 
-  <div v-else>
-    <!-- Statistics Cards -->
-    <div v-if="statistics" class="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="overflow-hidden rounded-lg bg-white shadow">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <UsersIcon class="h-6 w-6 text-gray-400" />
+  <div v-else class="flex">
+    <!-- Main Content -->
+    <div :class="['flex-1 transition-all duration-300', selectedEmployee ? 'mr-96' : '']">
+      <!-- Statistics Cards -->
+      <div v-if="statistics" class="mb-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <UsersIcon class="h-6 w-6 text-gray-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="truncate text-sm font-medium text-gray-500">
+                    {{ __('Total Employees') }}
+                  </dt>
+                  <dd class="text-lg font-semibold text-gray-900">
+                    {{ statistics.total_employees }}
+                  </dd>
+                </dl>
+              </div>
             </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="truncate text-sm font-medium text-gray-500">
-                  {{ __('Total Employees') }}
-                </dt>
-                <dd class="text-lg font-semibold text-gray-900">
-                  {{ statistics.total_employees }}
-                </dd>
-              </dl>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <CheckCircleIcon class="h-6 w-6 text-green-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="truncate text-sm font-medium text-gray-500">
+                    {{ __('Active') }}
+                  </dt>
+                  <dd class="text-lg font-semibold text-gray-900">
+                    {{ statistics.active_employees }}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <ClockIcon class="h-6 w-6 text-yellow-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="truncate text-sm font-medium text-gray-500">
+                    {{ __('On Probation') }}
+                  </dt>
+                  <dd class="text-lg font-semibold text-gray-900">
+                    {{ statistics.on_probation }}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <ExclamationTriangleIcon class="h-6 w-6 text-red-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="truncate text-sm font-medium text-gray-500">
+                    {{ __('Contracts Expiring') }}
+                  </dt>
+                  <dd class="text-lg font-semibold text-gray-900">
+                    {{ statistics.contracts_expiring_soon }}
+                  </dd>
+                </dl>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="overflow-hidden rounded-lg bg-white shadow">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <CheckCircleIcon class="h-6 w-6 text-green-400" />
+      <!-- Filters and Search -->
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-1 gap-2">
+          <div class="relative w-64 rounded-md shadow-sm">
+            <div class="pointer-events-none absolute inset-y-0 flex items-center ltr:left-0 ltr:pl-3 rtl:right-0 rtl:pr-3">
+              <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
             </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="truncate text-sm font-medium text-gray-500">
-                  {{ __('Active') }}
-                </dt>
-                <dd class="text-lg font-semibold text-gray-900">
-                  {{ statistics.active_employees }}
-                </dd>
-              </dl>
-            </div>
+            <input
+              v-model="index.params.search"
+              type="search"
+              :placeholder="__('Search employees...')"
+              class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ltr:pl-10 rtl:pr-10 sm:text-sm"
+              @input="handleSearch"
+            />
           </div>
+
+          <select
+            v-model="index.params.employment_status"
+            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="index.get()"
+          >
+            <option value="">{{ __('All Statuses') }}</option>
+            <option v-for="status in filters.employment_statuses" :key="status" :value="status">
+              {{ __(status) }}
+            </option>
+          </select>
+
+          <select
+            v-model="index.params.employment_type"
+            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="index.get()"
+          >
+            <option value="">{{ __('All Types') }}</option>
+            <option v-for="type in filters.employment_types" :key="type" :value="type">
+              {{ __(type) }}
+            </option>
+          </select>
+
+          <select
+            v-model="index.params.department"
+            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="index.get()"
+          >
+            <option value="">{{ __('All Departments') }}</option>
+            <option v-for="dept in filters.departments" :key="dept" :value="dept">
+              {{ dept }}
+            </option>
+          </select>
+        </div>
+
+        <div class="ltr:ml-auto rtl:mr-auto">
+          <TheButton
+            v-if="can('employee:create')"
+            size="sm"
+            @click="openEmployeeModal()"
+          >
+            {{ __('Add Employee') }}
+          </TheButton>
         </div>
       </div>
 
-      <div class="overflow-hidden rounded-lg bg-white shadow">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <ClockIcon class="h-6 w-6 text-yellow-400" />
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="truncate text-sm font-medium text-gray-500">
-                  {{ __('On Probation') }}
-                </dt>
-                <dd class="text-lg font-semibold text-gray-900">
-                  {{ statistics.on_probation }}
-                </dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="overflow-hidden rounded-lg bg-white shadow">
-        <div class="p-5">
-          <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <ExclamationTriangleIcon class="h-6 w-6 text-red-400" />
-            </div>
-            <div class="ml-5 w-0 flex-1">
-              <dl>
-                <dt class="truncate text-sm font-medium text-gray-500">
-                  {{ __('Contracts Expiring') }}
-                </dt>
-                <dd class="text-lg font-semibold text-gray-900">
-                  {{ statistics.contracts_expiring_soon }}
-                </dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Filters and Search -->
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex flex-1 gap-2">
-        <div class="relative w-64 rounded-md shadow-sm">
-          <div class="pointer-events-none absolute inset-y-0 flex items-center ltr:left-0 ltr:pl-3 rtl:right-0 rtl:pr-3">
-            <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            v-model="index.params.search"
-            type="search"
-            :placeholder="__('Search employees...')"
-            class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ltr:pl-10 rtl:pr-10 sm:text-sm"
-            @input="handleSearch"
-          />
-        </div>
-
-        <select
-          v-model="index.params.employment_status"
-          class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          @change="index.get()"
-        >
-          <option value="">{{ __('All Statuses') }}</option>
-          <option v-for="status in filters.employment_statuses" :key="status" :value="status">
-            {{ __(status) }}
-          </option>
-        </select>
-
-        <select
-          v-model="index.params.employment_type"
-          class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          @change="index.get()"
-        >
-          <option value="">{{ __('All Types') }}</option>
-          <option v-for="type in filters.employment_types" :key="type" :value="type">
-            {{ __(type) }}
-          </option>
-        </select>
-
-        <select
-          v-model="index.params.department"
-          class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          @change="index.get()"
-        >
-          <option value="">{{ __('All Departments') }}</option>
-          <option v-for="dept in filters.departments" :key="dept" :value="dept">
-            {{ dept }}
-          </option>
-        </select>
-      </div>
-
-      <div class="ltr:ml-auto rtl:mr-auto">
-        <TheButton
-          v-if="can('employee:create')"
-          size="sm"
-          @click="openEmployeeModal()"
-        >
-          {{ __('Add Employee') }}
-        </TheButton>
-      </div>
-    </div>
-
-    <!-- Employees Table -->
-    <section>
-      <div class="flex flex-col">
-        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-            <div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Name')"
-                      sort="name"
-                    />
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Position')"
-                      sort="position"
-                    />
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Department')"
-                      sort="department"
-                    />
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Employment Type')"
-                      sort="employment_type"
-                    />
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Status')"
-                      sort="employment_status"
-                    />
-                    <TableTh
-                      name="employee"
-                      :index="index"
-                      :label="__('Employment Date')"
-                      sort="employment_date"
-                    />
-                    <th class="bg-gray-50 px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                  <tr
-                    v-for="employee in index.data.data"
-                    :key="employee.id"
-                    class="cursor-pointer hover:bg-gray-50"
-                    @click="viewEmployee(employee.id)"
-                  >
-                    <td class="whitespace-nowrap px-6 py-4">
-                      <div class="flex items-center">
-                        <div class="h-10 w-10 flex-shrink-0">
-                          <UserAvatar :user="employee.user" size="10" />
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            {{ employee.user.name }}
+      <!-- Employees Table -->
+      <section>
+        <div class="flex flex-col">
+          <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <div class="overflow-hidden border-b border-gray-200 shadow sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <TableTh
+                        name="employee"
+                        :index="index"
+                        :label="__('Name')"
+                        sort="name"
+                      />
+                      <TableTh
+                        name="employee"
+                        :index="index"
+                        :label="__('Position')"
+                        sort="position"
+                      />
+                      <TableTh
+                        name="employee"
+                        :index="index"
+                        :label="__('Department')"
+                        sort="department"
+                      />
+                      <TableTh
+                        name="employee"
+                        :index="index"
+                        :label="__('Type')"
+                        sort="employment_type"
+                      />
+                      <TableTh
+                        name="employee"
+                        :index="index"
+                        :label="__('Status')"
+                        sort="employment_status"
+                      />
+                      <th class="bg-gray-50 px-6 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white">
+                    <tr
+                      v-for="employee in index.data.data"
+                      :key="employee.id"
+                      class="cursor-pointer transition-colors"
+                      :class="selectedEmployee?.id === employee.id ? 'bg-indigo-50' : 'hover:bg-gray-50'"
+                      @click="selectEmployee(employee)"
+                    >
+                      <td class="whitespace-nowrap px-6 py-4">
+                        <div class="flex items-center">
+                          <div class="h-10 w-10 flex-shrink-0">
+                            <UserAvatar :user="employee.user" size="10" />
                           </div>
-                          <div class="text-sm text-gray-500">
-                            {{ employee.user.email }}
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">
+                              {{ employee.user.name }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                              {{ employee.user.email }}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {{ employee.position || '-' }}
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {{ employee.department || '-' }}
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <span
-                        class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
-                        :class="{
-                          'bg-green-100 text-green-800': employee.employment_type === 'Permanent',
-                          'bg-blue-100 text-blue-800': employee.employment_type === 'Contract',
-                          'bg-yellow-100 text-yellow-800': employee.employment_type === 'Probation',
-                          'bg-gray-100 text-gray-800': ['Casual', 'Internship'].includes(employee.employment_type)
-                        }"
-                      >
-                        {{ employee.employment_type }}
-                      </span>
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <span
-                        class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
-                        :class="{
-                          'bg-green-100 text-green-800': employee.employment_status === 'Active',
-                          'bg-yellow-100 text-yellow-800': employee.employment_status === 'On Leave',
-                          'bg-red-100 text-red-800': ['Resigned', 'Terminated'].includes(employee.employment_status),
-                          'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended'].includes(employee.employment_status)
-                        }"
-                      >
-                        {{ employee.employment_status }}
-                      </span>
-                    </td>
-                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {{ employee.employment_date ? new Date(employee.employment_date).toLocaleDateString() : '-' }}
-                    </td>
-                    <td class="flex items-center justify-end whitespace-nowrap px-6 py-4 text-right text-sm font-medium leading-5">
-                      <PencilIcon
-                        v-if="can('employee:update')"
-                        class="w-5 cursor-pointer text-gray-400 hover:text-gray-800"
-                        @click.stop="openEmployeeModal(employee)"
-                      />
-                      <TrashIcon
-                        v-if="can('employee:delete')"
-                        class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
-                        @click.stop="index.deleteIt(employee.id)"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      </td>
+                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {{ employee.position || '-' }}
+                      </td>
+                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        {{ employee.department || '-' }}
+                      </td>
+                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        <span
+                          class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+                          :class="{
+                            'bg-green-100 text-green-800': employee.employment_type === 'Permanent',
+                            'bg-blue-100 text-blue-800': employee.employment_type === 'Contract',
+                            'bg-yellow-100 text-yellow-800': employee.employment_type === 'Probation',
+                            'bg-gray-100 text-gray-800': ['Casual', 'Internship'].includes(employee.employment_type)
+                          }"
+                        >
+                          {{ employee.employment_type }}
+                        </span>
+                      </td>
+                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        <span
+                          class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
+                          :class="{
+                            'bg-green-100 text-green-800': employee.employment_status === 'Active',
+                            'bg-yellow-100 text-yellow-800': employee.employment_status === 'On Leave',
+                            'bg-red-100 text-red-800': ['Resigned', 'Terminated'].includes(employee.employment_status),
+                            'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended'].includes(employee.employment_status)
+                          }"
+                        >
+                          {{ employee.employment_status }}
+                        </span>
+                      </td>
+                      <td class="flex items-center justify-end whitespace-nowrap px-6 py-4 text-right text-sm font-medium leading-5">
+                        <EyeIcon
+                          class="w-5 cursor-pointer text-indigo-400 hover:text-indigo-600"
+                          :title="__('View Details')"
+                          @click.stop="selectEmployee(employee)"
+                        />
+                        <PencilIcon
+                          v-if="can('employee:update')"
+                          class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
+                          @click.stop="openEmployeeModal(employee)"
+                        />
+                        <TrashIcon
+                          v-if="can('employee:delete')"
+                          class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
+                          @click.stop="index.deleteIt(employee.id)"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
 
-              <IndexPagination :index="index" />
+                <IndexPagination :index="index" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Employee Form Modal -->
-    <FormModal v-model="form.show" size="2xl" @saved="index.get()">
-      <Form :model-value="form.model" @close="form.show = false" />
-    </FormModal>
+      <!-- Employee Form Modal -->
+      <FormModal v-if="form.show" size="2xl" @saved="index.get()" @close="form.show = false">
+        <Form :model-value="form.model" @close="form.show = false" />
+      </FormModal>
+    </div>
+
+    <!-- Slide-out Side Panel -->
+    <transition
+      enter-active-class="transition-transform duration-300 ease-out"
+      enter-from-class="translate-x-full"
+      enter-to-class="translate-x-0"
+      leave-active-class="transition-transform duration-300 ease-in"
+      leave-from-class="translate-x-0"
+      leave-to-class="translate-x-full"
+    >
+      <div
+        v-if="selectedEmployee"
+        class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl overflow-y-auto z-40 border-l border-gray-200"
+        style="top: 64px; height: calc(100vh - 64px);"
+      >
+        <!-- Panel Header -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <h2 class="text-lg font-semibold text-gray-900">{{ __('Employee Details') }}</h2>
+          <button
+            class="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+            @click="selectedEmployee = null"
+          >
+            <XMarkIcon class="h-6 w-6" />
+          </button>
+        </div>
+
+        <!-- Panel Content -->
+        <div class="p-6 space-y-6">
+          <!-- Employee Header -->
+          <div class="text-center pb-4 border-b border-gray-100">
+            <div class="flex justify-center mb-3">
+              <UserAvatar :user="selectedEmployee.user" size="20" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-900">{{ selectedEmployee.user.name }}</h3>
+            <p class="text-sm text-gray-500">{{ selectedEmployee.user.email }}</p>
+            <div class="flex justify-center gap-2 mt-3">
+              <span
+                class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                :class="{
+                  'bg-green-100 text-green-800': selectedEmployee.employment_status === 'Active',
+                  'bg-yellow-100 text-yellow-800': selectedEmployee.employment_status === 'On Leave',
+                  'bg-red-100 text-red-800': ['Resigned', 'Terminated'].includes(selectedEmployee.employment_status),
+                  'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended'].includes(selectedEmployee.employment_status)
+                }"
+              >
+                {{ selectedEmployee.employment_status }}
+              </span>
+              <span
+                class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                :class="{
+                  'bg-green-100 text-green-800': selectedEmployee.employment_type === 'Permanent',
+                  'bg-blue-100 text-blue-800': selectedEmployee.employment_type === 'Contract',
+                  'bg-yellow-100 text-yellow-800': selectedEmployee.employment_type === 'Probation',
+                  'bg-gray-100 text-gray-800': ['Casual', 'Internship'].includes(selectedEmployee.employment_type)
+                }"
+              >
+                {{ selectedEmployee.employment_type }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Personal Information -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <UserIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Personal Information') }}
+            </h4>
+            <dl class="space-y-2">
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Phone') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.phone_number || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('National ID') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.national_id || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Date of Birth') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.date_of_birth) }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Gender') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.gender || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Marital Status') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.marital_status || '-' }}</dd>
+              </div>
+              <div v-if="selectedEmployee.physical_address" class="py-2">
+                <dt class="text-sm text-gray-500 mb-1">{{ __('Address') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.physical_address }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Employment Information -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <BriefcaseIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Employment Information') }}
+            </h4>
+            <dl class="space-y-2">
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Position') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.position || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Department') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.department || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Reports To') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.supervisor?.name || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Employment Date') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.employment_date) }}</dd>
+              </div>
+              <div v-if="selectedEmployee.employment_type === 'Contract'" class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Contract Period') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">
+                  {{ formatDate(selectedEmployee.contract_start_date) }} - {{ formatDate(selectedEmployee.contract_end_date) }}
+                </dd>
+              </div>
+              <div v-if="selectedEmployee.probation_end_date" class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Probation End') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.probation_end_date) }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Financial Information -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <BanknotesIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Financial Information') }}
+            </h4>
+            <dl class="space-y-2">
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Salary') }}</dt>
+                <dd class="text-sm font-bold text-green-600">{{ formatCurrency(selectedEmployee.current_salary, selectedEmployee.salary_currency) }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Tax ID (TIN)') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.tax_identification_number || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Pension No.') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.pension_number || '-' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Leave Balances -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <CalendarDaysIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Leave Balances') }}
+            </h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-blue-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-blue-600">{{ selectedEmployee.leave_balance_annual ?? 0 }}</p>
+                <p class="text-xs text-gray-500">{{ __('Annual Leave') }}</p>
+                <p class="text-xs text-gray-400">{{ __('of') }} {{ selectedEmployee.annual_leave_days ?? 0 }} {{ __('days') }}</p>
+              </div>
+              <div class="bg-amber-50 rounded-lg p-3 text-center">
+                <p class="text-2xl font-bold text-amber-600">{{ selectedEmployee.leave_balance_sick ?? 0 }}</p>
+                <p class="text-xs text-gray-500">{{ __('Sick Leave') }}</p>
+                <p class="text-xs text-gray-400">{{ __('of') }} {{ selectedEmployee.sick_leave_days ?? 0 }} {{ __('days') }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next of Kin -->
+          <div v-if="selectedEmployee.next_of_kin_name">
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <UsersIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Next of Kin') }}
+            </h4>
+            <dl class="space-y-2">
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Name') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_name }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Relationship') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_relationship || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Phone') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_phone || '-' }}</dd>
+              </div>
+              <div v-if="selectedEmployee.next_of_kin_address" class="py-2">
+                <dt class="text-sm text-gray-500 mb-1">{{ __('Address') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_address }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Notes -->
+          <div v-if="selectedEmployee.notes">
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">{{ __('Notes') }}</h4>
+            <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{{ selectedEmployee.notes }}</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-4 border-t border-gray-200 space-y-2">
+            <button
+              v-if="can('employee:update')"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              @click="openEmployeeModal(selectedEmployee)"
+            >
+              <PencilIcon class="h-4 w-4" />
+              {{ __('Edit Employee') }}
+            </button>
+            <button
+              v-if="canImpersonate(selectedEmployee)"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              @click="impersonateUser(selectedEmployee)"
+            >
+              <UserIcon class="h-4 w-4" />
+              {{ __('Login as User') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Overlay when panel is open -->
+    <transition
+      enter-active-class="transition-opacity duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="selectedEmployee"
+        class="fixed inset-0 bg-black bg-opacity-20 z-30"
+        style="top: 64px;"
+        @click="selectedEmployee = null"
+      ></div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon } from '@heroicons/vue/24/outline'
-import axios from 'axios'
+import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon, UserIcon, XMarkIcon, EyeIcon, BriefcaseIcon, BanknotesIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
+import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import TableTh from '@/thetheme/components/TableTh.vue'
@@ -297,17 +540,18 @@ import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
 import { useIndex } from '@/composables/useIndex'
 import { can } from '@/helpers'
+import { appData } from '@/app-data'
 
-const router = useRouter()
 const processing = ref(true)
 const statistics = ref(null)
+const selectedEmployee = ref(null)
 const filters = ref({
   departments: [],
   employment_types: [],
   employment_statuses: []
 })
 
-const index = useIndex('/api/employees', {
+const index = useIndex('employees', {
   search: '',
   employment_status: '',
   employment_type: '',
@@ -322,6 +566,20 @@ const form = reactive({
   model: null
 })
 
+const formatDate = (dateString) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString()
+}
+
+const formatCurrency = (amount, currency = 'MWK') => {
+  if (!amount) return '-'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2
+  }).format(amount)
+}
+
 let searchTimeout = null
 const handleSearch = () => {
   clearTimeout(searchTimeout)
@@ -330,18 +588,42 @@ const handleSearch = () => {
   }, 300)
 }
 
+const selectEmployee = (employee) => {
+  selectedEmployee.value = employee
+}
+
 const openEmployeeModal = (employee = null) => {
   form.model = employee
   form.show = true
 }
 
-const viewEmployee = (id) => {
-  router.push(`/employees/${id}`)
+const canImpersonate = (employee) => {
+  // Only super admins can impersonate
+  if (!appData.is_super_admin) return false
+  // Cannot impersonate yourself
+  if (employee.user_id === appData.user?.id) return false
+  return true
+}
+
+const impersonateUser = async (employee) => {
+  if (!confirm(`Are you sure you want to login as ${employee.user?.name || 'this user'}?`)) {
+    return
+  }
+
+  try {
+    const response = await axios.post(`impersonate/${employee.user_id}`)
+    alert(response.data.message)
+    // Full page redirect to get fresh session and CSRF token
+    window.location.href = '/'
+  } catch (error) {
+    console.error('Impersonate error:', error)
+    alert(error.response?.data?.message || 'Failed to impersonate user')
+  }
 }
 
 const loadStatistics = async () => {
   try {
-    const response = await axios.get('/api/employees/statistics')
+    const response = await axios.get('employees/statistics')
     statistics.value = response.data.data
   } catch (error) {
     console.error('Failed to load statistics:', error)
@@ -349,13 +631,26 @@ const loadStatistics = async () => {
 }
 
 onMounted(async () => {
-  await index.get()
-  await loadStatistics()
+  console.log('[Employees] Component mounted')
+  try {
+    console.log('[Employees] Fetching employees...')
+    await index.get()
+    console.log('[Employees] Employees fetched:', index.data)
 
-  if (index.data && index.data.filters) {
-    filters.value = index.data.filters
+    console.log('[Employees] Fetching statistics...')
+    await loadStatistics()
+    console.log('[Employees] Statistics fetched:', statistics.value)
+
+    if (index.data && index.data.filters) {
+      filters.value = index.data.filters
+      console.log('[Employees] Filters set:', filters.value)
+    }
+
+    processing.value = false
+    console.log('[Employees] Processing complete')
+  } catch (error) {
+    console.error('[Employees] ERROR in onMounted:', error)
+    processing.value = false
   }
-
-  processing.value = false
 })
 </script>

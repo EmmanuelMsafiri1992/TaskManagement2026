@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\ServiceProvider;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,13 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
+    /**
+     * The authenticated guard (set after successful authentication).
+     *
+     * @var string|null
+     */
+    protected $authenticatedGuard = null;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -35,7 +43,28 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Get the guard that was used for authentication.
+     *
+     * @return string|null
+     */
+    public function getAuthenticatedGuard()
+    {
+        return $this->authenticatedGuard;
+    }
+
+    /**
+     * Check if the authenticated user is a teacher/service provider.
+     *
+     * @return bool
+     */
+    public function isTeacherLogin()
+    {
+        return $this->authenticatedGuard === 'service_provider';
+    }
+
+    /**
      * Attempt to authenticate the request's credentials.
+     * First tries the regular user guard, then the service provider guard.
      *
      * @return void
      *
@@ -45,15 +74,48 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+        $credentials = $this->only('email', 'password');
+        $remember = $this->boolean('remember');
 
-            throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
-            ]);
+        // First, try to authenticate as a regular user (employee)
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
+            $this->authenticatedGuard = 'web';
+            RateLimiter::clear($this->throttleKey());
+            return;
         }
 
-        RateLimiter::clear($this->throttleKey());
+        // If that fails, try to authenticate as a service provider (teacher)
+        if (Auth::guard('service_provider')->attempt($credentials, $remember)) {
+            $provider = Auth::guard('service_provider')->user();
+
+            // Check service provider status
+            if ($provider->status === 'suspended') {
+                Auth::guard('service_provider')->logout();
+                RateLimiter::hit($this->throttleKey());
+                throw ValidationException::withMessages([
+                    'email' => 'Your account has been suspended. Please contact support.',
+                ]);
+            }
+
+            if ($provider->status === 'terminated') {
+                Auth::guard('service_provider')->logout();
+                RateLimiter::hit($this->throttleKey());
+                throw ValidationException::withMessages([
+                    'email' => 'Your account has been terminated.',
+                ]);
+            }
+
+            $this->authenticatedGuard = 'service_provider';
+            RateLimiter::clear($this->throttleKey());
+            return;
+        }
+
+        // Both attempts failed
+        RateLimiter::hit($this->throttleKey());
+
+        throw ValidationException::withMessages([
+            'email' => trans('auth.failed'),
+        ]);
     }
 
     /**

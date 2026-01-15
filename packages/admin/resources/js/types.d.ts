@@ -19,6 +19,7 @@ interface AppData {
   app_name: string
   app_logo: string
   is_super_admin: boolean
+  is_attendance_admin: boolean
   permissions: string[]
   translations: any
   locale: string
@@ -59,13 +60,22 @@ interface ChartTasksYearly {
   Dec: number
 }
 
-interface SidebarNav {
+interface SidebarNavChild {
   label: string
   uri: string
+  permission?: string
+}
+
+interface SidebarNav {
+  label: string
+  uri?: string
   icon: FunctionalComponent<HTMLAttributes & VNodeProps>
   permission?: string
+  superAdminOnly?: boolean
+  attendanceAdminOnly?: boolean
   create?: string
   createPermission?: string
+  children?: SidebarNavChild[]
 }
 
 interface ProjectForm {

@@ -1,0 +1,65 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd /home/indegnnk/TaskManagement2026Repo
+            git pull origin main
+
+            DEPLOYPATH=/home/indegnnk/task.emphxs.com
+
+            # Sync files - exclude root vendor (not public/vendor), node_modules, and storage temp files
+            /bin/rsync -av --delete \
+              --exclude='.git' \
+              --exclude='.env' \
+              --exclude='/vendor' \
+              --exclude='node_modules' \
+              --exclude='storage/logs/*' \
+              --exclude='storage/framework/cache/*' \
+              --exclude='storage/framework/sessions/*' \
+              --exclude='storage/framework/views/*' \
+              --exclude='storage/app/public/*' \
+              --exclude='public/storage' \
+              ./ $DEPLOYPATH/
+
+            # Fix ownership and permissions
+            chown -R indegnnk:indegnnk $DEPLOYPATH
+            chmod 755 $DEPLOYPATH
+            chmod -R 775 $DEPLOYPATH/storage $DEPLOYPATH/bootstrap/cache
+            chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
+            chmod 644 $DEPLOYPATH/public/.htaccess 2>/dev/null || true
+
+            cd $DEPLOYPATH
+
+            # Install PHP dependencies
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Run migrations
+            php artisan migrate --force
+
+            # Clear all caches first
+            php artisan optimize:clear
+
+            # Ensure storage link exists
+            php artisan storage:link 2>/dev/null || true
+
+            # Rebuild caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "Deployment completed: $(date)"

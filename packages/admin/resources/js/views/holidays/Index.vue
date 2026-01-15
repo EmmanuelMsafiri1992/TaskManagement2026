@@ -136,7 +136,7 @@
     </section>
 
     <!-- Holiday Form Modal -->
-    <FormModal v-model="form.show" size="md" @saved="index.get()">
+    <FormModal v-if="form.show" size="md" @saved="index.get()">
       <Form :model-value="form.model" @close="form.show = false" />
     </FormModal>
   </div>
@@ -157,7 +157,7 @@ import { can } from '@/helpers'
 const processing = ref(true)
 const currentYear = new Date().getFullYear()
 
-const index = useIndex('/api/holidays', {
+const index = useIndex('holidays', {
   search: '',
   year: currentYear,
   filter: '',

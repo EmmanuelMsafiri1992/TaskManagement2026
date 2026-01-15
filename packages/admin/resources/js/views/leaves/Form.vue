@@ -1,5 +1,5 @@
 <template>
-  <FormBase :form="form" @submit="submit">
+  <FormBase :external-form="form" @submit="submit" @cancel="emit('close')">
     <template #title>
       {{ form.id ? __('Edit Leave Request') : __('Request Leave') }}
     </template>
@@ -184,7 +184,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { InformationCircleIcon } from '@heroicons/vue/24/outline'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 import FormBase from '@/thetheme/components/FormBase.vue'
 import { useForm } from '@/composables/useForm'
 
@@ -203,7 +203,7 @@ const minDate = computed(() => {
   return today.toISOString().split('T')[0]
 })
 
-const form = useForm('/api/leaves', {
+const form = useForm('leaves', {
   leave_type: '',
   start_date: '',
   end_date: '',
@@ -246,11 +246,11 @@ const submit = () => {
 
 const loadLeaveBalance = async () => {
   try {
-    const response = await axios.get('/api/profile/create')
+    const response = await axios.get('profile/create')
     if (response.data.employee_record) {
       leaveBalance.value = {
-        annual: response.data.employee_record.leave_balance_annual,
-        sick: response.data.employee_record.leave_balance_sick
+        annual: response.data.employee_record.leave_balance_annual ?? 0,
+        sick: response.data.employee_record.leave_balance_sick ?? 0
       }
     }
   } catch (error) {

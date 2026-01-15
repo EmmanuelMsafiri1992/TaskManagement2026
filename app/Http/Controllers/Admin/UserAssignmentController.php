@@ -94,63 +94,76 @@ class UserAssignmentController extends Controller
      */
     public function getAvailableUsers(Request $request)
     {
-        $type = $request->input('type'); // 'job_seekers' or 'employers'
-        $page = $request->input('page', 1);
-        $perPage = $request->input('per_page', 20);
-        $search = $request->input('search', '');
+        try {
+            $type = $request->input('type'); // 'job_seekers' or 'employers'
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 20);
+            $search = $request->input('search', '');
 
-        $query = V11User::verified();
+            $query = V11User::verified();
 
-        if ($type === 'job_seekers') {
-            $query->jobSeekers();
-        } elseif ($type === 'employers') {
-            $query->employers();
-        }
+            if ($type === 'job_seekers') {
+                $query->jobSeekers();
+            } elseif ($type === 'employers') {
+                $query->employers();
+            }
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%');
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+                });
+            }
+
+            $totalCount = $query->count();
+            $users = $query->orderBy('created_at', 'desc')
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get(['id', 'name', 'email', 'user_type_id', 'created_at']);
+
+            // Check if users are already assigned
+            $usersWithStatus = $users->map(function ($user) {
+                $assignment = UserAssignment::where('v11_user_id', $user->id)
+                    ->where('v11_user_type', $user->user_type_id)
+                    ->first();
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'user_type' => $user->user_type_id,
+                    'user_type_name' => $user->getUserTypeName(),
+                    'created_at' => $user->created_at,
+                    'is_assigned' => $assignment !== null,
+                    'assigned_to' => $assignment ? [
+                        'id' => $assignment->taskhub_user_id,
+                        'name' => $assignment->taskhubUser->name,
+                    ] : null,
+                ];
             });
+
+            return response()->json([
+                'success' => true,
+                'data' => $usersWithStatus,
+                'meta' => [
+                    'total' => $totalCount,
+                    'per_page' => $perPage,
+                    'current_page' => $page,
+                    'last_page' => ceil($totalCount / $perPage),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+                'meta' => [
+                    'total' => 0,
+                    'per_page' => 20,
+                    'current_page' => 1,
+                    'last_page' => 1,
+                ],
+            ]);
         }
-
-        $totalCount = $query->count();
-        $users = $query->orderBy('created_at', 'desc')
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
-            ->get(['id', 'name', 'email', 'user_type_id', 'created_at']);
-
-        // Check if users are already assigned
-        $usersWithStatus = $users->map(function ($user) {
-            $assignment = UserAssignment::where('v11_user_id', $user->id)
-                ->where('v11_user_type', $user->user_type_id)
-                ->first();
-
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'user_type' => $user->user_type_id,
-                'user_type_name' => $user->getUserTypeName(),
-                'created_at' => $user->created_at,
-                'is_assigned' => $assignment !== null,
-                'assigned_to' => $assignment ? [
-                    'id' => $assignment->taskhub_user_id,
-                    'name' => $assignment->taskhubUser->name,
-                ] : null,
-            ];
-        });
-
-        return response()->json([
-            'success' => true,
-            'data' => $usersWithStatus,
-            'meta' => [
-                'total' => $totalCount,
-                'per_page' => $perPage,
-                'current_page' => $page,
-                'last_page' => ceil($totalCount / $perPage),
-            ],
-        ]);
     }
 
     /**
@@ -216,12 +229,19 @@ class UserAssignmentController extends Controller
         }
 
         // Get V11 user details
-        $v11User = V11User::find($request->v11_user_id);
-        if (!$v11User || !$v11User->email_verified_at) {
+        try {
+            $v11User = V11User::find($request->v11_user_id);
+            if (!$v11User || !$v11User->email_verified_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found or email not verified',
+                ], 404);
+            }
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found or email not verified',
-            ], 404);
+                'message' => 'V11 database not available',
+            ], 500);
         }
 
         // Get project and list for user assignments
@@ -326,8 +346,14 @@ class UserAssignmentController extends Controller
      */
     public function getStatistics()
     {
-        $totalJobSeekers = V11User::verified()->jobSeekers()->count();
-        $totalEmployers = V11User::verified()->employers()->count();
+        try {
+            $totalJobSeekers = V11User::verified()->jobSeekers()->count();
+            $totalEmployers = V11User::verified()->employers()->count();
+        } catch (\Exception $e) {
+            $totalJobSeekers = 0;
+            $totalEmployers = 0;
+        }
+
         $assignedJobSeekers = UserAssignment::where('v11_user_type', 2)->count();
         $assignedEmployers = UserAssignment::where('v11_user_type', 1)->count();
 
@@ -337,12 +363,12 @@ class UserAssignmentController extends Controller
                 'job_seekers' => [
                     'total' => $totalJobSeekers,
                     'assigned' => $assignedJobSeekers,
-                    'unassigned' => $totalJobSeekers - $assignedJobSeekers,
+                    'unassigned' => max(0, $totalJobSeekers - $assignedJobSeekers),
                 ],
                 'employers' => [
                     'total' => $totalEmployers,
                     'assigned' => $assignedEmployers,
-                    'unassigned' => $totalEmployers - $assignedEmployers,
+                    'unassigned' => max(0, $totalEmployers - $assignedEmployers),
                 ],
             ],
         ]);

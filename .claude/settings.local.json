@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(php artisan migrate:*)",
+      "Bash(php -r:*)",
+      "Bash(php artisan:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx vite build)",
+      "Bash(npm install)",
+      "Bash(npm run buildjs:*)",
+      "Bash(grep:*)",
+      "Bash(npm run buildjs:admin:*)",
+      "Bash(npm run:*)",
+      "Bash(dir /b \"C:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\app\")",
+      "Bash(dir /b \"C:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\packages\\\\admin\")",
+      "Bash(npx vue-tsc:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(git check-ignore:*)",
+      "Bash(dir:*)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(php -l:*)",
+      "WebFetch(domain:task.emphxs.com)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)"
+    ]
+  }
+}

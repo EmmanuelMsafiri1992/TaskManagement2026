@@ -5,6 +5,7 @@ namespace Admin\Support;
 use App\Models\FavoriteProject;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use JsonSerializable;
 use Laranext\Span\Span;
 
@@ -43,9 +44,18 @@ class AppData implements JsonSerializable
         }
 
         $contractDaysRemaining = null;
-        if ($user->contract_end_date) {
-            $contractDaysRemaining = now()->diffInDays($user->contract_end_date, false);
-            $contractDaysRemaining = $contractDaysRemaining > 0 ? (int)$contractDaysRemaining : 0;
+        $employmentType = null;
+
+        // Get employment type from employee record
+        $employeeRecord = $user->employeeRecord;
+        if ($employeeRecord) {
+            $employmentType = $employeeRecord->employment_type;
+
+            // Only calculate contract days remaining for Contract employees
+            if ($employmentType === 'Contract' && $employeeRecord->contract_end_date) {
+                $contractDaysRemaining = now()->diffInDays($employeeRecord->contract_end_date, false);
+                $contractDaysRemaining = $contractDaysRemaining > 0 ? (int)$contractDaysRemaining : 0;
+            }
         }
 
         $this->config = [
@@ -53,6 +63,7 @@ class AppData implements JsonSerializable
             'prefix' => Span::prefix(),
             'user' => $user->only(['id', 'name', 'email', 'avatar', 'contract_end_date', 'contract_type']),
             'contract_days_remaining' => $contractDaysRemaining,
+            'employment_type' => $employmentType,
             'options' => [
                 'email_config' => option('email_config'),
                 'global_update_notification' => option('global_update_notification'),
@@ -69,6 +80,8 @@ class AppData implements JsonSerializable
             'app_logo' => option('app_logo'),
             'is_super_admin' => $user->isSuperAdmin(),
             'is_attendance_admin' => $user->email === 'emmanuel@emphxs.com' || $user->isSuperAdmin(),
+            'is_impersonating' => Session::has('impersonator_id'),
+            'impersonator_id' => Session::get('impersonator_id'),
             'locale' => option('app_locale'),
             'PUSHER_APP_KEY' => config('broadcasting.connections.pusher.key'),
             'PUSHER_APP_CLUSTER' => config('broadcasting.connections.pusher.options.cluster'),

@@ -9,6 +9,7 @@ import SettingsGeneral from 'View/settings/General.vue'
 import SettingsAdSense from 'View/settings/AdSense.vue'
 import SettingsCountries from 'View/settings/Countries.vue'
 import SettingsUserAssignments from 'View/settings/UserAssignments.vue'
+import VideoEnhancer from 'View/VideoEnhancer.vue'
 import RolesIndex from 'View/roles/Index.vue'
 import TasksIndex from 'View/tasks/Index.vue'
 import UsersIndex from 'View/users/Index.vue'
@@ -16,7 +17,6 @@ import LabelsIndex from 'View/labels/Index.vue'
 import ProjectsIndex from 'View/projects/Index.vue'
 import AdSenseReports from 'View/AdSenseReports.vue'
 import AttendanceIndex from 'View/attendance/IndexWorking.vue'
-import AttendanceReports from 'View/attendance/Reports.vue'
 import EmployeesIndex from 'View/employees/Index.vue'
 import EmployeesDetail from 'View/employees/Detail.vue'
 import LeavesIndex from 'View/leaves/Index.vue'
@@ -27,6 +27,18 @@ import QuotationsIndex from 'View/quotations/Index.vue'
 import QuotationsDetail from 'View/quotations/Detail.vue'
 import ExpensesIndex from 'View/expenses/Index.vue'
 import IncomeIndex from 'View/income/Index.vue'
+import ProfitLossReport from 'View/finances/ProfitLoss.vue'
+import AuditTrailIndex from 'View/audit-trail/Index.vue'
+import ServiceProvidersIndex from 'View/service-providers/Index.vue'
+import ServiceProvidersDetail from 'View/service-providers/Detail.vue'
+import RecordingSessionsIndex from 'View/service-providers/RecordingSessions.vue'
+import LessonPlansIndex from 'View/service-providers/LessonPlans.vue'
+import SubjectsIndex from 'View/service-providers/Subjects.vue'
+import WorkingHoursIndex from 'View/working-hours/Index.vue'
+import ActivityReportsIndex from 'View/activity-reports/Index.vue'
+import ActivityReportsSettings from 'View/activity-reports/Settings.vue'
+import LeadsIndex from 'View/leads/Index.vue'
+import AdvanceRequestsIndex from 'View/advance-requests/Index.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
@@ -44,8 +56,6 @@ export const routes: RouteRecordRaw[] = [
   { path: '/roles', name: 'Roles', component: RolesIndex },
   { path: '/tasks', name: 'Tasks', component: TasksIndex },
   { path: '/attendance', name: 'Attendance', component: AttendanceIndex },
-  { path: '/attendance-page', name: 'AttendancePage', component: AttendanceIndex },
-  { path: '/attendance-reports', name: 'AttendanceReports', component: AttendanceReports },
   { path: '/employees', name: 'Employees', component: EmployeesIndex },
   { path: '/employees/:id', name: 'EmployeeDetail', component: EmployeesDetail },
   { path: '/leaves', name: 'Leaves', component: LeavesIndex },
@@ -56,12 +66,25 @@ export const routes: RouteRecordRaw[] = [
   { path: '/quotations/:id', name: 'QuotationDetail', component: QuotationsDetail },
   { path: '/expenses', name: 'Expenses', component: ExpensesIndex },
   { path: '/income', name: 'Income', component: IncomeIndex },
+  { path: '/profit-loss', name: 'ProfitLoss', component: ProfitLossReport },
   { path: '/adsense-reports', name: 'AdSenseReports', component: AdSenseReports },
   { path: '/settings/general', component: SettingsGeneral },
   { path: '/settings/email', component: SettingsEmail },
   { path: '/settings/adsense', component: SettingsAdSense },
   { path: '/settings/countries', component: SettingsCountries },
   { path: '/settings/user-assignments', component: SettingsUserAssignments },
+  { path: '/video-enhancer', component: VideoEnhancer },
+  { path: '/audit-trail', name: 'AuditTrail', component: AuditTrailIndex },
+  { path: '/service-providers', name: 'ServiceProviders', component: ServiceProvidersIndex },
+  { path: '/service-providers/:id', name: 'ServiceProvidersDetail', component: ServiceProvidersDetail },
+  { path: '/recording-sessions', name: 'RecordingSessions', component: RecordingSessionsIndex },
+  { path: '/lesson-plans', name: 'LessonPlans', component: LessonPlansIndex },
+  { path: '/subjects', name: 'Subjects', component: SubjectsIndex },
+  { path: '/working-hours', name: 'WorkingHours', component: WorkingHoursIndex },
+  { path: '/activity-reports', name: 'ActivityReports', component: ActivityReportsIndex },
+  { path: '/activity-reports/settings', name: 'ActivityReportsSettings', component: ActivityReportsSettings },
+  { path: '/leads', name: 'Leads', component: LeadsIndex },
+  { path: '/advance-requests', name: 'AdvanceRequests', component: AdvanceRequestsIndex },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

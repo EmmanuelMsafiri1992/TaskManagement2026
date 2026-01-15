@@ -1,6 +1,6 @@
 <template>
   <section class="mt-6">
-    <Collapsible open>
+    <Collapsible>
       <template #trigger="{ open }">
         <div class="group flex cursor-pointer items-center rounded-lg px-3 py-2 transition-all duration-200 hover:bg-gray-700/50">
           <svg

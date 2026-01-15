@@ -1,5 +1,5 @@
 <template>
-  <FormBase :form="form" @submit="submit">
+  <FormBase :external-form="form" @submit="submit" @cancel="emit('close')">
     <template #title>
       {{ form.id ? __('Edit Holiday') : __('Add Holiday') }}
     </template>
@@ -96,7 +96,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const form = useForm('/api/holidays', {
+const form = useForm('holidays', {
   name: '',
   date: '',
   description: '',

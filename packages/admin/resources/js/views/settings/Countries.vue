@@ -14,6 +14,28 @@
     <Loader v-if="loading" size="40" color="#5850ec" class="mx-auto mt-8" />
 
     <div v-else class="space-y-6">
+      <!-- Pagination Info -->
+      <div v-if="pagination.total > 0" class="flex items-center justify-between">
+        <p class="text-sm text-gray-700">
+          {{ __('Showing') }} <span class="font-medium">{{ pagination.from }}</span> {{ __('to') }}
+          <span class="font-medium">{{ pagination.to }}</span> {{ __('of') }}
+          <span class="font-medium">{{ pagination.total }}</span> {{ __('users') }}
+        </p>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">{{ __('Per page:') }}</label>
+          <select
+            v-model="perPage"
+            @change="fetchData(1)"
+            class="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            <option :value="5">5</option>
+            <option :value="10">10</option>
+            <option :value="25">25</option>
+            <option :value="50">50</option>
+          </select>
+        </div>
+      </div>
+
       <!-- User Assignments Section -->
       <div
         v-for="user in users"
@@ -178,6 +200,81 @@
         </div>
         <div v-else class="text-center py-6 text-gray-500">
           {{ __('No countries assigned yet') }}
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div v-if="pagination.total > 0" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
+        <div class="flex flex-1 justify-between sm:hidden">
+          <button
+            @click="fetchData(pagination.current_page - 1)"
+            :disabled="pagination.current_page === 1"
+            class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ __('Previous') }}
+          </button>
+          <button
+            @click="fetchData(pagination.current_page + 1)"
+            :disabled="pagination.current_page === pagination.last_page"
+            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ __('Next') }}
+          </button>
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              {{ __('Page') }} <span class="font-medium">{{ pagination.current_page }}</span> {{ __('of') }}
+              <span class="font-medium">{{ pagination.last_page }}</span>
+            </p>
+          </div>
+          <div>
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                @click="fetchData(1)"
+                :disabled="pagination.current_page === 1"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">{{ __('First') }}</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M15.79 14.77a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L11.832 10l3.938 3.71a.75.75 0 01.02 1.06zm-6 0a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L5.832 10l3.938 3.71a.75.75 0 01.02 1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <button
+                @click="fetchData(pagination.current_page - 1)"
+                :disabled="pagination.current_page === 1"
+                class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">{{ __('Previous') }}</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300">
+                {{ pagination.current_page }}
+              </span>
+              <button
+                @click="fetchData(pagination.current_page + 1)"
+                :disabled="pagination.current_page === pagination.last_page"
+                class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">{{ __('Next') }}</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <button
+                @click="fetchData(pagination.last_page)"
+                :disabled="pagination.current_page === pagination.last_page"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">{{ __('Last') }}</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.21 5.23a.75.75 0 011.06.02l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.04-1.08L8.168 10 4.23 6.29a.75.75 0 01-.02-1.06zm6 0a.75.75 0 011.06.02l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.04-1.08L14.168 10l-3.938-3.71a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
@@ -539,6 +636,15 @@ const __ = inject('__')
 const loading = ref(false)
 const users = ref<any[]>([])
 const availableCountries = ref<any[]>([])
+const perPage = ref(5)
+const pagination = ref({
+  current_page: 1,
+  last_page: 1,
+  per_page: 10,
+  total: 0,
+  from: 0,
+  to: 0,
+})
 
 // Country modal
 const showCountryModal = ref(false)
@@ -611,11 +717,15 @@ const availableUsersForReassign = computed(() => {
   return users.value.filter((user) => user.id !== reassignFromUser.value.id)
 })
 
-const fetchData = async () => {
+const fetchData = async (page = 1) => {
   loading.value = true
   try {
-    const response = await axios.get('settings/countries')
-    console.log('API Response:', response.data)
+    const response = await axios.get('settings/countries', {
+      params: {
+        page,
+        per_page: perPage.value,
+      },
+    })
 
     // Handle both response formats
     const data = response.data.data || response.data
@@ -627,6 +737,10 @@ const fetchData = async () => {
 
     users.value = data.users || []
     availableCountries.value = data.countries || []
+
+    if (data.pagination) {
+      pagination.value = data.pagination
+    }
   } catch (error) {
     console.error('Failed to fetch data:', error)
     alert('Failed to load data. Please check console for details.')

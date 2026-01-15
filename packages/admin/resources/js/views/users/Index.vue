@@ -170,6 +170,13 @@
                     <td
                       class="whitespace-no-wrap flex items-center justify-end px-6 py-4 text-right text-sm font-medium leading-5"
                     >
+                      <UserIcon
+                        v-if="canImpersonate(item)"
+                        class="w-5 cursor-pointer text-gray-400 hover:text-indigo-600"
+                        :title="__('Login as this user')"
+                        @click.stop="impersonateUser(item)"
+                      />
+
                       <span
                         v-if="can('user:update')"
                         class="ml-2"
@@ -216,7 +223,10 @@
     MagnifyingGlassIcon,
     PencilSquareIcon,
     TrashIcon,
+    UserIcon,
   } from '@heroicons/vue/24/outline'
+  import { axios } from 'spack/axios'
+  import { appData } from '@/app-data'
 
   const can = inject('can')
   const __ = inject('__')
@@ -269,5 +279,29 @@
     processing.value = true
     indexUser.onSearch()
     checkProcessing()
+  }
+
+  function canImpersonate(user: any) {
+    // Only super admins can impersonate
+    if (!appData.is_super_admin) return false
+    // Cannot impersonate yourself
+    if (user.id === appData.user?.id) return false
+    return true
+  }
+
+  async function impersonateUser(user: any) {
+    if (!confirm(`Are you sure you want to login as ${user.name}?`)) {
+      return
+    }
+
+    try {
+      const response = await axios.post(`impersonate/${user.id}`)
+      if (response.data.success) {
+        alert(`You are now logged in as ${user.name}`)
+        window.location.href = '/'
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to impersonate user')
+    }
   }
 </script>

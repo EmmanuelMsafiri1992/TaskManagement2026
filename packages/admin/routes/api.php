@@ -49,7 +49,9 @@ use Admin\Http\Controllers\Api\TimeLogsController;
 use Admin\Http\Controllers\Api\UsersController;
 use Admin\Http\Controllers\Api\AdSenseReportController;
 use Admin\Http\Controllers\Api\AttendanceController;
+use Admin\Http\Controllers\Api\GeneratorFuelController;
 use Admin\Http\Controllers\Api\EmployeeRecordsController;
+use Admin\Http\Controllers\Api\ImpersonateController;
 use Admin\Http\Controllers\Api\LeavesController;
 use Admin\Http\Controllers\Api\HolidaysController;
 use Admin\Http\Controllers\Api\PayrollsController;
@@ -60,7 +62,19 @@ use Admin\Http\Controllers\Api\IncomeController;
 use App\Http\Controllers\Admin\SettingsCountriesController;
 use App\Http\Controllers\Admin\UserAssignmentController;
 use App\Http\Controllers\Admin\JobShareController;
+use App\Http\Controllers\Admin\VideoEnhancerController;
 use App\Http\Controllers\UrlShortenerController;
+use Admin\Http\Controllers\Api\AuditTrailController;
+use Admin\Http\Controllers\Api\ServiceProviderController;
+use Admin\Http\Controllers\Api\RecordingSessionController;
+use Admin\Http\Controllers\Api\LessonPlanController;
+use Admin\Http\Controllers\Api\SubjectController;
+use Admin\Http\Controllers\Api\PaymentController;
+use Admin\Http\Controllers\Api\UserWorkingHoursController;
+use Admin\Http\Controllers\Api\UserActivityController;
+use Admin\Http\Controllers\Api\LeadsController;
+use Admin\Http\Controllers\Api\ProfitLossController;
+use Admin\Http\Controllers\Api\AdvanceRequestsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -75,10 +89,22 @@ Route::post('file', FileUpload::class);
 Route::resource('profile', ProfileController::class)->only(['create', 'store']);
 Route::resource('time-logs', TimeLogsController::class)->only(['index', 'store']);
 
+// Generator Fuel Routes
+Route::prefix('generator')->group(function () {
+    Route::get('status', [GeneratorFuelController::class, 'status']);
+    Route::get('logs', [GeneratorFuelController::class, 'logs']);
+    Route::get('statistics', [GeneratorFuelController::class, 'statistics']);
+    Route::post('add-fuel', [GeneratorFuelController::class, 'addFuel']);
+    Route::post('start', [GeneratorFuelController::class, 'start']);
+    Route::post('stop', [GeneratorFuelController::class, 'stop']);
+    Route::put('settings', [GeneratorFuelController::class, 'updateSettings']);
+});
+
 // Attendance Routes
 Route::get('attendance/status', [AttendanceController::class, 'status']);
 Route::get('attendance/report', [AttendanceController::class, 'report']);
 Route::get('attendance/users', [AttendanceController::class, 'users']);
+Route::get('attendance/export', [AttendanceController::class, 'export']);
 Route::resource('attendance', AttendanceController::class);
 
 // Employee Records Routes
@@ -127,6 +153,14 @@ Route::resource('expenses', ExpensesController::class);
 Route::get('income/statistics', [IncomeController::class, 'statistics']);
 Route::post('income/{id}/mark-as-received', [IncomeController::class, 'markAsReceived']);
 Route::resource('income', IncomeController::class);
+
+// Profit & Loss Report Routes
+Route::prefix('profit-loss')->group(function () {
+    Route::get('dashboard', [ProfitLossController::class, 'dashboard']);
+    Route::get('monthly', [ProfitLossController::class, 'monthlyReport']);
+    Route::get('yearly', [ProfitLossController::class, 'yearlyReport']);
+    Route::get('custom', [ProfitLossController::class, 'customPeriod']);
+});
 
 Route::resource('favorites', FavoritesController::class)->only(['index', 'store', 'destroy']);
 Route::get('projects/options', ProjectsOptions::class);
@@ -226,3 +260,140 @@ Route::prefix('job-shares')->group(function () {
 
 // URL Shortener Stats Route (API)
 Route::get('url-shortener/{shortCode}/stats', [UrlShortenerController::class, 'stats']);
+
+// Impersonation Routes
+Route::prefix('impersonate')->group(function () {
+    Route::post('stop', [ImpersonateController::class, 'stopImpersonating']);
+    Route::get('status', [ImpersonateController::class, 'status']);
+    Route::post('{userId}', [ImpersonateController::class, 'impersonate']);
+});
+
+// Video Enhancer Routes
+Route::prefix('video-enhancer')->group(function () {
+    Route::get('/', [VideoEnhancerController::class, 'index']);
+    Route::post('upload', [VideoEnhancerController::class, 'upload']);
+    Route::post('{id}/estimate', [VideoEnhancerController::class, 'estimate']);
+    Route::post('{id}/process', [VideoEnhancerController::class, 'process']);
+    Route::get('{id}/status', [VideoEnhancerController::class, 'status']);
+    Route::get('{id}/download', [VideoEnhancerController::class, 'download']);
+    Route::delete('{id}', [VideoEnhancerController::class, 'destroy']);
+    Route::delete('{id}/processed', [VideoEnhancerController::class, 'deleteProcessed']);
+});
+
+// Audit Trail Routes
+Route::prefix('audit-trails')->group(function () {
+    Route::get('/', [AuditTrailController::class, 'index']);
+    Route::get('statistics', [AuditTrailController::class, 'statistics']);
+    Route::get('model-types', [AuditTrailController::class, 'modelTypes']);
+    Route::get('{type}/{id}', [AuditTrailController::class, 'show']);
+});
+
+// Service Providers Routes
+Route::prefix('service-providers')->group(function () {
+    Route::get('statistics', [ServiceProviderController::class, 'statistics']);
+    Route::post('stop-impersonating', [ServiceProviderController::class, 'stopImpersonating']);
+    Route::get('{serviceProvider}/recording-sessions', [ServiceProviderController::class, 'recordingSessions']);
+    Route::get('{serviceProvider}/lesson-plans', [ServiceProviderController::class, 'lessonPlans']);
+    Route::get('{serviceProvider}/payments', [ServiceProviderController::class, 'payments']);
+    Route::get('{serviceProvider}/payment-summary', [ServiceProviderController::class, 'paymentSummary']);
+    Route::get('{serviceProvider}/download-agreement', [ServiceProviderController::class, 'downloadAgreement']);
+    Route::post('{serviceProvider}/activate', [ServiceProviderController::class, 'activate']);
+    Route::post('{serviceProvider}/suspend', [ServiceProviderController::class, 'suspend']);
+    Route::post('{serviceProvider}/sign-agreement', [ServiceProviderController::class, 'signAgreement']);
+    Route::post('{serviceProvider}/impersonate', [ServiceProviderController::class, 'impersonate']);
+});
+Route::resource('service-providers', ServiceProviderController::class);
+
+// Payments Routes
+Route::prefix('payments')->group(function () {
+    Route::get('statistics', [PaymentController::class, 'statistics']);
+    Route::post('bulk', [PaymentController::class, 'bulkPayment']);
+    Route::get('{payment}/receipt', [PaymentController::class, 'generateReceipt']);
+    Route::post('{payment}/complete', [PaymentController::class, 'markAsCompleted']);
+});
+Route::resource('payments', PaymentController::class);
+
+// Recording Sessions Routes
+Route::prefix('recording-sessions')->group(function () {
+    Route::get('statistics', [RecordingSessionController::class, 'statistics']);
+    Route::get('pending-review', [RecordingSessionController::class, 'pendingReview']);
+    Route::post('{recordingSession}/approve', [RecordingSessionController::class, 'approve']);
+    Route::post('{recordingSession}/reject', [RecordingSessionController::class, 'reject']);
+    Route::post('{recordingSession}/upload-video', [RecordingSessionController::class, 'uploadVideo']);
+});
+Route::resource('recording-sessions', RecordingSessionController::class);
+
+// Lesson Plans Routes
+Route::prefix('lesson-plans')->group(function () {
+    Route::get('statistics', [LessonPlanController::class, 'statistics']);
+    Route::get('pending-review', [LessonPlanController::class, 'pendingReview']);
+    Route::post('{lessonPlan}/approve', [LessonPlanController::class, 'approve']);
+    Route::post('{lessonPlan}/reject', [LessonPlanController::class, 'reject']);
+});
+Route::resource('lesson-plans', LessonPlanController::class);
+
+// Subjects & Topics Routes
+Route::prefix('subjects')->group(function () {
+    Route::get('statistics', [SubjectController::class, 'statistics']);
+    Route::get('by-form', [SubjectController::class, 'byForm']);
+    Route::get('{subject}/topics', [SubjectController::class, 'topics']);
+    Route::post('{subject}/topics', [SubjectController::class, 'storeTopic']);
+    Route::put('{subject}/topics/{topic}', [SubjectController::class, 'updateTopic']);
+    Route::delete('{subject}/topics/{topic}', [SubjectController::class, 'destroyTopic']);
+});
+Route::resource('subjects', SubjectController::class);
+
+// Working Hours Routes
+Route::get('working-hours/statistics', [UserWorkingHoursController::class, 'statistics']);
+Route::get('working-hours/users', [UserWorkingHoursController::class, 'users']);
+Route::get('working-hours/my-hours', [UserWorkingHoursController::class, 'myWorkingHours']);
+Route::get('working-hours/history/{userId}', [UserWorkingHoursController::class, 'history']);
+Route::resource('working-hours', UserWorkingHoursController::class)->parameters([
+    'working-hours' => 'workingHour'
+]);
+
+// Activity Tracking Routes
+Route::prefix('activity')->group(function () {
+    Route::post('session/start', [UserActivityController::class, 'startSession']);
+    Route::post('session/end', [UserActivityController::class, 'endSession']);
+    Route::post('heartbeat', [UserActivityController::class, 'heartbeat']);
+    Route::post('return', [UserActivityController::class, 'reportReturn']);
+    Route::get('pending', [UserActivityController::class, 'getPendingReports']);
+    Route::post('explain/{reportId}', [UserActivityController::class, 'submitExplanation']);
+    Route::get('statistics', [UserActivityController::class, 'getStatistics']);
+    Route::get('reports', [UserActivityController::class, 'index']);
+    Route::put('reports/{id}', [UserActivityController::class, 'update']);
+    Route::delete('reports/{id}', [UserActivityController::class, 'destroy']);
+    Route::get('users', [UserActivityController::class, 'users']);
+    Route::get('settings', [UserActivityController::class, 'getSettings']);
+    Route::post('settings', [UserActivityController::class, 'saveSettings']);
+});
+
+// Lead Management Routes
+Route::prefix('leads')->group(function () {
+    Route::get('statistics', [LeadsController::class, 'statistics']);
+    Route::get('pipeline', [LeadsController::class, 'pipeline']);
+    Route::get('options', [LeadsController::class, 'options']);
+    Route::get('export', [LeadsController::class, 'export']);
+    Route::get('email-templates', [LeadsController::class, 'emailTemplates']);
+    Route::post('email-templates', [LeadsController::class, 'storeEmailTemplate']);
+    Route::put('email-templates/{id}', [LeadsController::class, 'updateEmailTemplate']);
+    Route::delete('email-templates/{id}', [LeadsController::class, 'deleteEmailTemplate']);
+    Route::get('{id}/activities', [LeadsController::class, 'activities']);
+    Route::post('{id}/status', [LeadsController::class, 'updateStatus']);
+    Route::post('{id}/assign', [LeadsController::class, 'assignUser']);
+    Route::post('{id}/follow-up', [LeadsController::class, 'scheduleFollowUp']);
+    Route::post('{id}/note', [LeadsController::class, 'addNote']);
+    Route::post('{id}/log-call', [LeadsController::class, 'logCall']);
+    Route::post('{id}/convert', [LeadsController::class, 'convertToClient']);
+});
+Route::resource('leads', LeadsController::class);
+
+// Advance Request Routes
+Route::get('advance-requests/statistics', [AdvanceRequestsController::class, 'statistics']);
+Route::get('advance-requests/user/{userId}', [AdvanceRequestsController::class, 'userAdvances']);
+Route::post('advance-requests/{id}/approve', [AdvanceRequestsController::class, 'approve']);
+Route::post('advance-requests/{id}/reject', [AdvanceRequestsController::class, 'reject']);
+Route::post('advance-requests/{id}/deduct', [AdvanceRequestsController::class, 'deduct']);
+Route::resource('advance-requests', AdvanceRequestsController::class);
+

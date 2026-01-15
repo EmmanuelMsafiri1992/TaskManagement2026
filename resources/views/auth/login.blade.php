@@ -84,17 +84,23 @@
                     </div>
                 </form>
 
-                <!-- Additional Links -->
-                @if (Route::has('register'))
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">
-                            Don't have an account?
-                            <a href="{{ route('register') }}" class="font-medium text-indigo-600 hover:text-indigo-500 transition duration-200">
-                                Request access
-                            </a>
-                        </p>
+                <!-- Register Button -->
+                <div class="mt-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-white text-gray-500">New here?</span>
+                        </div>
                     </div>
-                @endif
+                    <div class="mt-4">
+                        <a href="{{ route('service-provider.register') }}"
+                           class="w-full flex justify-center py-3 px-6 border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200">
+                            Register as Teacher
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- Footer -->

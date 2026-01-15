@@ -269,7 +269,7 @@
     </div>
 
     <!-- Edit Modal -->
-    <FormModal v-model="editModalOpen" size="2xl" @saved="loadEmployee">
+    <FormModal v-if="editModalOpen" size="2xl" @saved="loadEmployee" @close="editModalOpen = false">
       <Form :model-value="employee" @close="editModalOpen = false" />
     </FormModal>
   </div>
@@ -278,7 +278,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import FormModal from '@/thetheme/components/FormModal.vue'
@@ -293,7 +293,7 @@ const editModalOpen = ref(false)
 const loadEmployee = async () => {
   try {
     loading.value = true
-    const response = await axios.get(`/api/employees/${route.params.id}`)
+    const response = await axios.get(`employees/${route.params.id}`)
     employee.value = response.data.data
   } catch (error) {
     console.error('Failed to load employee:', error)

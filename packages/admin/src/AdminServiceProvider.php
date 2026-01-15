@@ -2,9 +2,6 @@
 
 namespace Admin;
 
-use Admin\Http\Controllers\Api\CacheCleanup;
-use Admin\Http\Controllers\Api\InstallationRecipe;
-use Admin\Http\Controllers\Api\PingUpdate;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -59,6 +56,7 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->extend('view', function ($view, $app) {
             $view->getFinder()->setPaths([
                 base_path('packages/admin/resources/views'),
+                resource_path('views'),
             ]);
 
             return $view;
@@ -72,10 +70,6 @@ class AdminServiceProvider extends ServiceProvider
      */
     protected function registerRoutes()
     {
-        Route::post('ping-for-update', PingUpdate::class);
-        Route::post('installation-recipe', InstallationRecipe::class);
-        Route::get('cache-cleanup-forcefully', CacheCleanup::class);
-
         Route::group([
             'middleware' => ['web', 'auth'],
             'prefix' => Span::prefix().'/api',

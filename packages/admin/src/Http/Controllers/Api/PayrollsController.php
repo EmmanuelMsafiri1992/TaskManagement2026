@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\EmployeeRecord;
+use App\Models\AdvanceRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -219,23 +220,46 @@ class PayrollsController extends Controller
 
     public function markAsPaid($id)
     {
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with('items')->findOrFail($id);
 
         if ($payroll->status !== 'approved') {
             return response()->json(['message' => 'Only approved payrolls can be marked as paid'], 400);
         }
 
-        $payroll->update([
-            'status' => 'paid',
-            'paid_at' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            $payroll->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
 
-        $payroll->load(['user', 'items']);
+            // Process advance deductions
+            foreach ($payroll->items as $item) {
+                if ($item->category === 'Salary Advance' && $item->item_type === 'deduction') {
+                    // Extract advance ID from description (format: "Salary Advance Repayment (ID: X)")
+                    preg_match('/ID:\s*(\d+)/', $item->description, $matches);
+                    if (isset($matches[1])) {
+                        $advanceId = $matches[1];
+                        $advance = AdvanceRequest::find($advanceId);
+                        if ($advance) {
+                            $advance->recordDeduction($item->amount, $payroll->id);
+                        }
+                    }
+                }
+            }
 
-        return response()->json([
-            'message' => 'Payroll marked as paid successfully',
-            'data' => $payroll,
-        ]);
+            DB::commit();
+
+            $payroll->load(['user', 'items']);
+
+            return response()->json([
+                'message' => 'Payroll marked as paid successfully',
+                'data' => $payroll,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to mark payroll as paid', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function sendPayslip($id)

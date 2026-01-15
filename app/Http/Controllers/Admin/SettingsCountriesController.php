@@ -19,60 +19,76 @@ class SettingsCountriesController extends Controller
     /**
      * Get all users with their assigned countries and websites
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all active countries from v11 database
-        $allCountries = Country::active()
-            ->orderBy('code')
-            ->get()
-            ->map(function ($country) {
-                return [
-                    'code' => $country->code,
-                    'name' => $country->name,
-                    'all_names' => $country->getAllNamesAttribute(),
-                ];
-            })
-            ->sortBy('name')
-            ->values();
+        // Get all active countries from v11 database (with fallback if not available)
+        try {
+            $allCountries = Country::active()
+                ->orderBy('code')
+                ->get()
+                ->map(function ($country) {
+                    return [
+                        'code' => $country->code,
+                        'name' => $country->name,
+                        'all_names' => $country->getAllNamesAttribute(),
+                    ];
+                })
+                ->sortBy('name')
+                ->values();
+        } catch (\Exception $e) {
+            // V11 database not available, use empty list
+            $allCountries = collect([]);
+        }
 
-        // Get users with their assigned countries
-        $users = User::with(['roles', 'countries.websites', 'countries.assignedBy'])
+        $perPage = $request->input('per_page', 10);
+
+        // Get users with their assigned countries (paginated)
+        $usersPaginated = User::with(['roles', 'countries.websites', 'countries.assignedBy'])
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['Marketer', 'Developer', 'Admin']);
             })
             ->orderBy('name')
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->roles->first()->name ?? null,
-                    'countries' => $user->countries->map(function ($country) {
-                        return [
-                            'id' => $country->id,
-                            'country_code' => $country->country_code,
-                            'country_name' => $country->country_name,
-                            'assigned_at' => $country->assigned_at ? $country->assigned_at->toISOString() : null,
-                            'assigned_by' => optional($country->assignedBy)->name,
-                            'websites' => $country->websites->map(function ($website) {
-                                return [
-                                    'id' => $website->id,
-                                    'company_id' => $website->company_id,
-                                    'website_url' => $website->website_url,
-                                    'company_name' => $website->company_name,
-                                ];
-                            }),
-                        ];
-                    }),
-                ];
-            });
+            ->paginate($perPage);
+
+        $users = $usersPaginated->getCollection()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->first()->name ?? null,
+                'countries' => $user->countries->map(function ($country) {
+                    return [
+                        'id' => $country->id,
+                        'country_code' => $country->country_code,
+                        'country_name' => $country->country_name,
+                        'assigned_at' => $country->assigned_at ? $country->assigned_at->toISOString() : null,
+                        'assigned_by' => optional($country->assignedBy)->name,
+                        'websites' => $country->websites->map(function ($website) {
+                            return [
+                                'id' => $website->id,
+                                'company_id' => $website->company_id,
+                                'website_url' => $website->website_url,
+                                'company_name' => $website->company_name,
+                            ];
+                        }),
+                    ];
+                }),
+            ];
+        });
 
         return response()->json([
             'success' => true,
             'data' => [
                 'users' => $users,
                 'countries' => $allCountries,
+                'pagination' => [
+                    'current_page' => $usersPaginated->currentPage(),
+                    'last_page' => $usersPaginated->lastPage(),
+                    'per_page' => $usersPaginated->perPage(),
+                    'total' => $usersPaginated->total(),
+                    'from' => $usersPaginated->firstItem(),
+                    'to' => $usersPaginated->lastItem(),
+                ],
             ],
         ]);
     }
@@ -137,19 +153,23 @@ class SettingsCountriesController extends Controller
      */
     public function getCompaniesByCountry($countryCode)
     {
-        $companies = Company::byCountry($countryCode)
-            ->withWebsite()
-            ->orderBy('name')
-            ->get()
-            ->map(function ($company) {
-                return [
-                    'id' => $company->id,
-                    'name' => $company->name,
-                    'website' => $company->website,
-                    'email' => $company->email,
-                    'phone' => $company->phone,
-                ];
-            });
+        try {
+            $companies = Company::byCountry($countryCode)
+                ->withWebsite()
+                ->orderBy('name')
+                ->get()
+                ->map(function ($company) {
+                    return [
+                        'id' => $company->id,
+                        'name' => $company->name,
+                        'website' => $company->website,
+                        'email' => $company->email,
+                        'phone' => $company->phone,
+                    ];
+                });
+        } catch (\Exception $e) {
+            $companies = collect([]);
+        }
 
         return response()->json([
             'success' => true,

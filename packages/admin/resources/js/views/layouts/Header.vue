@@ -17,7 +17,8 @@
         />
       </div>
       <div class="flex items-center ltr:ml-4 rtl:mr-4 ltr:md:ml-6 rtl:md:mr-6">
-        <TimerCurrentUser class="ltr:mr-5 rtl:ml-5" />
+        <GeneratorDropdown />
+        <TimerCurrentUser class="ltr:ml-5 ltr:mr-5 rtl:ml-5 rtl:mr-5" />
         <TimerDropdown />
         <ContractCountdown class="ltr:ml-5 rtl:mr-5" />
         <NotificationsDropdown class="ltr:ml-5 rtl:mr-5" />
@@ -30,6 +31,7 @@
 <script setup lang="ts">
   import TimerCurrentUser from './TimerCurrentUser.vue'
   import TimerDropdown from './TimerDropdown.vue'
+  import GeneratorDropdown from './GeneratorDropdown.vue'
   import CreateDropdown from './_CreateDropdown.vue'
   import NotificationsDropdown from './_NotificationsDropdown.vue'
   import RecentDropdown from './_RecentDropdown.vue'
