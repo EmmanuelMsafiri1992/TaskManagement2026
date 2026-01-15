@@ -1,6 +1,6 @@
 <?php
 
-namespace Starter\Admin\Http\Controllers\Api;
+namespace Admin\Http\Controllers\Api;
 
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderAgreement;

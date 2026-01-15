@@ -33,7 +33,14 @@
       "Bash(git rm:*)",
       "Bash(net start:*)",
       "Bash(net start mariadb)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(wc:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(./vendor/bin/phpunit:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(php test_all_models.php:*)",
+      "Bash(php test_controllers.php:*)",
+      "Bash(php test_api_endpoints.php:*)"
     ]
   }
 }
