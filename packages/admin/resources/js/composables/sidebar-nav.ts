@@ -1,4 +1,4 @@
-import { AcademicCapIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UsersIcon, WalletIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 export const useSidebarNav: SidebarNav[] = [
@@ -32,6 +32,12 @@ export const useSidebarNav: SidebarNav[] = [
     uri: '/leaves',
     icon: ClipboardDocumentCheckIcon,
     permission: 'leave:view',
+  },
+  {
+    label: 'Advance Requests',
+    uri: '/advance-requests',
+    icon: BanknotesIcon,
+    permission: 'advance_request:view',
   },
   {
     label: 'Holidays',

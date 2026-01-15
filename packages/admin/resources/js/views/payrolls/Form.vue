@@ -140,6 +140,41 @@
         </div>
       </div>
 
+      <!-- Outstanding Advances -->
+      <div v-if="outstandingAdvances.length > 0" class="border-t border-gray-200 pt-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-medium text-orange-600">{{ __('Outstanding Salary Advances') }}</h3>
+        </div>
+        <div class="rounded-lg border-2 border-orange-200 bg-orange-50 p-4 mb-4">
+          <p class="text-sm text-orange-800 mb-3">
+            {{ __('This employee has outstanding salary advances. Select advances to deduct from this payroll:') }}
+          </p>
+          <div class="space-y-2">
+            <div v-for="advance in outstandingAdvances" :key="advance.id" class="flex items-center justify-between bg-white rounded p-3 border border-orange-200">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  :id="'advance-' + advance.id"
+                  v-model="selectedAdvances"
+                  :value="advance.id"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  @change="handleAdvanceSelection"
+                />
+                <label :for="'advance-' + advance.id" class="ml-3">
+                  <span class="text-sm font-medium text-gray-900">{{ formatCurrency(advance.amount - advance.amount_deducted) }}</span>
+                  <span class="text-xs text-gray-500 ml-2">({{ __('Requested') }}: {{ new Date(advance.created_at).toLocaleDateString() }})</span>
+                </label>
+              </div>
+              <div class="text-xs text-gray-500 max-w-xs truncate">{{ advance.reason }}</div>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-orange-200 flex justify-between items-center">
+            <span class="text-sm font-medium text-orange-800">{{ __('Total Outstanding') }}:</span>
+            <span class="text-lg font-bold text-orange-600">{{ formatCurrency(totalOutstandingAdvances) }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Payroll Items -->
       <div class="border-t border-gray-200 pt-6">
         <div class="flex items-center justify-between mb-4">
@@ -264,6 +299,9 @@ const emit = defineEmits(['close', 'saved'])
 const users = ref([])
 const processing = ref(false)
 const errors = ref({})
+const outstandingAdvances = ref([])
+const selectedAdvances = ref([])
+const totalOutstandingAdvances = ref(0)
 
 const getCurrentMonth = () => {
   const now = new Date()
@@ -354,6 +392,45 @@ const loadUsers = async () => {
   }
 }
 
+const loadOutstandingAdvances = async (userId) => {
+  if (!userId) {
+    outstandingAdvances.value = []
+    totalOutstandingAdvances.value = 0
+    return
+  }
+  try {
+    const response = await axios.get(`advance-requests/user/${userId}`)
+    outstandingAdvances.value = response.data.data || []
+    totalOutstandingAdvances.value = response.data.total_outstanding || 0
+  } catch (error) {
+    console.error('Failed to load outstanding advances:', error)
+    outstandingAdvances.value = []
+    totalOutstandingAdvances.value = 0
+  }
+}
+
+const handleAdvanceSelection = () => {
+  // Remove existing advance deduction items
+  form.items = form.items.filter(item => item.category !== 'Salary Advance')
+
+  // Add selected advances as deduction items
+  selectedAdvances.value.forEach(advanceId => {
+    const advance = outstandingAdvances.value.find(a => a.id === advanceId)
+    if (advance) {
+      const outstanding = advance.amount - advance.amount_deducted
+      form.items.push({
+        item_type: 'deduction',
+        description: `Salary Advance Repayment (ID: ${advance.id})`,
+        amount: outstanding,
+        category: 'Salary Advance',
+        advance_id: advance.id
+      })
+    }
+  })
+
+  calculateFromItems()
+}
+
 const submit = async () => {
   processing.value = true
   errors.value = {}
@@ -394,11 +471,22 @@ const submit = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!props.modelValue) {
     loadUsers()
+  } else {
+    // Load outstanding advances for existing payroll
+    await loadOutstandingAdvances(props.modelValue.user_id)
   }
   calculateTotals()
+})
+
+// Watch for user_id changes to load their outstanding advances
+watch(() => form.user_id, async (newUserId) => {
+  if (newUserId) {
+    await loadOutstandingAdvances(newUserId)
+    selectedAdvances.value = []
+  }
 })
 
 watch(() => props.modelValue, (newVal) => {

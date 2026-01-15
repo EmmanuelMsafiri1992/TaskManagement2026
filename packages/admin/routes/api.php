@@ -74,6 +74,7 @@ use Admin\Http\Controllers\Api\UserWorkingHoursController;
 use Admin\Http\Controllers\Api\UserActivityController;
 use Admin\Http\Controllers\Api\LeadsController;
 use Admin\Http\Controllers\Api\ProfitLossController;
+use Admin\Http\Controllers\Api\AdvanceRequestsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('{resource}/filters', FiltersController::class);
@@ -387,4 +388,12 @@ Route::prefix('leads')->group(function () {
     Route::post('{id}/convert', [LeadsController::class, 'convertToClient']);
 });
 Route::resource('leads', LeadsController::class);
+
+// Advance Request Routes
+Route::get('advance-requests/statistics', [AdvanceRequestsController::class, 'statistics']);
+Route::get('advance-requests/user/{userId}', [AdvanceRequestsController::class, 'userAdvances']);
+Route::post('advance-requests/{id}/approve', [AdvanceRequestsController::class, 'approve']);
+Route::post('advance-requests/{id}/reject', [AdvanceRequestsController::class, 'reject']);
+Route::post('advance-requests/{id}/deduct', [AdvanceRequestsController::class, 'deduct']);
+Route::resource('advance-requests', AdvanceRequestsController::class);
 
