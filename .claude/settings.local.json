@@ -45,7 +45,8 @@
       "Bash(composer outdated:*)",
       "Bash(composer self-update:*)",
       "Bash(composer require:*)",
-      "Bash(composer show:*)"
+      "Bash(composer show:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

@@ -198,12 +198,17 @@ Route::patch('checklist-item/{item}/complete', ChecklistItemComplete::class);
 
 Route::resource('labels', LabelsController::class);
 Route::resource('users', UsersController::class);
+Route::get('users-archived', [UsersController::class, 'archived']);
+Route::post('users/{id}/archive', [UsersController::class, 'archive']);
+Route::post('users/{id}/unarchive', [UsersController::class, 'unarchive']);
 Route::resource('invitations', InvitationsController::class)->except(['show', 'edit', 'update']);
 Route::resource('roles', RolesController::class);
 
 Route::resource('settings/general', SettingsGeneralController::class)->only(['create', 'store']);
 Route::resource('settings/email', SettingsEmailController::class)->only(['create', 'store']);
 Route::resource('settings/adsense', SettingsAdSenseController::class)->only(['create', 'store']);
+Route::get('settings/sidebar-features', [Admin\Http\Controllers\Api\SettingsSidebarFeaturesController::class, 'index']);
+Route::post('settings/sidebar-features', [Admin\Http\Controllers\Api\SettingsSidebarFeaturesController::class, 'store']);
 
 // Countries & Websites Management Routes
 Route::prefix('settings/countries')->group(function () {

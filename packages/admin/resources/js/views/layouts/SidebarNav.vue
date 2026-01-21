@@ -2,7 +2,7 @@
   <div class="space-y-1">
     <template v-for="item in useSidebarNav" :key="item.label">
       <!-- Dropdown Menu Item -->
-      <div v-if="item.children && hasAnyChildPermission(item.children)">
+      <div v-if="item.children && shouldShowDropdown(item)">
         <button
           type="button"
           :class="[
@@ -37,7 +37,7 @@
           v-show="openDropdowns[item.label]"
           class="mt-1 space-y-1 pl-4"
         >
-          <template v-for="child in item.children" :key="child.label">
+          <template v-for="child in getFilteredChildren(item.children)" :key="child.label">
             <RouterLink
               v-if="!child.permission || can(child.permission)"
               v-slot="{ href, navigate }"
@@ -115,10 +115,12 @@
 
 <script setup lang="ts">
   import { computed, inject, onMounted, reactive } from 'vue'
-  import { useSidebarNav } from 'Use/sidebar-nav'
+  import { useSidebarNav, isFeatureDisabled, filterChildren } from 'Use/sidebar-nav'
   import { useRouter } from 'vue-router'
   import { ChevronDownIcon, PlusIcon } from '@heroicons/vue/24/outline'
   import { appData } from '@/app-data'
+
+  const disabledFeatures = computed(() => appData.disabled_sidebar_features || [])
 
   const can = inject('can') as (permission: string | undefined) => boolean
   const __ = inject('__') as (word: string) => string
@@ -147,7 +149,11 @@
     openDropdowns[label] = !openDropdowns[label]
   }
 
-  function shouldShowItem(item: { permission?: string; superAdminOnly?: boolean; attendanceAdminOnly?: boolean }) {
+  function shouldShowItem(item: { uri?: string; label: string; permission?: string; superAdminOnly?: boolean; attendanceAdminOnly?: boolean }) {
+    // Check if the feature is disabled
+    if (isFeatureDisabled(item.uri, item.label, disabledFeatures.value)) {
+      return false
+    }
     // Check super admin only first
     if (item.superAdminOnly && !appData.is_super_admin) {
       return false
@@ -161,6 +167,21 @@
       return false
     }
     return true
+  }
+
+  // Check if a dropdown menu should be visible (has visible children after filtering)
+  function shouldShowDropdown(item: { label: string; children?: { label: string; uri: string; permission?: string }[] }) {
+    if (isFeatureDisabled(undefined, item.label, disabledFeatures.value)) {
+      return false
+    }
+    if (!item.children) return false
+    const filteredChildren = getFilteredChildren(item.children)
+    return filteredChildren.length > 0 && hasAnyChildPermission(filteredChildren)
+  }
+
+  // Get filtered children for a dropdown menu
+  function getFilteredChildren(children: { label: string; uri: string; permission?: string }[]) {
+    return filterChildren(children, disabledFeatures.value)
   }
 
   function create(uri: string) {

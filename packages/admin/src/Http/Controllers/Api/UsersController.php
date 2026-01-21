@@ -114,4 +114,56 @@ class UsersController extends AuthorizeController
                 ->field('email', $model->email)
                 ->field('role', optional($model->roles->first())->id, Role::options());
     }
+
+    /**
+     * Get list of archived users.
+     *
+     * @param  \App\Http\Filters\UserFilters  $filters
+     * @return \Illuminate\Http\Response
+     */
+    public function archived(UserFilters $filters)
+    {
+        return User::onlyTrashed()
+                    ->filter($filters)
+                    ->with('roles')
+                    ->simplePaginate();
+    }
+
+    /**
+     * Archive a user (soft delete).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function archive($id)
+    {
+        if ($id == 1) {
+            return response()->json([
+                'message' => 'This user cannot be archived!',
+            ], 403);
+        }
+
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json([
+            'message' => 'User archived successfully!',
+        ]);
+    }
+
+    /**
+     * Unarchive a user (restore from soft delete).
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function unarchive($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return response()->json([
+            'message' => 'User restored successfully!',
+        ]);
+    }
 }

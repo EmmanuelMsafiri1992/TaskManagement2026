@@ -85,6 +85,7 @@ class AppData implements JsonSerializable
             'locale' => option('app_locale'),
             'PUSHER_APP_KEY' => config('broadcasting.connections.pusher.key'),
             'PUSHER_APP_CLUSTER' => config('broadcasting.connections.pusher.options.cluster'),
+            'disabled_sidebar_features' => option('disabled_sidebar_features', []),
         ];
     }
 

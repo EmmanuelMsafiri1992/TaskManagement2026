@@ -38,6 +38,7 @@ interface AppData {
   options: any
   PUSHER_APP_KEY: string
   PUSHER_APP_CLUSTER: string
+  disabled_sidebar_features: string[]
   user: {
     id: number
     name: string

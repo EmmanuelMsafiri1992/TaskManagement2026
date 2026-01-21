@@ -8,6 +8,7 @@ use App\Models\Permission;
 use App\Traits\Auditable;
 use AhsanDev\Support\Authorization\Authorizable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -54,7 +55,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use Authorizable, HasApiTokens, HasFactory, Notifiable, Auditable;
+    use Authorizable, HasApiTokens, HasFactory, Notifiable, Auditable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
