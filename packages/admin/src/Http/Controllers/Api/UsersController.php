@@ -130,7 +130,7 @@ class UsersController extends AuthorizeController
     }
 
     /**
-     * Archive a user (soft delete).
+     * Archive a team member (soft delete).
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -139,7 +139,7 @@ class UsersController extends AuthorizeController
     {
         if ($id == 1) {
             return response()->json([
-                'message' => 'This user cannot be archived!',
+                'message' => 'This team member cannot be archived!',
             ], 403);
         }
 
@@ -147,12 +147,12 @@ class UsersController extends AuthorizeController
         $user->delete();
 
         return response()->json([
-            'message' => 'User archived successfully!',
+            'message' => 'Team member archived successfully!',
         ]);
     }
 
     /**
-     * Unarchive a user (restore from soft delete).
+     * Unarchive a team member (restore from soft delete).
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -163,7 +163,7 @@ class UsersController extends AuthorizeController
         $user->restore();
 
         return response()->json([
-            'message' => 'User restored successfully!',
+            'message' => 'Team member restored successfully!',
         ]);
     }
 }

@@ -39,7 +39,7 @@
         <input
           v-model="indexUser.params.search"
           type="search"
-          :placeholder="__('Search users...')"
+          :placeholder="__('Search team members...')"
           class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ltr:pl-10 rtl:pr-10 sm:text-sm"
           @input="handleSearch"
         />
@@ -214,7 +214,7 @@
                       <ArchiveBoxIcon
                         v-if="can('user:delete') && item.id !== 1"
                         class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-orange-600"
-                        :title="__('Archive user')"
+                        :title="__('Archive team member')"
                         @click.prevent="archiveUser(item)"
                       />
 
@@ -240,7 +240,7 @@
       <Topbar :title="__('Archived Team Members')">
         <div class="ltr:ml-auto rtl:mr-auto">
           <span class="text-sm text-gray-500">
-            {{ __('These users cannot log in until restored') }}
+            {{ __('These team members cannot log in until restored') }}
           </span>
         </div>
       </Topbar>
@@ -310,7 +310,7 @@
                   </tr>
                   <tr v-if="!indexArchivedUser.data?.data?.length">
                     <td colspan="3" class="px-6 py-8 text-center text-gray-500">
-                      {{ __('No archived users found') }}
+                      {{ __('No archived team members found') }}
                     </td>
                   </tr>
                 </tbody>
@@ -410,7 +410,7 @@
       indexUser.fetch()
       alert(`${user.name} has been archived`)
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to archive user')
+      alert(error.response?.data?.message || 'Failed to archive team member')
     }
   }
 
@@ -424,7 +424,7 @@
       indexArchivedUser.fetch()
       alert(`${user.name} has been restored`)
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to restore user')
+      alert(error.response?.data?.message || 'Failed to restore team member')
     }
   }
 
