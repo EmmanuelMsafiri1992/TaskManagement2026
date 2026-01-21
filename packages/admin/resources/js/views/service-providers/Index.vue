@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { EllipsisVerticalIcon, PlusIcon, MagnifyingGlassIcon, EyeIcon, CurrencyDollarIcon } from '@heroicons/vue/24/outline'
+import { CurrencyDollarIcon, EllipsisVerticalIcon, EyeIcon, MagnifyingGlassIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 interface ServiceProvider {
   id: number
@@ -257,8 +257,8 @@ onMounted(() => {
         <p class="mt-1 text-sm text-gray-500">Manage teachers and content providers</p>
       </div>
       <button
-        @click="showCreateModal = true"
         class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        @click="showCreateModal = true"
       >
         <PlusIcon class="w-5 h-5 mr-2" />
         Add Teacher
@@ -293,17 +293,17 @@ onMounted(() => {
             <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               v-model="search"
-              @input="fetchProviders(1)"
               type="text"
               placeholder="Search by name, email, phone or ID..."
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              @input="fetchProviders(1)"
             />
           </div>
         </div>
         <select
           v-model="statusFilter"
-          @change="fetchProviders(1)"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          @change="fetchProviders(1)"
         >
           <option value="">All Statuses</option>
           <option value="active">Active</option>
@@ -380,8 +380,8 @@ onMounted(() => {
                   <div class="py-1">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="viewDetails(provider)"
                         :class="[active ? 'bg-gray-100' : '', 'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700']"
+                        @click="viewDetails(provider)"
                       >
                         <EyeIcon class="w-4 h-4 mr-2" />
                         View Details
@@ -389,32 +389,32 @@ onMounted(() => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="openEditModal(provider)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
+                        @click="openEditModal(provider)"
                       >
                         Edit
                       </button>
                     </MenuItem>
                     <MenuItem v-if="provider.status !== 'active'" v-slot="{ active }">
                       <button
-                        @click="activateProvider(provider)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-green-700']"
+                        @click="activateProvider(provider)"
                       >
                         Activate
                       </button>
                     </MenuItem>
                     <MenuItem v-if="provider.status === 'active'" v-slot="{ active }">
                       <button
-                        @click="suspendProvider(provider)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-yellow-700']"
+                        @click="suspendProvider(provider)"
                       >
                         Suspend
                       </button>
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="deleteProvider(provider)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-red-700']"
+                        @click="deleteProvider(provider)"
                       >
                         Delete
                       </button>
@@ -436,11 +436,11 @@ onMounted(() => {
           <button
             v-for="page in pagination.last_page"
             :key="page"
-            @click="fetchProviders(page)"
             :class="[
               'px-3 py-1 rounded',
               page === pagination.current_page ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             ]"
+            @click="fetchProviders(page)"
           >
             {{ page }}
           </button>
@@ -461,8 +461,8 @@ onMounted(() => {
           <div class="mb-6">
             <div class="flex items-center justify-between">
               <button
-                @click="currentStep = 1"
                 :class="['flex items-center', currentStep >= 1 ? 'text-indigo-600' : 'text-gray-400']"
+                @click="currentStep = 1"
               >
                 <span :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-2', currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-200']">1</span>
                 <span class="hidden sm:inline">Personal Info</span>
@@ -471,8 +471,8 @@ onMounted(() => {
                 <div :class="['h-1 transition-all', currentStep >= 2 ? 'bg-indigo-600' : 'bg-gray-200']" :style="{ width: currentStep >= 2 ? '100%' : '0%' }"></div>
               </div>
               <button
-                @click="currentStep = 2"
                 :class="['flex items-center', currentStep >= 2 ? 'text-indigo-600' : 'text-gray-400']"
+                @click="currentStep = 2"
               >
                 <span :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-2', currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200']">2</span>
                 <span class="hidden sm:inline">Payment Details</span>
@@ -548,12 +548,12 @@ onMounted(() => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Payment Preference *</label>
                 <div class="grid grid-cols-2 gap-4">
                   <label :class="['border rounded-lg p-4 cursor-pointer transition-all', formData.payment_preference === 'monthly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400']">
-                    <input type="radio" v-model="formData.payment_preference" value="monthly" class="sr-only" />
+                    <input v-model="formData.payment_preference" type="radio" value="monthly" class="sr-only" />
                     <div class="font-medium">Monthly Payments</div>
                     <div class="text-sm text-gray-500">Paid each month during contract</div>
                   </label>
                   <label :class="['border rounded-lg p-4 cursor-pointer transition-all', formData.payment_preference === 'lump_sum' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400']">
-                    <input type="radio" v-model="formData.payment_preference" value="lump_sum" class="sr-only" />
+                    <input v-model="formData.payment_preference" type="radio" value="lump_sum" class="sr-only" />
                     <div class="font-medium">Lump Sum</div>
                     <div class="text-sm text-gray-500">Full payment after completion</div>
                   </label>
@@ -569,12 +569,12 @@ onMounted(() => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
                 <div class="grid grid-cols-2 gap-4">
                   <label :class="['border rounded-lg p-4 cursor-pointer transition-all', formData.payment_method === 'bank' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400']">
-                    <input type="radio" v-model="formData.payment_method" value="bank" class="sr-only" />
+                    <input v-model="formData.payment_method" type="radio" value="bank" class="sr-only" />
                     <div class="font-medium">Bank Transfer</div>
                     <div class="text-sm text-gray-500">Direct bank deposit</div>
                   </label>
                   <label :class="['border rounded-lg p-4 cursor-pointer transition-all', formData.payment_method === 'mobile_money' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-gray-400']">
-                    <input type="radio" v-model="formData.payment_method" value="mobile_money" class="sr-only" />
+                    <input v-model="formData.payment_method" type="radio" value="mobile_money" class="sr-only" />
                     <div class="font-medium">Mobile Money</div>
                     <div class="text-sm text-gray-500">Airtel Money / TNM Mpamba</div>
                   </label>
@@ -644,21 +644,21 @@ onMounted(() => {
                 <button
                   v-if="currentStep > 1"
                   type="button"
-                  @click="currentStep--"
                   class="px-4 py-2 text-gray-700 hover:text-gray-900"
+                  @click="currentStep--"
                 >
                   Back
                 </button>
               </div>
               <div class="flex space-x-3">
-                <button type="button" @click="showCreateModal = false; showEditModal = false; resetForm()" class="px-4 py-2 text-gray-700 hover:text-gray-900">
+                <button type="button" class="px-4 py-2 text-gray-700 hover:text-gray-900" @click="showCreateModal = false; showEditModal = false; resetForm()">
                   Cancel
                 </button>
                 <button
                   v-if="currentStep < 2"
                   type="button"
-                  @click="currentStep++"
                   class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  @click="currentStep++"
                 >
                   Next
                 </button>

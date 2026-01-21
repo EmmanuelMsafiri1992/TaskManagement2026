@@ -4,9 +4,20 @@ declare global {
   interface Window {
     AppData: AppData
   }
+
+  // Global __ function for translations
+  function __(word: string): string
 }
 
 declare module 'vue' {
+  interface ComponentCustomProperties {
+    __: (word: string) => string
+    can: (permission: string | undefined) => boolean
+    cannot: (permission: string | undefined) => boolean
+  }
+}
+
+declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
     __: (word: string) => string
     can: (permission: string | undefined) => boolean

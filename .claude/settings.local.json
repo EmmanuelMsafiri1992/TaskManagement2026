@@ -40,7 +40,12 @@
       "Bash(composer dump-autoload:*)",
       "Bash(php test_all_models.php:*)",
       "Bash(php test_controllers.php:*)",
-      "Bash(php test_api_endpoints.php:*)"
+      "Bash(php test_api_endpoints.php:*)",
+      "Bash(composer diagnose:*)",
+      "Bash(composer outdated:*)",
+      "Bash(composer self-update:*)",
+      "Bash(composer require:*)",
+      "Bash(composer show:*)"
     ]
   }
 }

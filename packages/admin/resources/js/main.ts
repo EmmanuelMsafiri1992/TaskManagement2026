@@ -49,5 +49,5 @@ try {
   console.log('[Main] App mounted successfully - Step 13')
 } catch (error) {
   console.error('[Main] MOUNT ERROR:', error)
-  alert('Mount Error: ' + error.message)
+  alert('Mount Error: ' + (error instanceof Error ? error.message : String(error)))
 }

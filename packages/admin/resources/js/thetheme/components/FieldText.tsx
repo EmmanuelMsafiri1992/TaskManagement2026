@@ -3,7 +3,11 @@ import { useFormStore } from 'spack'
 import type { PropType } from 'vue'
 import FieldBase from './FieldBase.vue'
 
-export function useFieldText<T>() {
+interface FormData {
+  [key: string]: any
+}
+
+export function useFieldText<T extends FormData = FormData>() {
   return defineComponent({
     props: {
       name: {

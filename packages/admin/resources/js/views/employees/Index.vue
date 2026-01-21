@@ -529,7 +529,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UsersIcon, UserIcon, XMarkIcon, EyeIcon, BriefcaseIcon, BanknotesIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
+import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'

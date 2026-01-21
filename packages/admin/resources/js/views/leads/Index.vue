@@ -235,7 +235,7 @@
                       <div class="flex items-center justify-end gap-2">
                         <EyeIcon class="w-5 cursor-pointer text-gray-400 hover:text-gray-800" @click="viewLead(lead.id)" />
                         <PencilIcon class="w-5 cursor-pointer text-gray-400 hover:text-gray-800" @click="openLeadModal(lead)" />
-                        <ArrowPathIcon v-if="lead.status !== 'won'" class="w-5 cursor-pointer text-gray-400 hover:text-green-600" @click="convertLead(lead.id)" title="Convert to Client" />
+                        <ArrowPathIcon v-if="lead.status !== 'won'" class="w-5 cursor-pointer text-gray-400 hover:text-green-600" title="Convert to Client" @click="convertLead(lead.id)" />
                         <TrashIcon class="w-5 cursor-pointer text-gray-400 hover:text-red-600" @click="index.deleteIt(lead.id)" />
                       </div>
                     </td>

@@ -25,8 +25,8 @@
           <label class="text-sm text-gray-600">{{ __('Per page:') }}</label>
           <select
             v-model="perPage"
-            @change="fetchData(1)"
             class="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+            @change="fetchData(1)"
           >
             <option :value="5">5</option>
             <option :value="10">10</option>
@@ -49,9 +49,9 @@
           </div>
           <div class="flex gap-3">
             <button
-              @click="openTargetsModal(user)"
               type="button"
               class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+              @click="openTargetsModal(user)"
             >
               <svg
                 class="mr-2 h-4 w-4"
@@ -69,9 +69,9 @@
               {{ __('Set Targets') }}
             </button>
             <button
-              @click="openCountryModal(user)"
               type="button"
               class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              @click="openCountryModal(user)"
             >
               <svg
                 class="mr-2 h-4 w-4"
@@ -153,9 +153,9 @@
 
               <div class="flex gap-2">
                 <button
-                  @click="openWebsiteModal(user, country)"
                   class="text-indigo-600 hover:text-indigo-900 text-sm"
                   :title="__('Manage Websites')"
+                  @click="openWebsiteModal(user, country)"
                 >
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -167,9 +167,9 @@
                   </svg>
                 </button>
                 <button
-                  @click="openReassignModal(user, country)"
                   class="text-blue-600 hover:text-blue-900 text-sm"
                   :title="__('Reassign to Another User')"
+                  @click="openReassignModal(user, country)"
                 >
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -181,9 +181,9 @@
                   </svg>
                 </button>
                 <button
-                  @click="unassignCountry(user, country)"
                   class="text-red-600 hover:text-red-900 text-sm"
                   :title="__('Unassign Country')"
+                  @click="unassignCountry(user, country)"
                 >
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -207,16 +207,16 @@
       <div v-if="pagination.total > 0" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
         <div class="flex flex-1 justify-between sm:hidden">
           <button
-            @click="fetchData(pagination.current_page - 1)"
             :disabled="pagination.current_page === 1"
             class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="fetchData(pagination.current_page - 1)"
           >
             {{ __('Previous') }}
           </button>
           <button
-            @click="fetchData(pagination.current_page + 1)"
             :disabled="pagination.current_page === pagination.last_page"
             class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="fetchData(pagination.current_page + 1)"
           >
             {{ __('Next') }}
           </button>
@@ -231,9 +231,9 @@
           <div>
             <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
               <button
-                @click="fetchData(1)"
                 :disabled="pagination.current_page === 1"
                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="fetchData(1)"
               >
                 <span class="sr-only">{{ __('First') }}</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -241,9 +241,9 @@
                 </svg>
               </button>
               <button
-                @click="fetchData(pagination.current_page - 1)"
                 :disabled="pagination.current_page === 1"
                 class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="fetchData(pagination.current_page - 1)"
               >
                 <span class="sr-only">{{ __('Previous') }}</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -254,9 +254,9 @@
                 {{ pagination.current_page }}
               </span>
               <button
-                @click="fetchData(pagination.current_page + 1)"
                 :disabled="pagination.current_page === pagination.last_page"
                 class="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="fetchData(pagination.current_page + 1)"
               >
                 <span class="sr-only">{{ __('Next') }}</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -264,9 +264,9 @@
                 </svg>
               </button>
               <button
-                @click="fetchData(pagination.last_page)"
                 :disabled="pagination.current_page === pagination.last_page"
                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="fetchData(pagination.last_page)"
               >
                 <span class="sr-only">{{ __('Last') }}</span>
                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -337,17 +337,17 @@
 
         <div class="flex justify-end gap-3">
           <button
-            @click="closeCountryModal"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="closeCountryModal"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="saveCountries"
             :disabled="savingCountries"
             type="button"
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            @click="saveCountries"
           >
             {{ savingCountries ? __('Saving...') : __('Save') }}
           </button>
@@ -420,17 +420,17 @@
 
         <div class="flex justify-end gap-3">
           <button
-            @click="closeWebsiteModal"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="closeWebsiteModal"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="saveWebsites"
             :disabled="savingWebsites || loadingCompanies"
             type="button"
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            @click="saveWebsites"
           >
             {{ savingWebsites ? __('Saving...') : __('Save') }}
           </button>
@@ -478,17 +478,17 @@
 
         <div class="flex justify-end gap-3 pt-4 border-t">
           <button
-            @click="closeReassignModal"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="closeReassignModal"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="performReassign"
             :disabled="!reassignToUserId || savingReassign"
             type="button"
             class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            @click="performReassign"
           >
             {{ savingReassign ? __('Reassigning...') : __('Reassign Country') }}
           </button>
@@ -604,17 +604,17 @@
 
         <div class="flex justify-end gap-3 pt-4 border-t">
           <button
-            @click="closeTargetsModal"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="closeTargetsModal"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="saveTargets"
             :disabled="savingTargets"
             type="button"
             class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            @click="saveTargets"
           >
             {{ savingTargets ? __('Saving...') : __('Save Targets') }}
           </button>
@@ -625,7 +625,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, computed } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import SettingsLayout from './SettingsLayout.vue'
 import { Loader } from 'thetheme'
 import { axios } from 'spack'

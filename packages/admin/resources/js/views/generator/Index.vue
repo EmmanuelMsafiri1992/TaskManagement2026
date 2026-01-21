@@ -373,18 +373,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import {
-  PlayIcon,
-  StopIcon,
-  PlusIcon,
-  Cog6ToothIcon,
-  FireIcon,
-  ArrowUpIcon,
   ArrowDownIcon,
+  ArrowUpIcon,
   ChartBarIcon,
+  Cog6ToothIcon,
   ExclamationTriangleIcon,
+  FireIcon,
+  PlayIcon,
+  PlusIcon,
+  StopIcon,
 } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import Loader from '@/thetheme/components/Loader.vue'

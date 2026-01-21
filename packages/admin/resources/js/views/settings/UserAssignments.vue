@@ -66,9 +66,9 @@
           </div>
           <div class="flex gap-3">
             <button
-              @click="openFocusModal(user)"
               type="button"
               class="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+              @click="openFocusModal(user)"
             >
               <svg
                 class="mr-2 h-4 w-4"
@@ -92,9 +92,9 @@
               {{ __('Configure Focus') }}
             </button>
             <button
-              @click="openAssignModal(user)"
               type="button"
               class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              @click="openAssignModal(user)"
             >
               <svg
                 class="mr-2 h-4 w-4"
@@ -112,9 +112,9 @@
               {{ __('Assign Users') }}
             </button>
             <button
-              @click="viewUserAssignments(user)"
               type="button"
               class="inline-flex items-center rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              @click="viewUserAssignments(user)"
             >
               <svg
                 class="mr-2 h-4 w-4"
@@ -228,16 +228,16 @@
 
         <div class="mt-6 flex justify-end gap-3">
           <button
-            @click="showFocusModal = false"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="showFocusModal = false"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="saveFocus"
             type="button"
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            @click="saveFocus"
           >
             {{ __('Save Focus') }}
           </button>
@@ -246,7 +246,7 @@
     </Modal>
 
     <!-- Assign Users Modal -->
-    <Modal :open="showAssignModal" @close="showAssignModal = false" size="xl">
+    <Modal :open="showAssignModal" size="xl" @close="showAssignModal = false">
       <div class="p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">
           {{ __('Assign Users to') }} {{ selectedUser?.name }}
@@ -255,24 +255,24 @@
         <!-- User Type Selection -->
         <div class="mb-4 flex gap-2">
           <button
-            @click="assignUserType = 'job_seekers'"
             :class="[
               'flex-1 rounded-md px-4 py-2 text-sm font-medium',
               assignUserType === 'job_seekers'
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             ]"
+            @click="assignUserType = 'job_seekers'"
           >
             {{ __('Job Seekers') }}
           </button>
           <button
-            @click="assignUserType = 'employers'"
             :class="[
               'flex-1 rounded-md px-4 py-2 text-sm font-medium',
               assignUserType === 'employers'
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             ]"
+            @click="assignUserType = 'employers'"
           >
             {{ __('Employers') }}
           </button>
@@ -282,10 +282,10 @@
         <div class="mb-4">
           <input
             v-model="searchQuery"
-            @input="debounceSearch"
             type="text"
             placeholder="Search by name or email..."
             class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            @input="debounceSearch"
           />
         </div>
 
@@ -313,9 +313,9 @@
               <div>
                 <button
                   v-if="!v11User.is_assigned"
-                  @click="assignToUser(v11User)"
                   type="button"
                   class="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                  @click="assignToUser(v11User)"
                 >
                   {{ __('Assign') }}
                 </button>
@@ -331,9 +331,9 @@
         <!-- Pagination -->
         <div v-if="pagination.last_page > 1" class="mt-4 flex justify-between items-center">
           <button
-            @click="previousPage"
             :disabled="pagination.current_page === 1"
             class="rounded-md bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            @click="previousPage"
           >
             {{ __('Previous') }}
           </button>
@@ -341,9 +341,9 @@
             {{ __('Page') }} {{ pagination.current_page }} {{ __('of') }} {{ pagination.last_page }}
           </span>
           <button
-            @click="nextPage"
             :disabled="pagination.current_page === pagination.last_page"
             class="rounded-md bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+            @click="nextPage"
           >
             {{ __('Next') }}
           </button>
@@ -351,9 +351,9 @@
 
         <div class="mt-6 flex justify-end">
           <button
-            @click="showAssignModal = false"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="showAssignModal = false"
           >
             {{ __('Close') }}
           </button>
@@ -362,7 +362,7 @@
     </Modal>
 
     <!-- View Assignments Modal -->
-    <Modal :open="showViewModal" @close="showViewModal = false" size="xl">
+    <Modal :open="showViewModal" size="xl" @close="showViewModal = false">
       <div class="p-6">
         <h3 class="text-lg font-medium text-gray-900 mb-4">
           {{ __('Assignments for') }} {{ selectedUser?.name }}
@@ -424,16 +424,16 @@
                   {{ __('View Task') }}
                 </a>
                 <button
-                  @click="openNotesModal(assignment)"
                   type="button"
                   class="rounded-md bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-200"
+                  @click="openNotesModal(assignment)"
                 >
                   {{ __('Add Note') }}
                 </button>
                 <button
-                  @click="unassignUser(assignment)"
                   type="button"
                   class="rounded-md bg-red-100 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-200"
+                  @click="unassignUser(assignment)"
                 >
                   {{ __('Unassign') }}
                 </button>
@@ -444,9 +444,9 @@
 
         <div class="mt-6 flex justify-end">
           <button
-            @click="showViewModal = false"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="showViewModal = false"
           >
             {{ __('Close') }}
           </button>
@@ -488,16 +488,16 @@
 
         <div class="mt-6 flex justify-end gap-3">
           <button
-            @click="showNotesModal = false"
             type="button"
             class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="showNotesModal = false"
           >
             {{ __('Cancel') }}
           </button>
           <button
-            @click="saveNotes"
             type="button"
             class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            @click="saveNotes"
           >
             {{ __('Save Note') }}
           </button>
@@ -508,7 +508,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, watch } from 'vue'
+import { inject, onMounted, ref, watch } from 'vue'
 import SettingsLayout from './SettingsLayout.vue'
 import { Loader } from 'thetheme'
 import { axios } from 'spack'

@@ -26,9 +26,9 @@
       </div>
 
       <button
-        @click="syncData"
         :disabled="syncing"
         class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+        @click="syncData"
       >
         <svg v-if="syncing" class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -117,7 +117,8 @@
               {{ summary.avg_cpc >= userTargets.min_cpc_target ? '✓ Good' : '✗ Low' }}
             </span>
           </div>
-          <div :class="{
+          <div
+:class="{
             'text-green-600': summary.avg_cpc >= userTargets.min_cpc_target,
             'text-red-600': summary.avg_cpc < userTargets.min_cpc_target
           }" class="text-2xl font-bold">
@@ -273,8 +274,8 @@
         </div>
         <div class="pt-6">
           <button
-            @click="fetchReports"
             class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            @click="fetchReports"
           >
             {{ __('Apply') }}
           </button>
@@ -498,10 +499,10 @@
             <div class="relative">
               <input
                 v-model="searchQuery"
-                @input="debounceSearch"
                 type="text"
                 :placeholder="__('Search countries...')"
                 class="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm pl-10"
+                @input="debounceSearch"
               />
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -512,8 +513,8 @@
             <!-- Per Page Selector -->
             <select
               v-model="perPage"
-              @change="fetchReports"
               class="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              @change="fetchReports"
             >
               <option :value="10">10 per page</option>
               <option :value="25">25 per page</option>
@@ -601,7 +602,8 @@
                 </div>
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                <div :class="{
+                <div
+:class="{
                   'text-green-600 font-semibold': userTargets && report.avg_cpc >= userTargets.min_cpc_target,
                   'text-red-600': userTargets && report.avg_cpc < userTargets.min_cpc_target,
                   'text-gray-900': !userTargets
@@ -622,16 +624,16 @@
         <div class="flex items-center justify-between">
           <div class="flex flex-1 justify-between sm:hidden">
             <button
-              @click="goToPage(pagination.current_page - 1)"
               :disabled="pagination.current_page === 1"
               class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="goToPage(pagination.current_page - 1)"
             >
               {{ __('Previous') }}
             </button>
             <button
-              @click="goToPage(pagination.current_page + 1)"
               :disabled="pagination.current_page === pagination.last_page"
               class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="goToPage(pagination.current_page + 1)"
             >
               {{ __('Next') }}
             </button>
@@ -652,9 +654,9 @@
               <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                 <!-- Previous Button -->
                 <button
-                  @click="goToPage(pagination.current_page - 1)"
                   :disabled="pagination.current_page === 1"
                   class="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="goToPage(pagination.current_page - 1)"
                 >
                   <span class="sr-only">{{ __('Previous') }}</span>
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -666,22 +668,22 @@
                 <button
                   v-for="page in visiblePages"
                   :key="page"
-                  @click="goToPage(page)"
                   :class="[
                     page === pagination.current_page
                       ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
                       : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
                     'relative inline-flex items-center border px-4 py-2 text-sm font-medium'
                   ]"
+                  @click="goToPage(page)"
                 >
                   {{ page }}
                 </button>
 
                 <!-- Next Button -->
                 <button
-                  @click="goToPage(pagination.current_page + 1)"
                   :disabled="pagination.current_page === pagination.last_page"
                   class="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="goToPage(pagination.current_page + 1)"
                 >
                   <span class="sr-only">{{ __('Next') }}</span>
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -706,9 +708,9 @@
       </p>
       <div class="mt-6">
         <button
-          @click="syncData"
           type="button"
           class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          @click="syncData"
         >
           <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -721,8 +723,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, computed } from 'vue'
-import { Loader, LineChart, BarChart, DoughnutChart } from 'thetheme'
+import { computed, inject, onMounted, ref } from 'vue'
+import { BarChart, DoughnutChart, LineChart, Loader } from 'thetheme'
 import axios from 'axios'
 
 const __ = inject('__')

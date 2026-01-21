@@ -92,37 +92,37 @@
       <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8">
           <button
-            @click="activeTab = 'my-leaves'"
             :class="[
               activeTab === 'my-leaves'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium'
             ]"
+            @click="activeTab = 'my-leaves'"
           >
             {{ __('My Leave Requests') }}
           </button>
           <button
             v-if="can('leave:view-all')"
-            @click="activeTab = 'all-leaves'"
             :class="[
               activeTab === 'all-leaves'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium'
             ]"
+            @click="activeTab = 'all-leaves'"
           >
             {{ __('All Requests') }}
           </button>
           <button
             v-if="can('leave:approve')"
-            @click="activeTab = 'pending-approvals'"
             :class="[
               activeTab === 'pending-approvals'
                 ? 'border-indigo-500 text-indigo-600'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium'
             ]"
+            @click="activeTab = 'pending-approvals'"
           >
             {{ __('Pending Approvals') }}
             <span v-if="statistics && statistics.pending > 0" class="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
@@ -346,7 +346,7 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">{{ __('Leave Request Details') }}</h3>
-          <button @click="detailsModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="detailsModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>
@@ -422,7 +422,7 @@
           <h3 class="text-lg font-semibold text-gray-900">
             {{ approvalModal.action === 'approve' ? __('Approve Leave') : __('Reject Leave') }}
           </h3>
-          <button @click="approvalModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="approvalModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>
@@ -454,8 +454,8 @@
           </TheButton>
           <TheButton
             :class="approvalModal.action === 'reject' ? 'bg-red-600 hover:bg-red-700' : ''"
-            @click="submitApproval"
             :disabled="approvalModal.action === 'reject' && !approvalModal.notes"
+            @click="submitApproval"
           >
             {{ approvalModal.action === 'approve' ? __('Approve') : __('Reject') }}
           </TheButton>

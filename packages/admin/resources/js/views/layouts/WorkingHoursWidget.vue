@@ -47,7 +47,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { ClockIcon, CalendarIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { CalendarIcon, ClockIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 
 const workingHours = ref(null)

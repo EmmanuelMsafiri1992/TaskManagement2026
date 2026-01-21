@@ -153,9 +153,9 @@
             <div v-for="advance in outstandingAdvances" :key="advance.id" class="flex items-center justify-between bg-white rounded p-3 border border-orange-200">
               <div class="flex items-center">
                 <input
-                  type="checkbox"
                   :id="'advance-' + advance.id"
                   v-model="selectedAdvances"
+                  type="checkbox"
                   :value="advance.id"
                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   @change="handleAdvanceSelection"

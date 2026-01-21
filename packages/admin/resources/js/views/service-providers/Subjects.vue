@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { EllipsisVerticalIcon, PlusIcon, MagnifyingGlassIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, MagnifyingGlassIcon, PlusIcon } from '@heroicons/vue/24/outline'
 
 interface Topic {
   id: number
@@ -241,8 +241,8 @@ onMounted(() => {
         <p class="mt-1 text-sm text-gray-500">Manage the syllabus subjects and topics</p>
       </div>
       <button
-        @click="showCreateModal = true"
         class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+        @click="showCreateModal = true"
       >
         <PlusIcon class="w-5 h-5 mr-2" />
         Add Subject
@@ -285,17 +285,17 @@ onMounted(() => {
             <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               v-model="search"
-              @input="fetchSubjects(1)"
               type="text"
               placeholder="Search by name or code..."
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              @input="fetchSubjects(1)"
             />
           </div>
         </div>
         <select
           v-model="formFilter"
-          @change="fetchSubjects(1)"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          @change="fetchSubjects(1)"
         >
           <option value="">All Forms</option>
           <option value="1">Form 1</option>
@@ -334,24 +334,24 @@ onMounted(() => {
                 <div class="py-1">
                   <MenuItem v-slot="{ active }">
                     <button
-                      @click="openAddTopicModal(subject)"
                       :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
+                      @click="openAddTopicModal(subject)"
                     >
                       Add Topic
                     </button>
                   </MenuItem>
                   <MenuItem v-slot="{ active }">
                     <button
-                      @click="openEditModal(subject)"
                       :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
+                      @click="openEditModal(subject)"
                     >
                       Edit Subject
                     </button>
                   </MenuItem>
                   <MenuItem v-slot="{ active }">
                     <button
-                      @click="deleteSubject(subject)"
                       :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-red-700']"
+                      @click="deleteSubject(subject)"
                     >
                       Delete
                     </button>
@@ -373,7 +373,7 @@ onMounted(() => {
                     <span v-if="topic.estimated_hours"> | {{ topic.estimated_hours }}h</span>
                   </div>
                 </div>
-                <button @click="deleteTopic(subject, topic)" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                <button class="text-red-600 hover:text-red-800 text-sm" @click="deleteTopic(subject, topic)">Delete</button>
               </div>
             </div>
           </div>
@@ -389,11 +389,11 @@ onMounted(() => {
           <button
             v-for="page in pagination.last_page"
             :key="page"
-            @click="fetchSubjects(page)"
             :class="[
               'px-3 py-1 rounded',
               page === pagination.current_page ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             ]"
+            @click="fetchSubjects(page)"
           >
             {{ page }}
           </button>
@@ -407,7 +407,7 @@ onMounted(() => {
         <div class="fixed inset-0 bg-black opacity-50" @click="showCreateModal = false"></div>
         <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Add Subject</h2>
-          <form @submit.prevent="createSubject" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="createSubject">
             <div>
               <label class="block text-sm font-medium text-gray-700">Name *</label>
               <input v-model="subjectForm.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg" />
@@ -436,7 +436,7 @@ onMounted(() => {
               <label class="ml-2 text-sm text-gray-700">Active</label>
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-              <button type="button" @click="showCreateModal = false; resetSubjectForm()" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
+              <button type="button" class="px-4 py-2 text-gray-700 hover:text-gray-900" @click="showCreateModal = false; resetSubjectForm()">Cancel</button>
               <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create</button>
             </div>
           </form>
@@ -450,7 +450,7 @@ onMounted(() => {
         <div class="fixed inset-0 bg-black opacity-50" @click="showEditModal = false"></div>
         <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Edit Subject</h2>
-          <form @submit.prevent="updateSubject" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="updateSubject">
             <div>
               <label class="block text-sm font-medium text-gray-700">Name *</label>
               <input v-model="subjectForm.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg" />
@@ -479,7 +479,7 @@ onMounted(() => {
               <label class="ml-2 text-sm text-gray-700">Active</label>
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-              <button type="button" @click="showEditModal = false; resetSubjectForm()" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
+              <button type="button" class="px-4 py-2 text-gray-700 hover:text-gray-900" @click="showEditModal = false; resetSubjectForm()">Cancel</button>
               <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Update</button>
             </div>
           </form>
@@ -493,7 +493,7 @@ onMounted(() => {
         <div class="fixed inset-0 bg-black opacity-50" @click="showTopicModal = false"></div>
         <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Add Topic to {{ selectedSubject?.name }}</h2>
-          <form @submit.prevent="createTopic" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="createTopic">
             <div>
               <label class="block text-sm font-medium text-gray-700">Topic Name *</label>
               <input v-model="topicForm.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg" />
@@ -521,7 +521,7 @@ onMounted(() => {
               <textarea v-model="topicForm.description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-              <button type="button" @click="showTopicModal = false" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
+              <button type="button" class="px-4 py-2 text-gray-700 hover:text-gray-900" @click="showTopicModal = false">Cancel</button>
               <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Add Topic</button>
             </div>
           </form>

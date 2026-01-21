@@ -325,7 +325,7 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">{{ __('Income Details') }}</h3>
-          <button @click="detailsModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="detailsModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>
@@ -430,7 +430,7 @@
           <h3 class="text-lg font-semibold text-gray-900">
             {{ __('Mark as Received') }}
           </h3>
-          <button @click="receivedModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="receivedModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>

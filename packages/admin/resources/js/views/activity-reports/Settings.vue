@@ -12,7 +12,7 @@
       </p>
     </div>
 
-    <form @submit.prevent="saveSettings" class="space-y-6">
+    <form class="space-y-6" @submit.prevent="saveSettings">
       <!-- Enable/Disable Toggle -->
       <div class="overflow-hidden rounded-lg bg-white shadow">
         <div class="p-6">

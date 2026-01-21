@@ -114,10 +114,10 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, inject, reactive, onMounted } from 'vue'
+  import { computed, inject, onMounted, reactive } from 'vue'
   import { useSidebarNav } from 'Use/sidebar-nav'
   import { useRouter } from 'vue-router'
-  import { PlusIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+  import { ChevronDownIcon, PlusIcon } from '@heroicons/vue/24/outline'
   import { appData } from '@/app-data'
 
   const can = inject('can') as (permission: string | undefined) => boolean

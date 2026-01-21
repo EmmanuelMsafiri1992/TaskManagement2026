@@ -314,7 +314,7 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">{{ __('Expense Details') }}</h3>
-          <button @click="detailsModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="detailsModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>
@@ -406,7 +406,7 @@
           <h3 class="text-lg font-semibold text-gray-900">
             {{ approvalModal.action === 'approve' ? __('Approve Expense') : __('Reject Expense') }}
           </h3>
-          <button @click="approvalModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="approvalModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>

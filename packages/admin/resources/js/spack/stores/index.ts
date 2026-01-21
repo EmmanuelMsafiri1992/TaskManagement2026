@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { axios } from '../axios'
 import type { AxiosResponse } from 'axios'
 
@@ -25,6 +25,11 @@ export const useIndexStore = (name: string) => {
     const fetching = ref<boolean>(false)
     const config = reactive<IndexConfig>({})
 
+    // Computed for currently applied filters (used in templates)
+    const appliedFilters = computed(() => {
+      return Object.entries(filters).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+    })
+
     function setFilter(key: string, value: any) {
       filters[key] = value
     }
@@ -35,6 +40,17 @@ export const useIndexStore = (name: string) => {
 
     function clearAllFilters() {
       Object.keys(filters).forEach(key => delete filters[key])
+    }
+
+    // Alias for clearAllFilters (used in templates)
+    function resetFilters() {
+      clearAllFilters()
+      fetch()
+    }
+
+    // Returns current filters object (used in templates)
+    function getFilters() {
+      return { ...filters }
     }
 
     function setSort(column: string, order: 'asc' | 'desc' = 'asc') {
@@ -49,6 +65,12 @@ export const useIndexStore = (name: string) => {
         sortBy.value = column
         sortOrder.value = 'asc'
       }
+    }
+
+    // Alias for toggleSort (used in templates)
+    function sort(column: string) {
+      toggleSort(column)
+      fetch()
     }
 
     function reset() {
@@ -117,11 +139,15 @@ export const useIndexStore = (name: string) => {
       uri,
       fetching,
       config,
+      appliedFilters,
       setFilter,
       clearFilter,
       clearAllFilters,
+      resetFilters,
+      getFilters,
       setSort,
       toggleSort,
+      sort,
       reset,
       setConfig,
       onSearch,

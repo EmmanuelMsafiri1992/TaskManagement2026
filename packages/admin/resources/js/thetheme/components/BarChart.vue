@@ -9,9 +9,9 @@
     BarElement,
     CategoryScale,
     Chart,
+    Legend,
     LinearScale,
     Tooltip,
-    Legend,
   } from 'chart.js'
 
   const props = defineProps<{

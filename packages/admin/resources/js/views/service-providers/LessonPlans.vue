@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
-import { EllipsisVerticalIcon, MagnifyingGlassIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, EllipsisVerticalIcon, EyeIcon, MagnifyingGlassIcon, XCircleIcon } from '@heroicons/vue/24/outline'
 
 interface LessonPlan {
   id: number
@@ -171,17 +171,17 @@ onMounted(() => {
             <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               v-model="search"
-              @input="fetchPlans(1)"
               type="text"
               placeholder="Search by title or teacher name..."
               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+              @input="fetchPlans(1)"
             />
           </div>
         </div>
         <select
           v-model="statusFilter"
-          @change="fetchPlans(1)"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          @change="fetchPlans(1)"
         >
           <option value="">All Statuses</option>
           <option value="draft">Draft</option>
@@ -245,8 +245,8 @@ onMounted(() => {
                   <div class="py-1">
                     <MenuItem v-slot="{ active }">
                       <button
-                        @click="viewPlan(plan)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-gray-700']"
+                        @click="viewPlan(plan)"
                       >
                         <EyeIcon class="w-4 h-4 inline mr-2" />
                         View Details
@@ -254,8 +254,8 @@ onMounted(() => {
                     </MenuItem>
                     <MenuItem v-if="plan.status === 'submitted'" v-slot="{ active }">
                       <button
-                        @click="approvePlan(plan)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-green-700']"
+                        @click="approvePlan(plan)"
                       >
                         <CheckCircleIcon class="w-4 h-4 inline mr-2" />
                         Approve
@@ -263,8 +263,8 @@ onMounted(() => {
                     </MenuItem>
                     <MenuItem v-if="plan.status === 'submitted'" v-slot="{ active }">
                       <button
-                        @click="openRejectModal(plan)"
                         :class="[active ? 'bg-gray-100' : '', 'block w-full text-left px-4 py-2 text-sm text-red-700']"
+                        @click="openRejectModal(plan)"
                       >
                         <XCircleIcon class="w-4 h-4 inline mr-2" />
                         Reject
@@ -287,11 +287,11 @@ onMounted(() => {
           <button
             v-for="page in pagination.last_page"
             :key="page"
-            @click="fetchPlans(page)"
             :class="[
               'px-3 py-1 rounded',
               page === pagination.current_page ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
             ]"
+            @click="fetchPlans(page)"
           >
             {{ page }}
           </button>
@@ -336,7 +336,7 @@ onMounted(() => {
             </div>
           </div>
           <div class="flex justify-end pt-4">
-            <button @click="showDetailModal = false" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Close</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200" @click="showDetailModal = false">Close</button>
           </div>
         </div>
       </div>
@@ -348,13 +348,13 @@ onMounted(() => {
         <div class="fixed inset-0 bg-black opacity-50" @click="showRejectModal = false"></div>
         <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Reject Lesson Plan</h2>
-          <form @submit.prevent="rejectPlan" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="rejectPlan">
             <div>
               <label class="block text-sm font-medium text-gray-700">Feedback / Reason for Rejection *</label>
               <textarea v-model="rejectForm.feedback" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
             </div>
             <div class="flex justify-end space-x-3 pt-4">
-              <button type="button" @click="showRejectModal = false" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</button>
+              <button type="button" class="px-4 py-2 text-gray-700 hover:text-gray-900" @click="showRejectModal = false">Cancel</button>
               <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Reject</button>
             </div>
           </form>

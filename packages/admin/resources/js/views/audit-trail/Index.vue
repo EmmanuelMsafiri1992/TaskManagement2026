@@ -265,7 +265,7 @@
       <div class="p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-gray-900">{{ __('Audit Trail Details') }}</h3>
-          <button @click="detailModal.show = false" class="text-gray-400 hover:text-gray-600">
+          <button class="text-gray-400 hover:text-gray-600" @click="detailModal.show = false">
             <XCircleIcon class="h-6 w-6" />
           </button>
         </div>
@@ -358,8 +358,8 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import {
-  CalendarIcon,
   CalendarDaysIcon,
+  CalendarIcon,
   ChartBarIcon,
   ClipboardDocumentListIcon,
   EyeIcon,

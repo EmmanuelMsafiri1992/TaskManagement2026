@@ -143,7 +143,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'

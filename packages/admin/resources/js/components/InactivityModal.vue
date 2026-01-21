@@ -114,8 +114,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, watch } from 'vue'
-import { ExclamationTriangleIcon, ClockIcon } from '@heroicons/vue/24/outline'
+import { inject, ref, watch } from 'vue'
+import { ClockIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 
 interface InactivityReport {
   id: number

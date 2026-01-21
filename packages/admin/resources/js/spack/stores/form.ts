@@ -11,7 +11,7 @@ interface FormData {
   [key: string]: any
 }
 
-export const useFormStore = (name: string) => {
+export const useFormStore = <T extends FormData = FormData>(name: string) => {
   return defineStore(`form-${name}`, () => {
     const data = reactive<FormData>({})
     const errors = reactive<FormErrors>({})

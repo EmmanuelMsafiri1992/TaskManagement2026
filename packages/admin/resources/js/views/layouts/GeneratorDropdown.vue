@@ -159,10 +159,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Dropdown } from 'thetheme'
 import { axios } from 'spack'
-import { BoltIcon, PlayIcon, StopIcon, PlusIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { BoltIcon, ExclamationTriangleIcon, PlayIcon, PlusIcon, StopIcon } from '@heroicons/vue/24/outline'
 
 const currentLevel = ref(0)
 const tankCapacity = ref(12)

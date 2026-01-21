@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { axios } from 'spack'
 import type { TaskI } from 'types'
 
-let timerInterval: NodeJS.Timer
+let timerInterval: ReturnType<typeof setInterval> | undefined
 
 export const useTimerStore = defineStore('timer', {
   state: (): {

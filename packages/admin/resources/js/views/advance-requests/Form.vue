@@ -5,7 +5,7 @@
         <h3 class="text-lg font-semibold text-gray-900">
           {{ modelValue ? __('Edit Advance Request') : __('New Advance Request') }}
         </h3>
-        <button type="button" @click="emit('close')" class="text-gray-400 hover:text-gray-600">
+        <button type="button" class="text-gray-400 hover:text-gray-600" @click="emit('close')">
           <XCircleIcon class="h-6 w-6" />
         </button>
       </div>
@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch, inject } from 'vue'
+import { inject, reactive, ref, watch } from 'vue'
 import { XCircleIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import TheButton from '@/thetheme/components/TheButton.vue'

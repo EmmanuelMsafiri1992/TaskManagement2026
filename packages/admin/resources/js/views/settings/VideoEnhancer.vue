@@ -10,20 +10,22 @@
 
       <div class="space-y-6 p-6">
         <!-- Upload Section -->
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
+        <div
+class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
              :class="{ 'border-indigo-500 bg-indigo-50': isDragging }"
              @dragover.prevent="isDragging = true"
              @dragleave.prevent="isDragging = false"
              @drop.prevent="handleDrop">
-          <input type="file" ref="fileInput" @change="handleFileSelect" accept="video/*" class="hidden" />
+          <input ref="fileInput" type="file" accept="video/*" class="hidden" @change="handleFileSelect" />
 
           <div v-if="!uploading && !selectedFile">
             <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
               <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <div class="mt-4">
-              <button type="button" @click="$refs.fileInput.click()"
-                      class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+              <button
+type="button" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                      @click="$refs.fileInput.click()">
                 Select Video
               </button>
             </div>
@@ -44,11 +46,12 @@
           <div v-if="selectedFile && !uploading" class="space-y-3">
             <p class="text-sm font-medium text-gray-700">{{ selectedFile.name }}</p>
             <p class="text-sm text-gray-500">{{ formatBytes(selectedFile.size) }}</p>
-            <button type="button" @click="uploadVideo"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+            <button
+type="button" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                    @click="uploadVideo">
               Upload Video
             </button>
-            <button type="button" @click="selectedFile = null" class="ml-2 text-sm text-gray-500 hover:text-gray-700">
+            <button type="button" class="ml-2 text-sm text-gray-500 hover:text-gray-700" @click="selectedFile = null">
               Cancel
             </button>
           </div>
@@ -62,7 +65,8 @@
             <!-- Upscaling -->
             <div class="flex items-start">
               <div class="flex items-center h-5">
-                <input id="upscale" type="checkbox" v-model="options.upscale"
+                <input
+id="upscale" v-model="options.upscale" type="checkbox"
                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
               </div>
               <div class="ml-3 text-sm">
@@ -72,7 +76,8 @@
             </div>
 
             <div v-if="options.upscale">
-              <select v-model="options.upscale_resolution"
+              <select
+v-model="options.upscale_resolution"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 <option value="1920:1080">1080p (1920x1080)</option>
                 <option value="2560:1440">2K (2560x1440)</option>
@@ -83,7 +88,8 @@
             <!-- Quality Enhancement -->
             <div class="flex items-start">
               <div class="flex items-center h-5">
-                <input id="enhance_quality" type="checkbox" v-model="options.enhance_quality"
+                <input
+id="enhance_quality" v-model="options.enhance_quality" type="checkbox"
                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
               </div>
               <div class="ml-3 text-sm">
@@ -95,7 +101,8 @@
             <!-- Noise Reduction -->
             <div class="flex items-start">
               <div class="flex items-center h-5">
-                <input id="noise_reduction" type="checkbox" v-model="options.noise_reduction"
+                <input
+id="noise_reduction" v-model="options.noise_reduction" type="checkbox"
                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
               </div>
               <div class="ml-3 text-sm">
@@ -107,7 +114,8 @@
             <!-- Audio Normalization -->
             <div class="flex items-start">
               <div class="flex items-center h-5">
-                <input id="normalize_audio" type="checkbox" v-model="options.normalize_audio"
+                <input
+id="normalize_audio" v-model="options.normalize_audio" type="checkbox"
                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
               </div>
               <div class="ml-3 text-sm">
@@ -120,7 +128,8 @@
           <!-- Compression Level -->
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">Compression Level (CRF: {{ options.compression_level }})</label>
-            <input type="range" v-model="options.compression_level" min="18" max="35"
+            <input
+v-model="options.compression_level" type="range" min="18" max="35"
                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
             <div class="flex justify-between text-xs text-gray-500">
               <span>Best Quality (larger file)</span>
@@ -131,7 +140,8 @@
           <!-- Encoding Speed -->
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">Encoding Speed</label>
-            <select v-model="options.preset"
+            <select
+v-model="options.preset"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
               <option value="ultrafast">Ultra Fast (lowest quality)</option>
               <option value="fast">Fast</option>
@@ -144,7 +154,8 @@
           <!-- Output Format -->
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">Output Format</label>
-            <select v-model="options.format"
+            <select
+v-model="options.format"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
               <option value="mp4">MP4 (H.264)</option>
               <option value="webm">WebM (VP9)</option>
@@ -155,7 +166,8 @@
           <!-- Target Size -->
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">Target Size (MB) - Optional</label>
-            <input type="number" v-model="options.target_size" min="1" placeholder="Leave empty for automatic"
+            <input
+v-model="options.target_size" type="number" min="1" placeholder="Leave empty for automatic"
                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
           </div>
 
@@ -185,12 +197,14 @@
 
           <!-- Action Buttons -->
           <div class="flex space-x-3">
-            <button type="button" @click="getEstimate" :disabled="estimating"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button
+type="button" :disabled="estimating" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    @click="getEstimate">
               {{ estimating ? 'Calculating...' : 'Estimate Size' }}
             </button>
-            <button type="button" @click="startProcessing" :disabled="processing"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+            <button
+type="button" :disabled="processing" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                    @click="startProcessing">
               {{ processing ? 'Starting...' : 'Start Processing' }}
             </button>
           </div>
@@ -233,19 +247,22 @@
             </div>
           </div>
           <div class="flex space-x-3">
-            <a :href="'/api/video-enhancer/' + currentVideo.id + '/download'"
+            <a
+:href="'/api/video-enhancer/' + currentVideo.id + '/download'"
                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
               <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
               </svg>
               Download
             </a>
-            <button type="button" @click="confirmDelete(currentVideo.id, false)"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button
+type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    @click="confirmDelete(currentVideo.id, false)">
               Keep Original, Delete Processed
             </button>
-            <button type="button" @click="confirmDelete(currentVideo.id, true)"
-                    class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
+            <button
+type="button" class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+                    @click="confirmDelete(currentVideo.id, true)">
               Delete All
             </button>
           </div>
@@ -262,7 +279,7 @@
               <p class="text-sm text-red-600">{{ currentVideo.error_message }}</p>
             </div>
           </div>
-          <button type="button" @click="deleteVideo(currentVideo.id)" class="mt-3 text-sm text-red-600 hover:text-red-800">
+          <button type="button" class="mt-3 text-sm text-red-600 hover:text-red-800" @click="deleteVideo(currentVideo.id)">
             Delete and try again
           </button>
         </div>
@@ -271,7 +288,8 @@
         <div v-if="videos.length > 0" class="space-y-4">
           <h3 class="text-md font-medium text-gray-900">Previous Videos</h3>
           <div class="space-y-2">
-            <div v-for="video in videos" :key="video.id"
+            <div
+v-for="video in videos" :key="video.id"
                  class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
                 <p class="font-medium text-gray-900">{{ video.original_filename }}</p>
@@ -283,7 +301,8 @@
                 </p>
               </div>
               <div class="flex items-center space-x-2">
-                <span :class="{
+                <span
+:class="{
                   'bg-yellow-100 text-yellow-800': video.status === 'pending',
                   'bg-blue-100 text-blue-800': video.status === 'processing',
                   'bg-green-100 text-green-800': video.status === 'completed',
@@ -291,14 +310,15 @@
                 }" class="px-2 py-1 text-xs font-medium rounded-full">
                   {{ video.status }}
                 </span>
-                <button v-if="video.status === 'completed'"
-                        @click="downloadVideo(video.id)"
-                        class="text-indigo-600 hover:text-indigo-800">
+                <button
+v-if="video.status === 'completed'"
+                        class="text-indigo-600 hover:text-indigo-800"
+                        @click="downloadVideo(video.id)">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                   </svg>
                 </button>
-                <button @click="confirmDelete(video.id, true)" class="text-red-600 hover:text-red-800">
+                <button class="text-red-600 hover:text-red-800" @click="confirmDelete(video.id, true)">
                   <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
@@ -313,7 +333,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useFlashStore } from 'spack'
 import SettingsLayout from './SettingsLayout.vue'
 import { Card } from 'thetheme'

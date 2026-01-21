@@ -7,12 +7,14 @@
     "strict": true,
     "allowJs": true,
     "jsx": "preserve",
+    "jsxImportSource": "vue",
     "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
+    "noImplicitAny": false,
     "baseUrl": "./resources/js",
     "paths": {
       "@/*": ["./*"],
@@ -21,8 +23,10 @@
       "Store/*": ["./stores/*"],
       "thetheme/*": ["./thetheme/*"],
       "Use/*": ["./composables/*"],
-      "View/*": ["./views/*"]
-    }
+      "View/*": ["./views/*"],
+      "types": ["./types.d.ts"]
+    },
+    "types": ["vite/client"]
   },
   "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx", "resources/js/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]

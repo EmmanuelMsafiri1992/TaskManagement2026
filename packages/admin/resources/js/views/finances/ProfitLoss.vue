@@ -250,14 +250,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import {
-  ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  ChartBarIcon,
-  BanknotesIcon
+  ArrowTrendingUpIcon,
+  BanknotesIcon,
+  ChartBarIcon
 } from '@heroicons/vue/24/outline'
 
 const processing = ref(true)
