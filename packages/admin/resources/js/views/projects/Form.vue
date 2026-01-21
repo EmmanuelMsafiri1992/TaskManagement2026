@@ -29,7 +29,8 @@
       projectIndexStore.data.push(response.model)
     }
 
-    project.items.push(response.model)
+    // Refetch the project list to ensure all fields are properly loaded
+    project.fetch()
     useModalsStore().pop()
   })
 </script>

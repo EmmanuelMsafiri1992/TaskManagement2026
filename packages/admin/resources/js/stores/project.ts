@@ -38,6 +38,7 @@ export const useProjectIndex = defineStore('project-index', () => {
 
   return {
     create,
+    fetch,
     fetching,
     items,
     archive,
