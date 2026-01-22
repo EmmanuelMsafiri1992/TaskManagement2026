@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,14 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+// Homepage
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
+// Sitemap route
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // URL Shortener redirect route
 Route::get('/s/{shortCode}', [UrlShortenerController::class, 'redirect'])->name('url.redirect');

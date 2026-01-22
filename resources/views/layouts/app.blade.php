@@ -5,13 +5,26 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        {{-- SEO Meta Tags --}}
+        <x-seo-meta
+            :title="$seoTitle ?? null"
+            :description="$seoDescription ?? null"
+            :keywords="$seoKeywords ?? null"
+            :image="$seoImage ?? null"
+            :robots="$seoRobots ?? 'noindex, nofollow'"
+        />
+
+        {{-- Hreflang Tags for International Targeting --}}
+        <x-hreflang />
 
         <!-- Fonts -->
         <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- Structured Data --}}
+        <x-structured-data type="WebSite" />
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">

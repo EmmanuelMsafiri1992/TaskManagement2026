@@ -56,6 +56,21 @@ class ClientsController extends Controller
     }
 
     /**
+     * Get all clients for dropdown/select options
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function options()
+    {
+        $clients = Client::select('id', 'name', 'email', 'phone', 'address', 'company_name')
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json(['data' => $clients]);
+    }
+
+    /**
      * Store a newly created client
      *
      * @param Request $request

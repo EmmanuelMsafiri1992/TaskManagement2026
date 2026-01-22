@@ -80,6 +80,7 @@ class QuotationsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'client_id' => 'nullable|exists:clients,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',
@@ -171,6 +172,7 @@ class QuotationsController extends Controller
         $quotation = Quotation::findOrFail($id);
 
         $validated = $request->validate([
+            'client_id' => 'nullable|exists:clients,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',

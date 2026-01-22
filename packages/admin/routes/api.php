@@ -134,6 +134,7 @@ Route::resource('payrolls', PayrollsController::class);
 
 // Client Routes
 Route::get('clients/statistics', [ClientsController::class, 'statistics']);
+Route::get('clients/options', [ClientsController::class, 'options']);
 Route::resource('clients', ClientsController::class);
 
 // Quotation Routes

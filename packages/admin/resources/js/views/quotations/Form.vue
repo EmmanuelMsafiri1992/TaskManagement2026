@@ -10,6 +10,22 @@
       <!-- Customer Information -->
       <div class="mb-6">
         <h3 class="mb-4 text-md font-medium text-gray-900">{{ __('Customer Information') }}</h3>
+
+        <!-- Client Selection -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">{{ __('Select Client') }}</label>
+          <select
+            v-model="selectedClientId"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="onClientSelect"
+          >
+            <option value="">{{ __('-- Select a registered client or enter manually --') }}</option>
+            <option v-for="client in clients" :key="client.id" :value="client.id">
+              {{ client.name }}{{ client.company_name ? ` (${client.company_name})` : '' }}
+            </option>
+          </select>
+        </div>
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="block text-sm font-medium text-gray-700">
@@ -303,7 +319,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch, onMounted } from 'vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import TheButton from '@/thetheme/components/TheButton.vue'
@@ -319,6 +335,34 @@ const emit = defineEmits(['close', 'saved'])
 
 const processing = ref(false)
 const errors = ref({})
+const clients = ref([])
+const selectedClientId = ref('')
+
+// Fetch clients on mount
+onMounted(async () => {
+  try {
+    const response = await axios.get('clients/options')
+    clients.value = response.data.data || []
+  } catch (error) {
+    console.error('Failed to fetch clients:', error)
+  }
+})
+
+// Handle client selection
+const onClientSelect = () => {
+  if (selectedClientId.value) {
+    const client = clients.value.find(c => c.id === parseInt(selectedClientId.value))
+    if (client) {
+      form.client_id = client.id
+      form.customer_name = client.name || ''
+      form.customer_email = client.email || ''
+      form.customer_phone = client.phone || ''
+      form.customer_address = client.address || ''
+    }
+  } else {
+    form.client_id = null
+  }
+}
 
 const getDefaultItem = () => ({
   description: '',
@@ -327,6 +371,7 @@ const getDefaultItem = () => ({
 })
 
 const form = reactive({
+  client_id: null,
   customer_name: '',
   customer_email: '',
   customer_phone: '',
@@ -413,6 +458,7 @@ const submit = async () => {
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     Object.assign(form, {
+      client_id: newVal.client_id || null,
       customer_name: newVal.customer_name || '',
       customer_email: newVal.customer_email || '',
       customer_phone: newVal.customer_phone || '',
@@ -432,6 +478,10 @@ watch(() => props.modelValue, (newVal) => {
         unit_price: parseFloat(item.unit_price)
       })) : [getDefaultItem()]
     })
+    // Set selected client if exists
+    if (newVal.client_id) {
+      selectedClientId.value = newVal.client_id.toString()
+    }
   }
 }, { immediate: true })
 </script>
