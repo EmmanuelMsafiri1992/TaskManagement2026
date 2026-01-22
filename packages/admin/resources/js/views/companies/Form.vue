@@ -83,6 +83,91 @@
         </div>
       </div>
 
+      <!-- Company Logo -->
+      <div class="mb-6 border-t border-gray-200 pt-6">
+        <h3 class="mb-4 text-md font-medium text-gray-900">{{ __('Company Logo') }}</h3>
+
+        <!-- Existing Logo Preview -->
+        <div v-if="existingLogo && !logoFile" class="mb-4">
+          <div class="flex items-center gap-4">
+            <img
+              :src="`/storage/${existingLogo}`"
+              alt="Company Logo"
+              class="h-20 w-20 rounded-lg object-cover border border-gray-200"
+            />
+            <div>
+              <p class="text-sm text-gray-600">{{ __('Current logo') }}</p>
+              <button
+                type="button"
+                class="mt-1 text-sm text-red-600 hover:text-red-800"
+                @click="removeExistingLogo"
+              >
+                {{ __('Remove logo') }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logo Upload -->
+        <div
+          class="flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5"
+          :class="{ 'border-indigo-500 bg-indigo-50': isDragging }"
+          @dragenter.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @dragover.prevent
+          @drop.prevent="handleDrop"
+        >
+          <div class="space-y-1 text-center">
+            <PhotoIcon class="mx-auto h-12 w-12 text-gray-400" />
+            <div class="flex text-sm text-gray-600">
+              <label
+                for="logo-upload"
+                class="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+              >
+                <span>{{ __('Upload a logo') }}</span>
+                <input
+                  id="logo-upload"
+                  ref="fileInput"
+                  type="file"
+                  class="sr-only"
+                  accept=".jpg,.jpeg,.png,.gif,.svg"
+                  @change="handleFileChange"
+                />
+              </label>
+              <p class="pl-1">{{ __('or drag and drop') }}</p>
+            </div>
+            <p class="text-xs text-gray-500">
+              {{ __('PNG, JPG, GIF, SVG up to 2MB') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Selected File Preview -->
+        <div v-if="logoFile" class="mt-4">
+          <div class="flex items-center gap-4">
+            <img
+              v-if="logoPreview"
+              :src="logoPreview"
+              alt="Logo Preview"
+              class="h-20 w-20 rounded-lg object-cover border border-gray-200"
+            />
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900">{{ logoFile.name }}</p>
+              <p class="text-xs text-gray-500">{{ formatFileSize(logoFile.size) }}</p>
+            </div>
+            <button
+              type="button"
+              class="text-sm text-red-600 hover:text-red-800"
+              @click="removeLogo"
+            >
+              {{ __('Remove') }}
+            </button>
+          </div>
+        </div>
+
+        <p v-if="errors.logo" class="mt-2 text-sm text-red-600">{{ errors.logo[0] }}</p>
+      </div>
+
       <!-- Contact Information -->
       <div class="mb-6 border-t border-gray-200 pt-6">
         <h3 class="mb-4 text-md font-medium text-gray-900">{{ __('Contact Information') }}</h3>
@@ -262,6 +347,7 @@
 
 <script setup>
 import { inject, reactive, ref, watch } from 'vue'
+import { PhotoIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import TheButton from '@/thetheme/components/TheButton.vue'
 
@@ -278,6 +364,12 @@ const emit = defineEmits(['close', 'saved'])
 
 const processing = ref(false)
 const errors = ref({})
+const fileInput = ref(null)
+const isDragging = ref(false)
+const logoFile = ref(null)
+const logoPreview = ref(null)
+const existingLogo = ref(null)
+const removeLogoFlag = ref(false)
 
 const getDefaultForm = () => ({
   name: '',
@@ -307,19 +399,99 @@ const getDefaultForm = () => ({
 
 const form = reactive(getDefaultForm())
 
+const handleFileChange = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    validateAndSetFile(file)
+  }
+}
+
+const handleDrop = (e) => {
+  isDragging.value = false
+  const file = e.dataTransfer.files[0]
+  if (file) {
+    validateAndSetFile(file)
+  }
+}
+
+const validateAndSetFile = (file) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml']
+  const maxSize = 2 * 1024 * 1024 // 2MB
+
+  if (!allowedTypes.includes(file.type)) {
+    alert('Please upload a JPG, PNG, GIF, or SVG file.')
+    return
+  }
+
+  if (file.size > maxSize) {
+    alert('File size must be less than 2MB.')
+    return
+  }
+
+  logoFile.value = file
+  existingLogo.value = null
+  removeLogoFlag.value = false
+
+  // Create preview
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    logoPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const removeLogo = () => {
+  logoFile.value = null
+  logoPreview.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+const removeExistingLogo = () => {
+  existingLogo.value = null
+  removeLogoFlag.value = true
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
 const submit = async () => {
   processing.value = true
   errors.value = {}
 
-  const url = props.modelValue
-    ? `companies/${props.modelValue.id}`
-    : 'companies'
+  const formData = new FormData()
+
+  // Add all form fields
+  Object.keys(form).forEach(key => {
+    if (form[key] !== null && form[key] !== undefined) {
+      formData.append(key, form[key])
+    }
+  })
+
+  // Add logo file if selected
+  if (logoFile.value) {
+    formData.append('logo_file', logoFile.value)
+  }
+
+  // Flag to remove existing logo
+  if (removeLogoFlag.value) {
+    formData.append('remove_logo', '1')
+  }
 
   try {
     if (props.modelValue) {
-      await axios.put(url, form)
+      formData.append('_method', 'PUT')
+      await axios.post(`companies/${props.modelValue.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
     } else {
-      await axios.post(url, form)
+      await axios.post('companies', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
     }
     emit('saved')
     emit('close')
@@ -362,8 +534,16 @@ watch(() => props.modelValue, (newVal) => {
       status: newVal.status || 'active',
       notes: newVal.notes || '',
     })
+    existingLogo.value = newVal.logo || null
+    logoFile.value = null
+    logoPreview.value = null
+    removeLogoFlag.value = false
   } else {
     Object.assign(form, getDefaultForm())
+    existingLogo.value = null
+    logoFile.value = null
+    logoPreview.value = null
+    removeLogoFlag.value = false
   }
 }, { immediate: true })
 </script>

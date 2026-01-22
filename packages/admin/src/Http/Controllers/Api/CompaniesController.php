@@ -100,6 +100,7 @@ class CompaniesController extends Controller
             'postal_code' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:191',
             'logo' => 'nullable|string|max:191',
+            'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'industry' => 'nullable|string|max:191',
             'description' => 'nullable|string',
             'bank_name' => 'nullable|string|max:191',
@@ -112,6 +113,13 @@ class CompaniesController extends Controller
         ]);
 
         $validated['status'] = $validated['status'] ?? 'active';
+
+        // Handle logo file upload
+        if ($request->hasFile('logo_file')) {
+            $path = $request->file('logo_file')->store('company-logos', 'public');
+            $validated['logo'] = $path;
+        }
+        unset($validated['logo_file']);
 
         $company = Company::create($validated);
 
@@ -158,6 +166,8 @@ class CompaniesController extends Controller
             'postal_code' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:191',
             'logo' => 'nullable|string|max:191',
+            'logo_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'remove_logo' => 'nullable|boolean',
             'industry' => 'nullable|string|max:191',
             'description' => 'nullable|string',
             'bank_name' => 'nullable|string|max:191',
@@ -168,6 +178,27 @@ class CompaniesController extends Controller
             'status' => 'nullable|in:active,inactive',
             'notes' => 'nullable|string',
         ]);
+
+        // Handle logo removal
+        if ($request->boolean('remove_logo')) {
+            if ($company->logo && Storage::disk('public')->exists($company->logo)) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $validated['logo'] = null;
+        }
+
+        // Handle new logo file upload
+        if ($request->hasFile('logo_file')) {
+            // Delete old logo if exists
+            if ($company->logo && Storage::disk('public')->exists($company->logo)) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $path = $request->file('logo_file')->store('company-logos', 'public');
+            $validated['logo'] = $path;
+        }
+
+        unset($validated['logo_file']);
+        unset($validated['remove_logo']);
 
         $company->update($validated);
 
