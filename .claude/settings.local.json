@@ -46,7 +46,8 @@
       "Bash(composer self-update:*)",
       "Bash(composer require:*)",
       "Bash(composer show:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(mysql:*)"
     ]
   }
 }
