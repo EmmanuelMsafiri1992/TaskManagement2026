@@ -26,6 +26,22 @@
           </select>
         </div>
 
+        <!-- Project Selection -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700">{{ __('Select Project') }}</label>
+          <select
+            v-model="selectedProjectId"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="onProjectSelect"
+          >
+            <option value="">{{ __('-- Select a project to auto-fill business details --') }}</option>
+            <option v-for="project in projects" :key="project.id" :value="project.id">
+              {{ project.name }}{{ project.company_name ? ` (${project.company_name})` : '' }}
+            </option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500">{{ __('Selecting a project will auto-fill the business information below') }}</p>
+        </div>
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="block text-sm font-medium text-gray-700">
@@ -68,6 +84,53 @@
               v-model="form.customer_address"
               type="text"
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Business Information -->
+      <div class="mb-6 border-t border-gray-200 pt-6">
+        <h3 class="mb-4 text-md font-medium text-gray-900">{{ __('Business Information') }}</h3>
+        <p class="mb-4 text-sm text-gray-500">{{ __('This information will appear on the quotation as your company details') }}</p>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ __('Business Name') }}</label>
+            <input
+              v-model="form.business_name"
+              type="text"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :placeholder="__('Your company name')"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ __('Business Email') }}</label>
+            <input
+              v-model="form.business_email"
+              type="email"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :placeholder="__('company@email.com')"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ __('Business Phone') }}</label>
+            <input
+              v-model="form.business_phone"
+              type="tel"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :placeholder="__('Business phone number')"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">{{ __('Business Address') }}</label>
+            <input
+              v-model="form.business_address"
+              type="text"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              :placeholder="__('Business address')"
             />
           </div>
         </div>
@@ -336,15 +399,21 @@ const emit = defineEmits(['close', 'saved'])
 const processing = ref(false)
 const errors = ref({})
 const clients = ref([])
+const projects = ref([])
 const selectedClientId = ref('')
+const selectedProjectId = ref('')
 
-// Fetch clients on mount
+// Fetch clients and projects on mount
 onMounted(async () => {
   try {
-    const response = await axios.get('clients/options')
-    clients.value = response.data.data || []
+    const [clientsResponse, projectsResponse] = await Promise.all([
+      axios.get('clients/options'),
+      axios.get('quotations/projects')
+    ])
+    clients.value = clientsResponse.data.data || []
+    projects.value = projectsResponse.data.data || []
   } catch (error) {
-    console.error('Failed to fetch clients:', error)
+    console.error('Failed to fetch data:', error)
   }
 })
 
@@ -364,6 +433,30 @@ const onClientSelect = () => {
   }
 }
 
+// Handle project selection - auto-populate business fields
+const onProjectSelect = async () => {
+  if (selectedProjectId.value) {
+    try {
+      const response = await axios.get(`quotations/projects/${selectedProjectId.value}`)
+      const projectData = response.data.data
+      if (projectData) {
+        form.project_id = projectData.id
+        form.business_name = projectData.business_name || ''
+        form.business_email = projectData.business_email || ''
+        form.business_phone = projectData.business_phone || ''
+        form.business_address = projectData.business_address || ''
+        if (projectData.logo) {
+          form.logo = projectData.logo
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch project details:', error)
+    }
+  } else {
+    form.project_id = null
+  }
+}
+
 const getDefaultItem = () => ({
   description: '',
   quantity: 1,
@@ -372,10 +465,16 @@ const getDefaultItem = () => ({
 
 const form = reactive({
   client_id: null,
+  project_id: null,
   customer_name: '',
   customer_email: '',
   customer_phone: '',
   customer_address: '',
+  business_name: '',
+  business_email: '',
+  business_phone: '',
+  business_address: '',
+  logo: '',
   quotation_date: new Date().toISOString().split('T')[0],
   valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   currency: 'MWK',
@@ -459,10 +558,16 @@ watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     Object.assign(form, {
       client_id: newVal.client_id || null,
+      project_id: newVal.project_id || null,
       customer_name: newVal.customer_name || '',
       customer_email: newVal.customer_email || '',
       customer_phone: newVal.customer_phone || '',
       customer_address: newVal.customer_address || '',
+      business_name: newVal.business_name || '',
+      business_email: newVal.business_email || '',
+      business_phone: newVal.business_phone || '',
+      business_address: newVal.business_address || '',
+      logo: newVal.logo || '',
       quotation_date: newVal.quotation_date ? newVal.quotation_date.split('T')[0] : new Date().toISOString().split('T')[0],
       valid_until: newVal.valid_until ? newVal.valid_until.split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       currency: newVal.currency || 'MWK',
@@ -481,6 +586,10 @@ watch(() => props.modelValue, (newVal) => {
     // Set selected client if exists
     if (newVal.client_id) {
       selectedClientId.value = newVal.client_id.toString()
+    }
+    // Set selected project if exists
+    if (newVal.project_id) {
+      selectedProjectId.value = newVal.project_id.toString()
     }
   }
 }, { immediate: true })
