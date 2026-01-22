@@ -117,6 +117,10 @@ class QuotationsController extends Controller
             $validated['tax_amount'] = ($validated['tax_rate'] ?? 0) / 100 * $subtotal;
             $validated['total_amount'] = $subtotal + $validated['tax_amount'] - ($validated['discount_amount'] ?? 0);
 
+            // Remove items from validated data before creating quotation (items are handled separately)
+            $items = $validated['items'];
+            unset($validated['items']);
+
             // Create quotation
             $quotation = Quotation::create($validated);
 
@@ -203,6 +207,9 @@ class QuotationsController extends Controller
             $validated['subtotal'] = $subtotal;
             $validated['tax_amount'] = ($validated['tax_rate'] ?? 0) / 100 * $subtotal;
             $validated['total_amount'] = $subtotal + $validated['tax_amount'] - ($validated['discount_amount'] ?? 0);
+
+            // Remove items from validated data before updating quotation (items are handled separately)
+            unset($validated['items']);
 
             // Update quotation
             $quotation->update($validated);
