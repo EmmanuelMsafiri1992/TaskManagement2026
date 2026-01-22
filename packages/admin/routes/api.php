@@ -139,6 +139,8 @@ Route::resource('clients', ClientsController::class);
 
 // Quotation Routes
 Route::get('quotations/statistics', [QuotationsController::class, 'statistics']);
+Route::get('quotations/projects', [QuotationsController::class, 'projects']);
+Route::get('quotations/projects/{id}', [QuotationsController::class, 'projectDetails']);
 Route::get('quotations/{id}/pdf', [QuotationsController::class, 'pdf']);
 Route::post('quotations/{id}/change-status', [QuotationsController::class, 'changeStatus']);
 Route::resource('quotations', QuotationsController::class);

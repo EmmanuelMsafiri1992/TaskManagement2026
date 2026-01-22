@@ -3,6 +3,7 @@
 namespace Admin\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Project;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -19,7 +20,7 @@ class QuotationsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Quotation::query()->with(['user', 'items']);
+        $query = Quotation::query()->with(['user', 'items', 'project', 'client']);
 
         // Search
         if ($request->filled('search')) {
@@ -81,6 +82,7 @@ class QuotationsController extends Controller
     {
         $validated = $request->validate([
             'client_id' => 'nullable|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',
@@ -94,6 +96,12 @@ class QuotationsController extends Controller
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'status' => 'nullable|in:draft,sent,accepted,rejected,expired',
+            'business_name' => 'nullable|string|max:191',
+            'business_email' => 'nullable|string|max:191',
+            'business_phone' => 'nullable|string|max:191',
+            'business_address' => 'nullable|string',
+            'logo' => 'nullable|string|max:191',
+            'color' => 'nullable|string|max:20',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
@@ -159,7 +167,7 @@ class QuotationsController extends Controller
      */
     public function show($id)
     {
-        $quotation = Quotation::with(['user', 'items'])->findOrFail($id);
+        $quotation = Quotation::with(['user', 'items', 'project', 'client'])->findOrFail($id);
 
         return response()->json(['data' => $quotation]);
     }
@@ -177,6 +185,7 @@ class QuotationsController extends Controller
 
         $validated = $request->validate([
             'client_id' => 'nullable|exists:clients,id',
+            'project_id' => 'nullable|exists:projects,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',
@@ -190,6 +199,12 @@ class QuotationsController extends Controller
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'status' => 'nullable|in:draft,sent,accepted,rejected,expired',
+            'business_name' => 'nullable|string|max:191',
+            'business_email' => 'nullable|string|max:191',
+            'business_phone' => 'nullable|string|max:191',
+            'business_address' => 'nullable|string',
+            'logo' => 'nullable|string|max:191',
+            'color' => 'nullable|string|max:20',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
@@ -293,5 +308,51 @@ class QuotationsController extends Controller
         $pdf = Pdf::loadView('quotations.pdf', ['quotation' => $quotation]);
 
         return $pdf->download($quotation->quotation_number . '.pdf');
+    }
+
+    /**
+     * Get list of projects for quotation selection
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function projects(Request $request)
+    {
+        $query = Project::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('company_name', 'like', '%' . $request->search . '%');
+        }
+
+        $projects = $query->select(['id', 'name', 'company_name', 'company_email', 'company_phone', 'company_address', 'company_logo'])
+            ->orderBy('name')
+            ->get();
+
+        return response()->json(['data' => $projects]);
+    }
+
+    /**
+     * Get project details for auto-populating quotation business fields
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function projectDetails($id)
+    {
+        $project = Project::select(['id', 'name', 'company_name', 'company_email', 'company_phone', 'company_address', 'company_logo'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'data' => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'business_name' => $project->company_name,
+                'business_email' => $project->company_email,
+                'business_phone' => $project->company_phone,
+                'business_address' => $project->company_address,
+                'logo' => $project->company_logo,
+            ]
+        ]);
     }
 }

@@ -15,6 +15,22 @@ class Project extends Model
     use HasFactory, SoftDeletes, Auditable;
 
     /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'description',
+        'company_name',
+        'company_email',
+        'company_phone',
+        'company_address',
+        'company_logo',
+        'meta',
+    ];
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @var array
@@ -65,6 +81,14 @@ class Project extends Model
     public function members()
     {
         return $this->belongsToMany(User::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function quotations()
+    {
+        return $this->hasMany(Quotation::class);
     }
 
     /**

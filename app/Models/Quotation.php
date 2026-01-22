@@ -13,6 +13,7 @@ class Quotation extends Model
         'quotation_number',
         'user_id',
         'client_id',
+        'project_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -58,6 +59,11 @@ class Quotation extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function items()
