@@ -349,6 +349,7 @@
 import { inject, reactive, ref, watch } from 'vue'
 import { PhotoIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
+import { useFlashStore } from 'spack'
 import TheButton from '@/thetheme/components/TheButton.vue'
 
 const __ = inject('__')
@@ -488,10 +489,12 @@ const submit = async () => {
       await axios.post(`companies/${props.modelValue.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
+      useFlashStore().success('Company updated successfully!')
     } else {
       await axios.post('companies', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
+      useFlashStore().success('Company created successfully!')
     }
     emit('saved')
     emit('close')
