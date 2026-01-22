@@ -1,4 +1,4 @@
-import { AcademicCapIcon, BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BanknotesIcon, BriefcaseIcon, BuildingOffice2Icon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 // Feature key mapping for sidebar items
@@ -15,6 +15,7 @@ const featureKeyMap: Record<string, string> = {
   '/leads': 'leads',
   '/payrolls': 'payrolls',
   '/clients': 'clients',
+  '/companies': 'companies',
   '/quotations': 'quotations',
   '/expenses': 'expenses',
   '/income': 'income',
@@ -82,6 +83,12 @@ export const useSidebarNav: SidebarNav[] = [
     label: 'Leads',
     uri: '/leads',
     icon: UserPlusIcon,
+  },
+  {
+    label: 'Companies',
+    uri: '/companies',
+    icon: BuildingOffice2Icon,
+    permission: 'company:view',
   },
   {
     label: 'Financial',

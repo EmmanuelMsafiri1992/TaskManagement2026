@@ -24,6 +24,7 @@ import LeavesIndex from 'View/leaves/Index.vue'
 import HolidaysIndex from 'View/holidays/Index.vue'
 import PayrollsIndex from 'View/payrolls/Index.vue'
 import ClientsIndex from 'View/clients/Index.vue'
+import CompaniesIndex from 'View/companies/Index.vue'
 import QuotationsIndex from 'View/quotations/Index.vue'
 import QuotationsDetail from 'View/quotations/Detail.vue'
 import ExpensesIndex from 'View/expenses/Index.vue'
@@ -63,6 +64,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/holidays', name: 'Holidays', component: HolidaysIndex },
   { path: '/payrolls', name: 'Payrolls', component: PayrollsIndex },
   { path: '/clients', name: 'Clients', component: ClientsIndex },
+  { path: '/companies', name: 'Companies', component: CompaniesIndex },
   { path: '/quotations', name: 'Quotations', component: QuotationsIndex },
   { path: '/quotations/:id', name: 'QuotationDetail', component: QuotationsDetail },
   { path: '/expenses', name: 'Expenses', component: ExpensesIndex },

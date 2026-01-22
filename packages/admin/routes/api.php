@@ -56,6 +56,7 @@ use Admin\Http\Controllers\Api\LeavesController;
 use Admin\Http\Controllers\Api\HolidaysController;
 use Admin\Http\Controllers\Api\PayrollsController;
 use Admin\Http\Controllers\Api\ClientsController;
+use Admin\Http\Controllers\Api\CompaniesController;
 use Admin\Http\Controllers\Api\QuotationsController;
 use Admin\Http\Controllers\Api\ExpensesController;
 use Admin\Http\Controllers\Api\IncomeController;
@@ -131,6 +132,13 @@ Route::post('payrolls/{id}/approve', [PayrollsController::class, 'approve']);
 Route::post('payrolls/{id}/mark-as-paid', [PayrollsController::class, 'markAsPaid']);
 Route::post('payrolls/{id}/send-payslip', [PayrollsController::class, 'sendPayslip']);
 Route::resource('payrolls', PayrollsController::class);
+
+// Company Routes
+Route::get('companies/statistics', [CompaniesController::class, 'statistics']);
+Route::get('companies/options', [CompaniesController::class, 'options']);
+Route::get('companies/{id}/quotation-details', [CompaniesController::class, 'quotationDetails']);
+Route::post('companies/{id}/upload-logo', [CompaniesController::class, 'uploadLogo']);
+Route::resource('companies', CompaniesController::class);
 
 // Client Routes
 Route::get('clients/statistics', [ClientsController::class, 'statistics']);

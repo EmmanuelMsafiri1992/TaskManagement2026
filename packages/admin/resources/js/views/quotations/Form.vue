@@ -26,20 +26,20 @@
           </select>
         </div>
 
-        <!-- Project Selection -->
+        <!-- Company Selection -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700">{{ __('Select Project') }}</label>
+          <label class="block text-sm font-medium text-gray-700">{{ __('Select Company') }}</label>
           <select
-            v-model="selectedProjectId"
+            v-model="selectedCompanyId"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            @change="onProjectSelect"
+            @change="onCompanySelect"
           >
-            <option value="">{{ __('-- Select a project to auto-fill business details --') }}</option>
-            <option v-for="project in projects" :key="project.id" :value="project.id">
-              {{ project.name }}{{ project.company_name ? ` (${project.company_name})` : '' }}
+            <option value="">{{ __('-- Select a company to auto-fill business details --') }}</option>
+            <option v-for="company in companies" :key="company.id" :value="company.id">
+              {{ company.name }}{{ company.trading_name ? ` (${company.trading_name})` : '' }}
             </option>
           </select>
-          <p class="mt-1 text-xs text-gray-500">{{ __('Selecting a project will auto-fill the business information below') }}</p>
+          <p class="mt-1 text-xs text-gray-500">{{ __('Selecting a company will auto-fill the business information below') }}</p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -399,19 +399,19 @@ const emit = defineEmits(['close', 'saved'])
 const processing = ref(false)
 const errors = ref({})
 const clients = ref([])
-const projects = ref([])
+const companies = ref([])
 const selectedClientId = ref('')
-const selectedProjectId = ref('')
+const selectedCompanyId = ref('')
 
-// Fetch clients and projects on mount
+// Fetch clients and companies on mount
 onMounted(async () => {
   try {
-    const [clientsResponse, projectsResponse] = await Promise.all([
+    const [clientsResponse, companiesResponse] = await Promise.all([
       axios.get('clients/options'),
-      axios.get('quotations/projects')
+      axios.get('companies/options')
     ])
     clients.value = clientsResponse.data.data || []
-    projects.value = projectsResponse.data.data || []
+    companies.value = companiesResponse.data.data || []
   } catch (error) {
     console.error('Failed to fetch data:', error)
   }
@@ -433,27 +433,27 @@ const onClientSelect = () => {
   }
 }
 
-// Handle project selection - auto-populate business fields
-const onProjectSelect = async () => {
-  if (selectedProjectId.value) {
+// Handle company selection - auto-populate business fields
+const onCompanySelect = async () => {
+  if (selectedCompanyId.value) {
     try {
-      const response = await axios.get(`quotations/projects/${selectedProjectId.value}`)
-      const projectData = response.data.data
-      if (projectData) {
-        form.project_id = projectData.id
-        form.business_name = projectData.business_name || ''
-        form.business_email = projectData.business_email || ''
-        form.business_phone = projectData.business_phone || ''
-        form.business_address = projectData.business_address || ''
-        if (projectData.logo) {
-          form.logo = projectData.logo
+      const response = await axios.get(`companies/${selectedCompanyId.value}/quotation-details`)
+      const companyData = response.data.data
+      if (companyData) {
+        form.company_id = companyData.id
+        form.business_name = companyData.business_name || ''
+        form.business_email = companyData.business_email || ''
+        form.business_phone = companyData.business_phone || ''
+        form.business_address = companyData.business_address || ''
+        if (companyData.logo) {
+          form.logo = companyData.logo
         }
       }
     } catch (error) {
-      console.error('Failed to fetch project details:', error)
+      console.error('Failed to fetch company details:', error)
     }
   } else {
-    form.project_id = null
+    form.company_id = null
   }
 }
 
@@ -465,7 +465,7 @@ const getDefaultItem = () => ({
 
 const form = reactive({
   client_id: null,
-  project_id: null,
+  company_id: null,
   customer_name: '',
   customer_email: '',
   customer_phone: '',
@@ -558,7 +558,7 @@ watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     Object.assign(form, {
       client_id: newVal.client_id || null,
-      project_id: newVal.project_id || null,
+      company_id: newVal.company_id || null,
       customer_name: newVal.customer_name || '',
       customer_email: newVal.customer_email || '',
       customer_phone: newVal.customer_phone || '',
@@ -587,9 +587,9 @@ watch(() => props.modelValue, (newVal) => {
     if (newVal.client_id) {
       selectedClientId.value = newVal.client_id.toString()
     }
-    // Set selected project if exists
-    if (newVal.project_id) {
-      selectedProjectId.value = newVal.project_id.toString()
+    // Set selected company if exists
+    if (newVal.company_id) {
+      selectedCompanyId.value = newVal.company_id.toString()
     }
   }
 }, { immediate: true })

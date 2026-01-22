@@ -3,6 +3,7 @@
 namespace Admin\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
@@ -20,7 +21,7 @@ class QuotationsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Quotation::query()->with(['user', 'items', 'project', 'client']);
+        $query = Quotation::query()->with(['user', 'items', 'project', 'client', 'company']);
 
         // Search
         if ($request->filled('search')) {
@@ -83,6 +84,7 @@ class QuotationsController extends Controller
         $validated = $request->validate([
             'client_id' => 'nullable|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'company_id' => 'nullable|exists:companies,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',
@@ -167,7 +169,7 @@ class QuotationsController extends Controller
      */
     public function show($id)
     {
-        $quotation = Quotation::with(['user', 'items', 'project', 'client'])->findOrFail($id);
+        $quotation = Quotation::with(['user', 'items', 'project', 'client', 'company'])->findOrFail($id);
 
         return response()->json(['data' => $quotation]);
     }
@@ -186,6 +188,7 @@ class QuotationsController extends Controller
         $validated = $request->validate([
             'client_id' => 'nullable|exists:clients,id',
             'project_id' => 'nullable|exists:projects,id',
+            'company_id' => 'nullable|exists:companies,id',
             'customer_name' => 'required|string|max:191',
             'customer_email' => 'required|email|max:191',
             'customer_phone' => 'nullable|string|max:191',

@@ -22,6 +22,7 @@ class Project extends Model
     protected $fillable = [
         'name',
         'description',
+        'company_id',
         'company_name',
         'company_email',
         'company_phone',
@@ -49,6 +50,14 @@ class Project extends Model
         return new Attribute(
             get: fn () => ($this->users->count() > 10) ? ($this->users->count() - 10) : 0,
         );
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     /**
