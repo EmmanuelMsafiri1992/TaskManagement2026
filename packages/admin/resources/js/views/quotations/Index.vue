@@ -124,6 +124,10 @@
       </div>
 
       <div class="flex gap-2">
+        <TheButton variant="secondary" @click="showTemplatePreview = true">
+          <SwatchIcon class="mr-2 h-4 w-4" />
+          {{ __('View Templates') }}
+        </TheButton>
         <TheButton @click="openQuotationModal()">
           <PlusIcon class="mr-2 h-4 w-4" />
           {{ __('New Quotation') }}
@@ -217,6 +221,236 @@
     <FormModal v-if="form.show" size="4xl" @close="form.show = false">
       <FormQuotation :model-value="form.model" @close="form.show = false" @saved="handleSaved" />
     </FormModal>
+
+    <!-- Template Preview Modal -->
+    <FormModal v-if="showTemplatePreview" size="5xl" @close="showTemplatePreview = false">
+      <div>
+        <div class="border-b border-gray-200 px-6 py-4">
+          <h2 class="text-lg font-semibold text-gray-900">{{ __('Quotation Templates') }}</h2>
+          <p class="mt-1 text-sm text-gray-500">{{ __('Preview available templates before creating a quotation') }}</p>
+        </div>
+
+        <div class="max-h-[70vh] overflow-y-auto px-6 py-4">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Style 1 - Classic -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 h-8 rounded bg-gray-100"></div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mb-1 h-2 w-full rounded bg-gray-100"></div>
+                  <div class="mb-1 h-2 w-3/4 rounded bg-gray-100"></div>
+                  <div class="mt-3 border-t pt-2">
+                    <div class="mb-1 h-2 w-full rounded bg-indigo-100"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-indigo-200"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 1 - Classic') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Traditional professional layout') }}</p>
+            </div>
+
+            <!-- Style 2 - Modern -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 flex h-10 items-center justify-between rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-2">
+                    <div class="h-4 w-12 rounded bg-white/30"></div>
+                    <div class="h-3 w-10 rounded bg-white/20"></div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="mb-1 h-2 w-full rounded bg-indigo-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-indigo-400"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 2 - Modern') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Clean gradient header design') }}</p>
+            </div>
+
+            <!-- Style 3 - Colorful Header -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 h-12 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500"></div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3 border-t pt-2">
+                    <div class="mb-1 h-2 w-full rounded bg-blue-100"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-blue-300"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 3 - Colorful Header') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Bold colorful top banner') }}</p>
+            </div>
+
+            <!-- Style 4 - Bordered -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 rounded border-2 border-gray-300 p-2">
+                    <div class="mb-1 h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-2 w-16 rounded bg-gray-100"></div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3 rounded border border-gray-200 p-1">
+                    <div class="mb-1 h-2 w-full rounded bg-gray-100"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded border border-gray-300 bg-gray-50"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 4 - Bordered') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Clean bordered sections') }}</p>
+            </div>
+
+            <!-- Style 5 - Info Banner -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 flex gap-1">
+                    <div class="h-8 flex-1 rounded bg-indigo-100"></div>
+                    <div class="h-8 flex-1 rounded bg-green-100"></div>
+                    <div class="h-8 flex-1 rounded bg-blue-100"></div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="mb-1 h-2 w-full rounded bg-gray-100"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-indigo-200"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 5 - Info Banner') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Colorful info cards at top') }}</p>
+            </div>
+
+            <!-- Style 6 - Minimal -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-3 text-center">
+                    <div class="mx-auto mb-1 h-3 w-24 rounded bg-gray-200"></div>
+                    <div class="mx-auto h-2 w-16 rounded bg-gray-100"></div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-2 w-16 rounded bg-gray-100"></div>
+                    <div class="h-2 w-14 rounded bg-gray-100"></div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="mb-1 h-2 w-full rounded bg-gray-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-2 w-14 rounded bg-gray-200"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 6 - Minimal') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Simple and clean design') }}</p>
+            </div>
+
+            <!-- Style 7 - Split Header -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 flex gap-1">
+                    <div class="h-10 flex-1 rounded-l bg-indigo-600"></div>
+                    <div class="flex h-10 flex-1 items-center justify-center rounded-r bg-gray-100">
+                      <div class="h-3 w-12 rounded bg-gray-300"></div>
+                    </div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="mb-1 h-2 w-full rounded bg-indigo-50"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-white"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-indigo-300"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 7 - Split Header') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Two-tone header layout') }}</p>
+            </div>
+
+            <!-- Style 8 - Elegant -->
+            <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
+              <div class="mb-3 aspect-[3/4] overflow-hidden rounded bg-white shadow-sm">
+                <div class="h-full w-full p-2">
+                  <div class="mb-2 border-b-2 border-gray-800 pb-2">
+                    <div class="mb-1 h-4 w-20 rounded bg-gray-800"></div>
+                    <div class="h-2 w-32 rounded bg-gray-300"></div>
+                  </div>
+                  <div class="mb-2 flex justify-between">
+                    <div class="h-3 w-20 rounded bg-gray-200"></div>
+                    <div class="h-3 w-16 rounded bg-gray-200"></div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="mb-1 h-2 w-full rounded bg-gray-800"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-100"></div>
+                    <div class="mb-1 h-2 w-full rounded bg-gray-100"></div>
+                  </div>
+                  <div class="mt-2 flex justify-end">
+                    <div class="h-3 w-16 rounded bg-gray-800"></div>
+                  </div>
+                </div>
+              </div>
+              <h3 class="text-center text-sm font-medium text-gray-900">{{ __('Style 8 - Elegant') }}</h3>
+              <p class="text-center text-xs text-gray-500">{{ __('Sophisticated dark accents') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 bg-gray-50 px-6 py-4">
+          <TheButton variant="secondary" @click="showTemplatePreview = false">
+            {{ __('Close') }}
+          </TheButton>
+          <TheButton @click="showTemplatePreview = false; openQuotationModal()">
+            {{ __('Create Quotation') }}
+          </TheButton>
+        </div>
+      </div>
+    </FormModal>
   </div>
 </template>
 
@@ -226,7 +460,7 @@ import { useRouter } from 'vue-router'
 import {
   CheckCircleIcon, CurrencyDollarIcon, DocumentArrowDownIcon, DocumentTextIcon,
   EyeIcon, MagnifyingGlassIcon, PaperAirplaneIcon, PencilIcon, PencilSquareIcon,
-  PlusIcon, TrashIcon
+  PlusIcon, SwatchIcon, TrashIcon
 } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
@@ -240,6 +474,7 @@ import { useIndex } from '@/composables/useIndex'
 const router = useRouter()
 const processing = ref(true)
 const statistics = ref(null)
+const showTemplatePreview = ref(false)
 
 const index = useIndex('quotations', {
   search: '',
