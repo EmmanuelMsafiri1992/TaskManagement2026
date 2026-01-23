@@ -12,9 +12,19 @@ interface IndexConfig {
   [key: string]: any
 }
 
+interface ResponseMeta {
+  current_page?: number
+  last_page?: number
+  per_page?: number
+  total?: number
+  [key: string]: any
+}
+
 export const useIndexStore = (name: string) => {
   return defineStore(`index-${name}`, () => {
-    const data = ref<any[]>([])
+    const data = ref<any>([])
+    const meta = ref<ResponseMeta>({})
+    const responseFilters = ref<any>({})
     const filters = reactive<IndexFilters>({})
     const params = reactive<IndexFilters>({})
     const sortBy = ref<string>('')
@@ -28,6 +38,17 @@ export const useIndexStore = (name: string) => {
     // Computed for currently applied filters (used in templates)
     const appliedFilters = computed(() => {
       return Object.entries(filters).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+    })
+
+    // Computed to extract items array from data (handles both array and object responses)
+    const items = computed(() => {
+      if (Array.isArray(data.value)) {
+        return data.value
+      }
+      if (data.value && Array.isArray(data.value.data)) {
+        return data.value.data
+      }
+      return []
     })
 
     function setFilter(key: string, value: any) {
@@ -120,10 +141,37 @@ export const useIndexStore = (name: string) => {
           params: requestParams,
         })
 
-        // Handle both paginated responses (with data property) and plain arrays
-        if (response.data && Array.isArray(response.data.data)) {
-          data.value = response.data.data
+        // Handle different response formats:
+        // 1. Paginated: { data: [...], current_page, last_page, ... }
+        // 2. Custom: { data: [...], meta: {...}, filters: {...} }
+        // 3. Plain array: [...]
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+          // Response is an object
+          if (Array.isArray(response.data.data)) {
+            // Has a data property that is an array
+            data.value = response.data
+            // Store meta if present
+            if (response.data.meta) {
+              meta.value = response.data.meta
+            } else {
+              // For Laravel paginate responses, extract pagination info
+              meta.value = {
+                current_page: response.data.current_page,
+                last_page: response.data.last_page,
+                per_page: response.data.per_page,
+                total: response.data.total,
+              }
+            }
+            // Store filters if present
+            if (response.data.filters) {
+              responseFilters.value = response.data.filters
+            }
+          } else {
+            // Object without data array property
+            data.value = response.data
+          }
         } else if (Array.isArray(response.data)) {
+          // Plain array response
           data.value = response.data
         } else {
           data.value = response.data
@@ -137,6 +185,9 @@ export const useIndexStore = (name: string) => {
 
     return {
       data,
+      items,
+      meta,
+      responseFilters,
       filters,
       params,
       sortBy,

@@ -37,13 +37,13 @@
 
   <div v-else :data-cy="name ? 'index-' + name : 'index'">
     <IndexNoData
-      v-if="!index.data?.length"
+      v-if="!index.items?.length"
       :no-create="noCreate || cannot(`${name}:create`)"
       :btn-text="btnText"
       :btn-to="btnTo"
     />
 
-    <slot v-else :index="index" :items="index.data" />
+    <slot v-else :index="index" :items="index.items" />
   </div>
 </template>
 
