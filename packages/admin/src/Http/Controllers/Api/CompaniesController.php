@@ -68,8 +68,7 @@ class CompaniesController extends Controller
      */
     public function options()
     {
-        $companies = Company::active()
-            ->select(['id', 'name', 'trading_name', 'email', 'phone', 'address', 'city', 'country', 'logo'])
+        $companies = Company::select(['id', 'name', 'trading_name', 'email', 'phone', 'address', 'city', 'country', 'logo', 'status'])
             ->orderBy('name')
             ->get();
 
