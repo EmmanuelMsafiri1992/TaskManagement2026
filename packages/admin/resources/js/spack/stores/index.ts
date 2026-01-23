@@ -120,7 +120,14 @@ export const useIndexStore = (name: string) => {
           params: requestParams,
         })
 
-        data.value = response.data
+        // Handle both paginated responses (with data property) and plain arrays
+        if (response.data && Array.isArray(response.data.data)) {
+          data.value = response.data.data
+        } else if (Array.isArray(response.data)) {
+          data.value = response.data
+        } else {
+          data.value = response.data
+        }
       } catch (error: any) {
         console.error('IndexStore fetch error:', error)
       } finally {
