@@ -41,6 +41,7 @@ import ActivityReportsIndex from 'View/activity-reports/Index.vue'
 import ActivityReportsSettings from 'View/activity-reports/Settings.vue'
 import LeadsIndex from 'View/leads/Index.vue'
 import AdvanceRequestsIndex from 'View/advance-requests/Index.vue'
+import InventoryIndex from 'View/inventory/Index.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Home },
@@ -89,6 +90,7 @@ export const routes: RouteRecordRaw[] = [
   { path: '/activity-reports/settings', name: 'ActivityReportsSettings', component: ActivityReportsSettings },
   { path: '/leads', name: 'Leads', component: LeadsIndex },
   { path: '/advance-requests', name: 'AdvanceRequests', component: AdvanceRequestsIndex },
+  { path: '/inventory', name: 'Inventory', component: InventoryIndex },
 
   { path: '/403', name: 'Forbidden', component: Forbidden },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },

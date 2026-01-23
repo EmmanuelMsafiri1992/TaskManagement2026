@@ -77,6 +77,7 @@ class RolesPermissionsSeeder extends Seeder
             'income:view',
             'service_provider:view',
             'audit:view',
+            'inventory:view',
         ];
 
         foreach ($permissions as $permissionName) {

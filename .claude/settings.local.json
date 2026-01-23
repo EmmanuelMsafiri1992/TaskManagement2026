@@ -48,7 +48,8 @@
       "Bash(composer show:*)",
       "Bash(findstr:*)",
       "Bash(mysql:*)",
-      "Bash(php check_roles.php:*)"
+      "Bash(php check_roles.php:*)",
+      "Bash(php:*)"
     ]
   }
 }

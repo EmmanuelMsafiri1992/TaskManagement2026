@@ -8,6 +8,7 @@ use Admin\Http\Controllers\Api\FavoritesController;
 use Admin\Http\Controllers\Api\FileUpload;
 use Admin\Http\Controllers\Api\FiltersController;
 use Admin\Http\Controllers\Api\InvitationsController;
+use Admin\Http\Controllers\Api\InventoryController;
 use Admin\Http\Controllers\Api\LabelsController;
 use Admin\Http\Controllers\Api\LogoUpload;
 use Admin\Http\Controllers\Api\Metrics;
@@ -208,6 +209,12 @@ Route::delete('checklist-item/{item}', [ChecklistItemsController::class, 'destro
 Route::patch('checklist-item/{item}/complete', ChecklistItemComplete::class);
 
 Route::resource('labels', LabelsController::class);
+
+// Inventory routes
+Route::resource('inventory', InventoryController::class);
+Route::get('inventory-statistics', [InventoryController::class, 'statistics']);
+Route::get('inventory-users', [InventoryController::class, 'users']);
+
 Route::resource('users', UsersController::class);
 Route::get('users-archived', [UsersController::class, 'archived']);
 Route::post('users/{id}/archive', [UsersController::class, 'archive']);
