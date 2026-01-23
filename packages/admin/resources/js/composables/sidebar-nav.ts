@@ -1,4 +1,4 @@
-import { AcademicCapIcon, BanknotesIcon, BriefcaseIcon, BuildingOffice2Icon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, FilmIcon, HomeIcon, InboxIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, BanknotesIcon, BriefcaseIcon, BuildingOffice2Icon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, Cog6ToothIcon, FilmIcon, HomeIcon, InboxIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 // Feature key mapping for sidebar items
@@ -28,12 +28,18 @@ const featureKeyMap: Record<string, string> = {
   '/adsense-reports': 'adsense-reports',
   '/video-enhancer': 'video-enhancer',
   '/audit-trail': 'audit-trail',
+  '/settings/general': 'settings',
+  '/settings/sidebar-features': 'settings',
+  '/settings/user-assignments': 'settings',
+  '/settings/email': 'settings',
+  '/roles': 'settings',
 }
 
 // Parent feature keys for dropdown menus
 const parentFeatureKeyMap: Record<string, string> = {
   'Financial': 'financial',
   'Service Providers': 'service-providers',
+  'Settings': 'settings',
 }
 
 export const useSidebarNav: SidebarNav[] = [
@@ -133,6 +139,17 @@ export const useSidebarNav: SidebarNav[] = [
     uri: '/audit-trail',
     icon: ClipboardDocumentListIcon,
     permission: 'audit:view',
+  },
+  {
+    label: 'Settings',
+    icon: Cog6ToothIcon,
+    children: [
+      { label: 'General', uri: '/settings/general', permission: 'setting:general' },
+      { label: 'Roles & Permissions', uri: '/roles', permission: 'role:view' },
+      { label: 'Sidebar Features', uri: '/settings/sidebar-features', permission: 'setting:general' },
+      { label: 'User Assignments', uri: '/settings/user-assignments', permission: 'setting:general' },
+      { label: 'Email', uri: '/settings/email', permission: 'setting:email' },
+    ],
   },
 ]
 
