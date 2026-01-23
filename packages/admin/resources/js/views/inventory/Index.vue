@@ -323,6 +323,57 @@
             <p v-if="selectedItem.notes" class="text-sm text-gray-500 italic">{{ selectedItem.notes }}</p>
           </div>
 
+          <!-- Images Section -->
+          <div>
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">{{ __('Images & Receipts') }}</h4>
+
+            <!-- Upload Button -->
+            <div class="mb-3">
+              <label class="flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-colors">
+                <PhotoIcon class="h-5 w-5 text-gray-400" />
+                <span class="text-sm text-gray-600">{{ __('Upload Images') }}</span>
+                <input
+                  ref="imageInput"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleImageUpload"
+                />
+              </label>
+              <p class="text-xs text-gray-500 mt-1 text-center">{{ __('Max 5MB per image. JPEG, PNG, GIF, WebP') }}</p>
+            </div>
+
+            <!-- Uploading indicator -->
+            <div v-if="uploadingImages" class="flex items-center justify-center py-4">
+              <Loader size="24" color="#5850ec" />
+              <span class="ml-2 text-sm text-gray-500">{{ __('Uploading...') }}</span>
+            </div>
+
+            <!-- Image Gallery -->
+            <div v-if="selectedItem.image_paths && selectedItem.image_paths.length > 0" class="grid grid-cols-2 gap-2">
+              <div
+                v-for="(imagePath, idx) in selectedItem.image_paths"
+                :key="idx"
+                class="relative group aspect-square rounded-lg overflow-hidden bg-gray-100"
+              >
+                <img
+                  :src="getImageUrl(imagePath)"
+                  :alt="`${selectedItem.item_name} image ${idx + 1}`"
+                  class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  @click="openImagePreview(imagePath)"
+                />
+                <button
+                  class="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  @click.stop="deleteImage(imagePath)"
+                >
+                  <XMarkIcon class="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <p v-else class="text-sm text-gray-400 text-center py-4">{{ __('No images uploaded') }}</p>
+          </div>
+
           <div class="pt-4 border-t border-gray-200">
             <button
               class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -353,6 +404,35 @@
       ></div>
     </transition>
 
+    <!-- Image Preview Modal -->
+    <transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="imagePreview.show"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+        @click="imagePreview.show = false"
+      >
+        <button
+          class="absolute top-4 right-4 p-2 text-white hover:text-gray-300"
+          @click="imagePreview.show = false"
+        >
+          <XMarkIcon class="h-8 w-8" />
+        </button>
+        <img
+          :src="getImageUrl(imagePreview.path)"
+          alt="Preview"
+          class="max-w-[90vw] max-h-[90vh] object-contain"
+          @click.stop
+        />
+      </div>
+    </transition>
+
     <!-- Form Modal -->
     <FormModal v-if="form.show" size="xl" @close="form.show = false">
       <Form :model-value="form.model" @close="form.show = false" @saved="onSaved" />
@@ -362,7 +442,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { CheckCircleIcon, CubeIcon, CurrencyDollarIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UserIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, CubeIcon, CurrencyDollarIcon, MagnifyingGlassIcon, PencilIcon, PhotoIcon, TrashIcon, UserIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
@@ -398,6 +478,14 @@ const form = reactive({
   show: false,
   model: null,
 })
+
+const imagePreview = reactive({
+  show: false,
+  path: '',
+})
+
+const uploadingImages = ref(false)
+const imageInput = ref(null)
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -449,6 +537,63 @@ const deleteItem = async (item) => {
   } catch (error) {
     console.error('Failed to delete item:', error)
     alert('Failed to delete item')
+  }
+}
+
+const getImageUrl = (path) => {
+  if (!path) return ''
+  return `/storage/${path}`
+}
+
+const openImagePreview = (path) => {
+  imagePreview.path = path
+  imagePreview.show = true
+}
+
+const handleImageUpload = async (event) => {
+  const files = event.target.files
+  if (!files.length || !selectedItem.value) return
+
+  uploadingImages.value = true
+  const formData = new FormData()
+
+  for (let i = 0; i < files.length; i++) {
+    formData.append('images[]', files[i])
+  }
+
+  try {
+    const response = await axios.post(`inventory/${selectedItem.value.id}/upload-images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    selectedItem.value = response.data.data
+    // Also update in the list
+    index.get()
+  } catch (error) {
+    console.error('Failed to upload images:', error)
+    alert(error.response?.data?.message || 'Failed to upload images')
+  } finally {
+    uploadingImages.value = false
+    if (imageInput.value) {
+      imageInput.value.value = ''
+    }
+  }
+}
+
+const deleteImage = async (imagePath) => {
+  if (!confirm('Delete this image?')) return
+  if (!selectedItem.value) return
+
+  try {
+    const response = await axios.post(`inventory/${selectedItem.value.id}/delete-image`, {
+      image_path: imagePath,
+    })
+    selectedItem.value = response.data.data
+    index.get()
+  } catch (error) {
+    console.error('Failed to delete image:', error)
+    alert('Failed to delete image')
   }
 }
 

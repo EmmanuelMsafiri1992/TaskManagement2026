@@ -3,32 +3,90 @@
     <FieldText name="name" label="Name" class="col-span-12" />
 
     <div class="col-span-12">
-      <div class="mb-4 flex items-center text-sm">
+      <div class="mb-4 flex items-center justify-between">
         <p class="block text-sm font-medium text-gray-700">
           {{ __('Permissions') }}
         </p>
-        <span
-          class="block cursor-pointer pl-4 text-xs text-gray-700 hover:text-gray-900"
-          @click="select"
-        >
-          {{ __('Select All') }}
-        </span>
-        <span class="block px-1 text-xs text-gray-700">/</span>
-        <span
-          class="block cursor-pointer text-xs text-gray-700 hover:text-gray-900"
-          @click="deselect"
-        >
-          {{ __('Deselect All') }}
-        </span>
+        <div class="flex items-center gap-2">
+          <span
+            class="cursor-pointer text-xs text-indigo-600 hover:text-indigo-800"
+            @click="select"
+          >
+            {{ __('Select All') }}
+          </span>
+          <span class="text-xs text-gray-400">|</span>
+          <span
+            class="cursor-pointer text-xs text-indigo-600 hover:text-indigo-800"
+            @click="deselect"
+          >
+            {{ __('Deselect All') }}
+          </span>
+        </div>
       </div>
-      <FieldCheckbox name="permissions" class="col-span-12" />
+
+      <!-- Grouped Permissions -->
+      <div v-if="groupedPermissions && Object.keys(groupedPermissions).length > 0" class="space-y-4">
+        <div
+          v-for="(permissions, group) in groupedPermissions"
+          :key="group"
+          class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+        >
+          <div class="mb-3 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-gray-900 capitalize">{{ group }}</h4>
+            <span class="text-xs text-gray-500">
+              {{ getSelectedCount(permissions) }}/{{ permissions.length }}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            <label
+              v-for="perm in permissions"
+              :key="perm.value"
+              class="flex cursor-pointer items-center rounded-md bg-white p-2 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+              :class="{ 'border-indigo-500 bg-indigo-50': isSelected(perm.value) }"
+            >
+              <input
+                type="checkbox"
+                :value="perm.value"
+                :checked="isSelected(perm.value)"
+                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                @change="togglePermission(perm.value)"
+              />
+              <span class="ml-2 text-sm text-gray-700">{{ formatPermissionLabel(perm.label) }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback to simple checkbox list -->
+      <div v-else-if="form.options.permissions && form.options.permissions.length > 0" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <label
+          v-for="perm in form.options.permissions"
+          :key="perm.value"
+          class="flex cursor-pointer items-center rounded-md bg-gray-50 p-2 border border-gray-200 hover:border-indigo-300"
+          :class="{ 'border-indigo-500 bg-indigo-50': isSelected(perm.value) }"
+        >
+          <input
+            type="checkbox"
+            :value="perm.value"
+            :checked="isSelected(perm.value)"
+            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            @change="togglePermission(perm.value)"
+          />
+          <span class="ml-2 text-sm text-gray-700">{{ perm.label }}</span>
+        </label>
+      </div>
+
+      <p v-else class="text-sm text-gray-500 text-center py-4">
+        {{ __('No permissions available') }}
+      </p>
     </div>
   </FormModal>
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue'
   import { useFormStore, useIndexStore, useModalsStore } from 'spack'
-  import { FormModal, useFieldCheckbox, useFieldText } from 'thetheme'
+  import { FormModal, useFieldText } from 'thetheme'
   import type { RoleForm } from 'types'
 
   defineProps<{
@@ -39,15 +97,77 @@
   const form = useFormStore<RoleForm>(name)()
   const index = useIndexStore(name)()
   const FieldText = useFieldText<any>()
-  const FieldCheckbox = useFieldCheckbox<any>()
+
+  // Group permissions by their prefix (e.g., 'project', 'task', 'user')
+  const groupedPermissions = computed(() => {
+    const permissions = form.options.permissions || []
+    if (!permissions.length) return {}
+
+    const groups: Record<string, any[]> = {}
+
+    permissions.forEach((perm: any) => {
+      // Extract group from permission name (e.g., 'project:create' -> 'project')
+      const parts = perm.label.split(':')
+      const group = parts[0] || 'other'
+
+      if (!groups[group]) {
+        groups[group] = []
+      }
+      groups[group].push(perm)
+    })
+
+    // Sort groups alphabetically
+    const sortedGroups: Record<string, any[]> = {}
+    Object.keys(groups).sort().forEach(key => {
+      sortedGroups[key] = groups[key]
+    })
+
+    return sortedGroups
+  })
+
+  function isSelected(value: number) {
+    return form.data.permissions?.includes(value)
+  }
+
+  function togglePermission(value: number) {
+    if (!form.data.permissions) {
+      form.data.permissions = []
+    }
+
+    const idx = form.data.permissions.indexOf(value)
+    if (idx > -1) {
+      form.data.permissions.splice(idx, 1)
+    } else {
+      form.data.permissions.push(value)
+    }
+  }
+
+  function getSelectedCount(permissions: any[]) {
+    return permissions.filter(p => isSelected(p.value)).length
+  }
+
+  function formatPermissionLabel(label: string) {
+    // Convert 'project:create' to 'Create' or 'user:view' to 'View'
+    const parts = label.split(':')
+    if (parts.length > 1) {
+      return parts[1].charAt(0).toUpperCase() + parts[1].slice(1).replace('_', ' ')
+    }
+    return label
+  }
 
   form.onSuccess((response) => {
-    index.updateOrCreate(response.model)
+    // The model is in response.data.model from FormRequest
+    const model = response.data?.model || response.data
+    if (model) {
+      index.updateOrCreate(model)
+    }
+    // Refresh the list to get updated counts
+    index.fetch()
     useModalsStore().pop()
   })
 
   function select() {
-    form.data.permissions = form.options.permissions.map((x: any) => x.value)
+    form.data.permissions = form.options.permissions?.map((x: any) => x.value) || []
   }
 
   function deselect() {

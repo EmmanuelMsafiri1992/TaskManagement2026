@@ -183,6 +183,46 @@ export const useIndexStore = (name: string) => {
       }
     }
 
+    // Update or create an item in the data array
+    function updateOrCreate(item: any) {
+      if (!item || !item.id) return
+
+      const dataArray = Array.isArray(data.value) ? data.value : (data.value?.data || [])
+      const index = dataArray.findIndex((i: any) => i.id === item.id)
+
+      if (index !== -1) {
+        // Update existing
+        dataArray[index] = item
+      } else {
+        // Create new - add to beginning
+        dataArray.unshift(item)
+      }
+
+      // Trigger reactivity
+      if (Array.isArray(data.value)) {
+        data.value = [...dataArray]
+      } else if (data.value?.data) {
+        data.value = { ...data.value, data: [...dataArray] }
+      }
+    }
+
+    // Delete an item from the data array
+    function deleteIt(id: number | string) {
+      const dataArray = Array.isArray(data.value) ? data.value : (data.value?.data || [])
+      const filtered = dataArray.filter((i: any) => i.id !== id)
+
+      if (Array.isArray(data.value)) {
+        data.value = filtered
+      } else if (data.value?.data) {
+        data.value = { ...data.value, data: filtered }
+      }
+    }
+
+    // Alias for fetch (used in templates)
+    function get() {
+      return fetch()
+    }
+
     return {
       data,
       items,
@@ -210,6 +250,9 @@ export const useIndexStore = (name: string) => {
       setConfig,
       onSearch,
       fetch,
+      get,
+      updateOrCreate,
+      deleteIt,
     }
   })
 }

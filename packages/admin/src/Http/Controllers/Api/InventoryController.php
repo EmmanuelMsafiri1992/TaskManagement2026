@@ -7,6 +7,7 @@ use App\Models\Inventory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class InventoryController extends Controller
 {
@@ -188,5 +189,69 @@ class InventoryController extends Controller
             ->get();
 
         return response()->json(['data' => $users]);
+    }
+
+    /**
+     * Upload images for an inventory item.
+     */
+    public function uploadImages(Request $request, $id)
+    {
+        $item = Inventory::findOrFail($id);
+
+        $request->validate([
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $existingPaths = $item->image_paths ?? [];
+        $newPaths = [];
+
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('inventory-images', 'public');
+            $newPaths[] = $path;
+        }
+
+        $item->update([
+            'image_paths' => array_merge($existingPaths, $newPaths),
+        ]);
+
+        return response()->json([
+            'message' => 'Images uploaded successfully',
+            'data' => $item->fresh(),
+        ]);
+    }
+
+    /**
+     * Delete an image from an inventory item.
+     */
+    public function deleteImage(Request $request, $id)
+    {
+        $item = Inventory::findOrFail($id);
+
+        $request->validate([
+            'image_path' => 'required|string',
+        ]);
+
+        $imagePath = $request->image_path;
+        $existingPaths = $item->image_paths ?? [];
+
+        if (in_array($imagePath, $existingPaths)) {
+            // Delete the file from storage
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            // Remove from array
+            $updatedPaths = array_values(array_filter($existingPaths, fn($path) => $path !== $imagePath));
+
+            $item->update([
+                'image_paths' => $updatedPaths,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Image deleted successfully',
+            'data' => $item->fresh(),
+        ]);
     }
 }

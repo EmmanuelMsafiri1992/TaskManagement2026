@@ -214,6 +214,8 @@ Route::resource('labels', LabelsController::class);
 Route::resource('inventory', InventoryController::class);
 Route::get('inventory-statistics', [InventoryController::class, 'statistics']);
 Route::get('inventory-users', [InventoryController::class, 'users']);
+Route::post('inventory/{id}/upload-images', [InventoryController::class, 'uploadImages']);
+Route::post('inventory/{id}/delete-image', [InventoryController::class, 'deleteImage']);
 
 Route::resource('users', UsersController::class);
 Route::get('users-archived', [UsersController::class, 'archived']);

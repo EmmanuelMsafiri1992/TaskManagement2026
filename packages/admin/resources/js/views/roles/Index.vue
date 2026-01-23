@@ -199,10 +199,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserPlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { useModalsStore } from 'spack'
+import { useIndexStore, useModalsStore } from 'spack'
 import { axios } from 'spack/axios'
 import { TheButton } from 'thetheme'
 import SettingsLayout from 'View/settings/SettingsLayout.vue'
@@ -212,8 +212,16 @@ import Form from './Form.vue'
 import { can } from '@/helpers'
 
 const loading = ref(true)
-const roles = ref<any[]>([])
 const allUsers = ref<any[]>([])
+
+// Initialize the index store for roles
+const index = useIndexStore('role')()
+index.uri = 'roles'
+
+// Computed to get roles from the store
+const roles = computed(() => {
+  return index.items || []
+})
 
 const userModal = reactive({
   show: false,
@@ -239,8 +247,7 @@ function openModal(id = null) {
 
 async function fetchRoles() {
   try {
-    const response = await axios.get('roles')
-    roles.value = response.data.data || response.data
+    await index.fetch()
   } catch (error) {
     console.error('Failed to fetch roles:', error)
   }
