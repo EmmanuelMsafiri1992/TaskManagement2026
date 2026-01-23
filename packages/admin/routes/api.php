@@ -214,6 +214,9 @@ Route::post('users/{id}/archive', [UsersController::class, 'archive']);
 Route::post('users/{id}/unarchive', [UsersController::class, 'unarchive']);
 Route::resource('invitations', InvitationsController::class)->except(['show', 'edit', 'update']);
 Route::resource('roles', RolesController::class);
+Route::get('roles-users', [RolesController::class, 'users']);
+Route::post('roles/{role}/assign-users', [RolesController::class, 'assignUsers']);
+Route::post('roles/{role}/remove-user', [RolesController::class, 'removeUser']);
 
 Route::resource('settings/general', SettingsGeneralController::class)->only(['create', 'store']);
 Route::resource('settings/email', SettingsEmailController::class)->only(['create', 'store']);

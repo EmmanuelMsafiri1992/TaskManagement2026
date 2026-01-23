@@ -5,6 +5,7 @@ namespace Admin\Http\Controllers\Api;
 use App\Http\Requests\RoleRequest;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use AhsanDev\Support\Authorization\Http\Controllers\AuthorizeController;
 use AhsanDev\Support\Field;
 use Illuminate\Http\Request;
@@ -21,7 +22,61 @@ class RolesController extends AuthorizeController
      */
     public function index()
     {
-        return Role::withCount('permissions')->simplePaginate();
+        $roles = Role::withCount(['permissions', 'users'])
+            ->with(['users:id,name,email,avatar'])
+            ->get();
+
+        return response()->json([
+            'data' => $roles,
+        ]);
+    }
+
+    /**
+     * Get all users for role assignment
+     */
+    public function users()
+    {
+        $users = User::select(['id', 'name', 'email', 'avatar'])
+            ->with('roles:id,name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json(['data' => $users]);
+    }
+
+    /**
+     * Assign users to a role
+     */
+    public function assignUsers(Request $request, Role $role)
+    {
+        $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'exists:users,id',
+        ]);
+
+        // Sync users to the role (this will add new and remove unchecked)
+        $role->users()->syncWithoutDetaching($request->user_ids);
+
+        return response()->json([
+            'message' => 'Users assigned successfully',
+            'role' => $role->load('users:id,name,email,avatar'),
+        ]);
+    }
+
+    /**
+     * Remove a user from a role
+     */
+    public function removeUser(Request $request, Role $role)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $role->users()->detach($request->user_id);
+
+        return response()->json([
+            'message' => 'User removed from role successfully',
+        ]);
     }
 
     /**

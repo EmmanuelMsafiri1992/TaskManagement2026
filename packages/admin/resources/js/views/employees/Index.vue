@@ -17,7 +17,7 @@
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt class="truncate text-sm font-medium text-gray-500">
-                    {{ __('Total Employees') }}
+                    {{ __('Total Team Members') }}
                   </dt>
                   <dd class="text-lg font-semibold text-gray-900">
                     {{ statistics.total_employees }}
@@ -72,15 +72,15 @@
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <ExclamationTriangleIcon class="h-6 w-6 text-red-400" />
+                <ExclamationTriangleIcon class="h-6 w-6 text-orange-400" />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
                   <dt class="truncate text-sm font-medium text-gray-500">
-                    {{ __('Contracts Expiring') }}
+                    {{ __('Without HR Details') }}
                   </dt>
                   <dd class="text-lg font-semibold text-gray-900">
-                    {{ statistics.contracts_expiring_soon }}
+                    {{ statistics.without_records }}
                   </dd>
                 </dl>
               </div>
@@ -91,7 +91,7 @@
 
       <!-- Filters and Search -->
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-1 gap-2">
+        <div class="flex flex-1 flex-wrap gap-2">
           <div class="relative w-64 rounded-md shadow-sm">
             <div class="pointer-events-none absolute inset-y-0 flex items-center ltr:left-0 ltr:pl-3 rtl:right-0 rtl:pr-3">
               <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
@@ -99,11 +99,21 @@
             <input
               v-model="index.params.search"
               type="search"
-              :placeholder="__('Search employees...')"
+              :placeholder="__('Search team members...')"
               class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ltr:pl-10 rtl:pr-10 sm:text-sm"
               @input="handleSearch"
             />
           </div>
+
+          <select
+            v-model="index.params.has_employee_record"
+            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="index.get()"
+          >
+            <option value="">{{ __('All Members') }}</option>
+            <option value="yes">{{ __('With HR Details') }}</option>
+            <option value="no">{{ __('Without HR Details') }}</option>
+          </select>
 
           <select
             v-model="index.params.employment_status"
@@ -113,17 +123,6 @@
             <option value="">{{ __('All Statuses') }}</option>
             <option v-for="status in filters.employment_statuses" :key="status" :value="status">
               {{ __(status) }}
-            </option>
-          </select>
-
-          <select
-            v-model="index.params.employment_type"
-            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            @change="index.get()"
-          >
-            <option value="">{{ __('All Types') }}</option>
-            <option v-for="type in filters.employment_types" :key="type" :value="type">
-              {{ __(type) }}
             </option>
           </select>
 
@@ -139,18 +138,19 @@
           </select>
         </div>
 
-        <div class="ltr:ml-auto rtl:mr-auto">
+        <div class="flex gap-2 ltr:ml-auto rtl:mr-auto">
           <TheButton
-            v-if="can('employee:create')"
+            v-if="can('user:create')"
             size="sm"
-            @click="openEmployeeModal()"
+            variant="secondary"
+            @click="openInviteModal()"
           >
-            {{ __('Add Employee') }}
+            {{ __('Invite Member') }}
           </TheButton>
         </div>
       </div>
 
-      <!-- Employees Table -->
+      <!-- Team Members Table -->
       <section>
         <div class="flex flex-col">
           <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -168,26 +168,22 @@
                       <TableTh
                         name="employee"
                         :index="index"
+                        :label="__('Role')"
+                      />
+                      <TableTh
+                        name="employee"
+                        :index="index"
                         :label="__('Position')"
-                        sort="position"
                       />
                       <TableTh
                         name="employee"
                         :index="index"
                         :label="__('Department')"
-                        sort="department"
-                      />
-                      <TableTh
-                        name="employee"
-                        :index="index"
-                        :label="__('Type')"
-                        sort="employment_type"
                       />
                       <TableTh
                         name="employee"
                         :index="index"
                         :label="__('Status')"
-                        sort="employment_status"
                       />
                       <th class="bg-gray-50 px-6 py-3"></th>
                     </tr>
@@ -216,6 +212,18 @@
                         </div>
                       </td>
                       <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                        <div class="flex flex-wrap gap-1">
+                          <span
+                            v-for="role in employee.roles"
+                            :key="role"
+                            class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+                          >
+                            {{ role }}
+                          </span>
+                          <span v-if="!employee.roles?.length" class="text-gray-400">-</span>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {{ employee.position || '-' }}
                       </td>
                       <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
@@ -223,28 +231,22 @@
                       </td>
                       <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span
-                          class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
-                          :class="{
-                            'bg-green-100 text-green-800': employee.employment_type === 'Permanent',
-                            'bg-blue-100 text-blue-800': employee.employment_type === 'Contract',
-                            'bg-yellow-100 text-yellow-800': employee.employment_type === 'Probation',
-                            'bg-gray-100 text-gray-800': ['Casual', 'Internship'].includes(employee.employment_type)
-                          }"
-                        >
-                          {{ employee.employment_type }}
-                        </span>
-                      </td>
-                      <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        <span
+                          v-if="employee.has_employee_record"
                           class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
                           :class="{
                             'bg-green-100 text-green-800': employee.employment_status === 'Active',
                             'bg-yellow-100 text-yellow-800': employee.employment_status === 'On Leave',
                             'bg-red-100 text-red-800': ['Resigned', 'Terminated'].includes(employee.employment_status),
-                            'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended'].includes(employee.employment_status)
+                            'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended', 'Not Set'].includes(employee.employment_status)
                           }"
                         >
                           {{ employee.employment_status }}
+                        </span>
+                        <span
+                          v-else
+                          class="inline-flex rounded-full bg-orange-100 px-2 text-xs font-semibold leading-5 text-orange-800"
+                        >
+                          {{ __('No HR Details') }}
                         </span>
                       </td>
                       <td class="flex items-center justify-end whitespace-nowrap px-6 py-4 text-right text-sm font-medium leading-5">
@@ -254,14 +256,9 @@
                           @click.stop="selectEmployee(employee)"
                         />
                         <PencilIcon
-                          v-if="can('employee:update')"
+                          v-if="can('employee:update') || can('user:update')"
                           class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
                           @click.stop="openEmployeeModal(employee)"
-                        />
-                        <TrashIcon
-                          v-if="can('employee:delete')"
-                          class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
-                          @click.stop="index.deleteIt(employee.id)"
                         />
                       </td>
                     </tr>
@@ -278,6 +275,11 @@
       <!-- Employee Form Modal -->
       <FormModal v-if="form.show" size="2xl" @saved="index.get()" @close="form.show = false">
         <Form :model-value="form.model" @close="form.show = false" />
+      </FormModal>
+
+      <!-- Invite Modal -->
+      <FormModal v-if="inviteModal.show" @saved="index.get()" @close="inviteModal.show = false">
+        <InvitationForm @close="inviteModal.show = false" />
       </FormModal>
     </div>
 
@@ -297,7 +299,7 @@
       >
         <!-- Panel Header -->
         <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 class="text-lg font-semibold text-gray-900">{{ __('Employee Details') }}</h2>
+          <h2 class="text-lg font-semibold text-gray-900">{{ __('Team Member Details') }}</h2>
           <button
             class="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
             @click="selectedEmployee = null"
@@ -315,19 +317,30 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900">{{ selectedEmployee.user.name }}</h3>
             <p class="text-sm text-gray-500">{{ selectedEmployee.user.email }}</p>
+            <div class="flex flex-wrap justify-center gap-2 mt-3">
+              <span
+                v-for="role in selectedEmployee.roles"
+                :key="role"
+                class="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800"
+              >
+                {{ role }}
+              </span>
+            </div>
             <div class="flex justify-center gap-2 mt-3">
               <span
+                v-if="selectedEmployee.has_employee_record"
                 class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
                 :class="{
                   'bg-green-100 text-green-800': selectedEmployee.employment_status === 'Active',
                   'bg-yellow-100 text-yellow-800': selectedEmployee.employment_status === 'On Leave',
                   'bg-red-100 text-red-800': ['Resigned', 'Terminated'].includes(selectedEmployee.employment_status),
-                  'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended'].includes(selectedEmployee.employment_status)
+                  'bg-gray-100 text-gray-800': ['Retired', 'Deceased', 'Suspended', 'Not Set'].includes(selectedEmployee.employment_status)
                 }"
               >
                 {{ selectedEmployee.employment_status }}
               </span>
               <span
+                v-if="selectedEmployee.has_employee_record && selectedEmployee.employment_type !== 'Not Set'"
                 class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
                 :class="{
                   'bg-green-100 text-green-800': selectedEmployee.employment_type === 'Permanent',
@@ -341,42 +354,21 @@
             </div>
           </div>
 
-          <!-- Personal Information -->
-          <div>
-            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
-              <UserIcon class="h-4 w-4 mr-2 text-gray-400" />
-              {{ __('Personal Information') }}
-            </h4>
-            <dl class="space-y-2">
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Phone') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.phone_number || '-' }}</dd>
+          <!-- No HR Details Warning -->
+          <div v-if="!selectedEmployee.has_employee_record" class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div class="flex">
+              <ExclamationTriangleIcon class="h-5 w-5 text-orange-400" />
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-orange-800">{{ __('No HR Details') }}</h3>
+                <p class="mt-1 text-sm text-orange-700">
+                  {{ __('This team member does not have HR details set up yet. Click "Edit" to add employment information.') }}
+                </p>
               </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('National ID') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.national_id || '-' }}</dd>
-              </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Date of Birth') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.date_of_birth) }}</dd>
-              </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Gender') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.gender || '-' }}</dd>
-              </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Marital Status') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.marital_status || '-' }}</dd>
-              </div>
-              <div v-if="selectedEmployee.physical_address" class="py-2">
-                <dt class="text-sm text-gray-500 mb-1">{{ __('Address') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.physical_address }}</dd>
-              </div>
-            </dl>
+            </div>
           </div>
 
           <!-- Employment Information -->
-          <div>
+          <div v-if="selectedEmployee.has_employee_record">
             <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
               <BriefcaseIcon class="h-4 w-4 mr-2 text-gray-400" />
               {{ __('Employment Information') }}
@@ -404,15 +396,37 @@
                   {{ formatDate(selectedEmployee.contract_start_date) }} - {{ formatDate(selectedEmployee.contract_end_date) }}
                 </dd>
               </div>
-              <div v-if="selectedEmployee.probation_end_date" class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Probation End') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.probation_end_date) }}</dd>
+            </dl>
+          </div>
+
+          <!-- Personal Information -->
+          <div v-if="selectedEmployee.has_employee_record">
+            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
+              <UserIcon class="h-4 w-4 mr-2 text-gray-400" />
+              {{ __('Personal Information') }}
+            </h4>
+            <dl class="space-y-2">
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Phone') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.phone_number || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('National ID') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.national_id || '-' }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Date of Birth') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ formatDate(selectedEmployee.date_of_birth) }}</dd>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-50">
+                <dt class="text-sm text-gray-500">{{ __('Gender') }}</dt>
+                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.gender || '-' }}</dd>
               </div>
             </dl>
           </div>
 
           <!-- Financial Information -->
-          <div>
+          <div v-if="selectedEmployee.has_employee_record && selectedEmployee.current_salary">
             <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
               <BanknotesIcon class="h-4 w-4 mr-2 text-gray-400" />
               {{ __('Financial Information') }}
@@ -426,15 +440,11 @@
                 <dt class="text-sm text-gray-500">{{ __('Tax ID (TIN)') }}</dt>
                 <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.tax_identification_number || '-' }}</dd>
               </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Pension No.') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.pension_number || '-' }}</dd>
-              </div>
             </dl>
           </div>
 
           <!-- Leave Balances -->
-          <div>
+          <div v-if="selectedEmployee.has_employee_record">
             <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
               <CalendarDaysIcon class="h-4 w-4 mr-2 text-gray-400" />
               {{ __('Leave Balances') }}
@@ -453,55 +463,15 @@
             </div>
           </div>
 
-          <!-- Next of Kin -->
-          <div v-if="selectedEmployee.next_of_kin_name">
-            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3 flex items-center">
-              <UsersIcon class="h-4 w-4 mr-2 text-gray-400" />
-              {{ __('Next of Kin') }}
-            </h4>
-            <dl class="space-y-2">
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Name') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_name }}</dd>
-              </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Relationship') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_relationship || '-' }}</dd>
-              </div>
-              <div class="flex justify-between py-2 border-b border-gray-50">
-                <dt class="text-sm text-gray-500">{{ __('Phone') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_phone || '-' }}</dd>
-              </div>
-              <div v-if="selectedEmployee.next_of_kin_address" class="py-2">
-                <dt class="text-sm text-gray-500 mb-1">{{ __('Address') }}</dt>
-                <dd class="text-sm font-medium text-gray-900">{{ selectedEmployee.next_of_kin_address }}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <!-- Notes -->
-          <div v-if="selectedEmployee.notes">
-            <h4 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">{{ __('Notes') }}</h4>
-            <p class="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{{ selectedEmployee.notes }}</p>
-          </div>
-
           <!-- Actions -->
           <div class="pt-4 border-t border-gray-200 space-y-2">
             <button
-              v-if="can('employee:update')"
+              v-if="can('employee:update') || can('user:update')"
               class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               @click="openEmployeeModal(selectedEmployee)"
             >
               <PencilIcon class="h-4 w-4" />
-              {{ __('Edit Employee') }}
-            </button>
-            <button
-              v-if="canImpersonate(selectedEmployee)"
-              class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              @click="impersonateUser(selectedEmployee)"
-            >
-              <UserIcon class="h-4 w-4" />
-              {{ __('Login as User') }}
+              {{ selectedEmployee.has_employee_record ? __('Edit Details') : __('Add HR Details') }}
             </button>
           </div>
         </div>
@@ -529,7 +499,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
@@ -538,9 +508,9 @@ import IndexPagination from '@/thetheme/components/IndexPagination.vue'
 import FormModal from '@/thetheme/components/FormModal.vue'
 import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
+import InvitationForm from '../users/InvitationForm.vue'
 import { useIndex } from '@/composables/useIndex'
 import { can } from '@/helpers'
-import { appData } from '@/app-data'
 
 const processing = ref(true)
 const statistics = ref(null)
@@ -556,14 +526,19 @@ const index = useIndex('employees', {
   employment_status: '',
   employment_type: '',
   department: '',
-  sort_by: 'created_at',
-  sort_order: 'desc',
+  has_employee_record: '',
+  sort_by: 'name',
+  sort_order: 'asc',
   per_page: 15
 })
 
 const form = reactive({
   show: false,
   model: null
+})
+
+const inviteModal = reactive({
+  show: false
 })
 
 const formatDate = (dateString) => {
@@ -597,28 +572,8 @@ const openEmployeeModal = (employee = null) => {
   form.show = true
 }
 
-const canImpersonate = (employee) => {
-  // Only super admins can impersonate
-  if (!appData.is_super_admin) return false
-  // Cannot impersonate yourself
-  if (employee.user_id === appData.user?.id) return false
-  return true
-}
-
-const impersonateUser = async (employee) => {
-  if (!confirm(`Are you sure you want to login as ${employee.user?.name || 'this user'}?`)) {
-    return
-  }
-
-  try {
-    const response = await axios.post(`impersonate/${employee.user_id}`)
-    alert(response.data.message)
-    // Full page redirect to get fresh session and CSRF token
-    window.location.href = '/'
-  } catch (error) {
-    console.error('Impersonate error:', error)
-    alert(error.response?.data?.message || 'Failed to impersonate user')
-  }
+const openInviteModal = () => {
+  inviteModal.show = true
 }
 
 const loadStatistics = async () => {
@@ -631,25 +586,18 @@ const loadStatistics = async () => {
 }
 
 onMounted(async () => {
-  console.log('[Employees] Component mounted')
   try {
-    console.log('[Employees] Fetching employees...')
     await index.get()
-    console.log('[Employees] Employees fetched:', index.data)
 
-    console.log('[Employees] Fetching statistics...')
     await loadStatistics()
-    console.log('[Employees] Statistics fetched:', statistics.value)
 
     if (index.data && index.data.filters) {
       filters.value = index.data.filters
-      console.log('[Employees] Filters set:', filters.value)
     }
 
     processing.value = false
-    console.log('[Employees] Processing complete')
   } catch (error) {
-    console.error('[Employees] ERROR in onMounted:', error)
+    console.error('Error in onMounted:', error)
     processing.value = false
   }
 })

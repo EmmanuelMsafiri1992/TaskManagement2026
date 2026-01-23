@@ -51,10 +51,10 @@ export const useSidebarNav: SidebarNav[] = [
     icon: CalendarIcon,
   },
   {
-    label: 'Employees',
+    label: 'Team',
     uri: '/employees',
-    icon: BriefcaseIcon,
-    permission: 'employee:view',
+    icon: UsersIcon,
+    permission: 'user:view',
   },
   {
     label: 'Working Hours',
@@ -107,12 +107,6 @@ export const useSidebarNav: SidebarNav[] = [
       { label: 'Income', uri: '/income', permission: 'income:view' },
       { label: 'Profit & Loss', uri: '/profit-loss' },
     ],
-  },
-  {
-    label: 'Team Members',
-    uri: '/users',
-    icon: UsersIcon,
-    permission: 'user:view',
   },
   {
     label: 'Service Providers',

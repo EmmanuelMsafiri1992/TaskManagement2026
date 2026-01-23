@@ -13,51 +13,109 @@ class EmployeeRecordsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = EmployeeRecord::with(['user', 'supervisor'])
-            ->select('employee_records.*');
+        // Query ALL users with their employee records (if any)
+        $query = User::with(['employeeRecord.supervisor', 'roles'])
+            ->select('users.*');
 
-        // Search
+        // Search by name or email
         if ($request->filled('search')) {
-            $query->search($request->search);
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
-        // Filter by employment status
+        // Filter by employment status (only applies to users with employee records)
         if ($request->filled('employment_status')) {
-            $query->where('employment_status', $request->employment_status);
+            $status = $request->employment_status;
+            $query->whereHas('employeeRecord', function ($q) use ($status) {
+                $q->where('employment_status', $status);
+            });
         }
 
         // Filter by employment type
         if ($request->filled('employment_type')) {
-            $query->where('employment_type', $request->employment_type);
+            $type = $request->employment_type;
+            $query->whereHas('employeeRecord', function ($q) use ($type) {
+                $q->where('employment_type', $type);
+            });
         }
 
         // Filter by department
         if ($request->filled('department')) {
-            $query->byDepartment($request->department);
+            $dept = $request->department;
+            $query->whereHas('employeeRecord', function ($q) use ($dept) {
+                $q->where('department', $dept);
+            });
         }
 
-        // Filter by active/inactive
-        if ($request->filled('status_filter')) {
-            if ($request->status_filter === 'active') {
-                $query->active();
-            } elseif ($request->status_filter === 'inactive') {
-                $query->inactive();
+        // Filter by has employee record or not
+        if ($request->filled('has_employee_record')) {
+            if ($request->has_employee_record === 'yes') {
+                $query->whereHas('employeeRecord');
+            } else {
+                $query->whereDoesntHave('employeeRecord');
             }
         }
 
         // Sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-
-        if ($sortBy === 'name') {
-            $query->join('users', 'employee_records.user_id', '=', 'users.id')
-                ->orderBy('users.name', $sortOrder);
-        } else {
-            $query->orderBy($sortBy, $sortOrder);
-        }
+        $sortBy = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
 
         $perPage = $request->get('per_page', 15);
-        $employees = $query->paginate($perPage);
+        $users = $query->paginate($perPage);
+
+        // Transform data to include employee details
+        $transformedData = $users->getCollection()->map(function ($user) {
+            $employee = $user->employeeRecord;
+            return [
+                'id' => $user->id,
+                'user_id' => $user->id,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'avatar' => $user->avatar,
+                ],
+                'roles' => $user->roles->pluck('name'),
+                'has_employee_record' => $employee !== null,
+                'employee_record_id' => $employee?->id,
+                'position' => $employee?->position,
+                'department' => $employee?->department,
+                'employment_type' => $employee?->employment_type ?? 'Not Set',
+                'employment_status' => $employee?->employment_status ?? 'Not Set',
+                'employment_date' => $employee?->employment_date,
+                'current_salary' => $employee?->current_salary,
+                'salary_currency' => $employee?->salary_currency ?? 'MWK',
+                'phone_number' => $employee?->phone_number,
+                'supervisor' => $employee?->supervisor ? [
+                    'id' => $employee->supervisor->id,
+                    'name' => $employee->supervisor->name,
+                ] : null,
+                // Include all employee record fields for the detail view
+                'national_id' => $employee?->national_id,
+                'physical_address' => $employee?->physical_address,
+                'date_of_birth' => $employee?->date_of_birth,
+                'gender' => $employee?->gender,
+                'marital_status' => $employee?->marital_status,
+                'next_of_kin_name' => $employee?->next_of_kin_name,
+                'next_of_kin_relationship' => $employee?->next_of_kin_relationship,
+                'next_of_kin_phone' => $employee?->next_of_kin_phone,
+                'next_of_kin_address' => $employee?->next_of_kin_address,
+                'contract_start_date' => $employee?->contract_start_date,
+                'contract_end_date' => $employee?->contract_end_date,
+                'probation_end_date' => $employee?->probation_end_date,
+                'leave_balance_annual' => $employee?->leave_balance_annual,
+                'leave_balance_sick' => $employee?->leave_balance_sick,
+                'annual_leave_days' => $employee?->annual_leave_days,
+                'sick_leave_days' => $employee?->sick_leave_days,
+                'tax_identification_number' => $employee?->tax_identification_number,
+                'pension_number' => $employee?->pension_number,
+                'notes' => $employee?->notes,
+            ];
+        });
 
         // Get filter options
         $departments = EmployeeRecord::whereNotNull('department')
@@ -65,12 +123,12 @@ class EmployeeRecordsController extends Controller
             ->pluck('department');
 
         return response()->json([
-            'data' => $employees->items(),
+            'data' => $transformedData,
             'meta' => [
-                'current_page' => $employees->currentPage(),
-                'last_page' => $employees->lastPage(),
-                'per_page' => $employees->perPage(),
-                'total' => $employees->total(),
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
             ],
             'filters' => [
                 'departments' => $departments,
@@ -207,8 +265,13 @@ class EmployeeRecordsController extends Controller
 
     public function statistics()
     {
+        $totalUsers = User::count();
+        $usersWithRecords = EmployeeRecord::count();
+
         $stats = [
-            'total_employees' => EmployeeRecord::count(),
+            'total_employees' => $totalUsers,
+            'with_records' => $usersWithRecords,
+            'without_records' => $totalUsers - $usersWithRecords,
             'active_employees' => EmployeeRecord::active()->count(),
             'on_probation' => EmployeeRecord::onProbation()->count(),
             'by_department' => EmployeeRecord::active()
