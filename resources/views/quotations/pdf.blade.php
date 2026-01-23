@@ -298,8 +298,8 @@
     <!-- STYLE 1 - Classic -->
     <div class="header-row clearfix">
         <div class="logo-section float-left">
-            @if($quotation->logo)
-                <img src="{{ public_path($quotation->logo) }}" alt="Logo" style="max-width: 130px;">
+            @if($quotation->logo && file_exists(public_path($quotation->logo)))
+                <img src="{{ public_path($quotation->logo) }}" alt="{{ $businessName }}" style="max-width: 130px;">
             @else
                 <h2 style="color: {{ $color }};">{{ $businessName }}</h2>
             @endif
@@ -321,8 +321,8 @@
     <!-- STYLE 2 - Modern -->
     <div class="header-row clearfix mb-30">
         <div class="float-left">
-            @if($quotation->logo)
-                <img src="{{ public_path($quotation->logo) }}" alt="Logo" style="max-width: 130px;">
+            @if($quotation->logo && file_exists(public_path($quotation->logo)))
+                <img src="{{ public_path($quotation->logo) }}" alt="{{ $businessName }}" style="max-width: 130px;">
             @endif
             <h1 class="quotation-title">QUOTATION</h1>
             <p class="mb-0" style="font-size: 14px;">{{ $quotation->quotation_number }}</p>
@@ -357,8 +357,8 @@
     <!-- STYLE 4 - Bordered -->
     <div class="header-section clearfix">
         <div class="float-left">
-            @if($quotation->logo)
-                <img src="{{ public_path($quotation->logo) }}" alt="Logo" style="max-width: 130px;">
+            @if($quotation->logo && file_exists(public_path($quotation->logo)))
+                <img src="{{ public_path($quotation->logo) }}" alt="{{ $businessName }}" style="max-width: 130px;">
             @else
                 <h2 style="color: {{ $color }};">{{ $businessName }}</h2>
             @endif
@@ -388,8 +388,8 @@
     <!-- STYLE 6 - Minimal -->
     <div class="header-row clearfix">
         <div class="float-left">
-            @if($quotation->logo)
-                <img src="{{ public_path($quotation->logo) }}" alt="Logo" style="max-width: 130px;">
+            @if($quotation->logo && file_exists(public_path($quotation->logo)))
+                <img src="{{ public_path($quotation->logo) }}" alt="{{ $businessName }}" style="max-width: 130px;">
             @else
                 <h2>{{ $businessName }}</h2>
             @endif
@@ -405,8 +405,8 @@
     <!-- STYLE 7 - Split Header -->
     <div class="clearfix mb-30">
         <div class="header-left">
-            @if($quotation->logo)
-                <img src="{{ public_path($quotation->logo) }}" alt="Logo" style="max-width: 130px; margin-bottom: 15px;">
+            @if($quotation->logo && file_exists(public_path($quotation->logo)))
+                <img src="{{ public_path($quotation->logo) }}" alt="{{ $businessName }}" style="max-width: 130px; margin-bottom: 15px;">
             @endif
             <h2>{{ $businessName }}</h2>
             @if($quotation->business_address)
