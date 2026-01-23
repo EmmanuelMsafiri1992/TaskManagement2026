@@ -276,11 +276,6 @@
       <FormModal v-if="form.show" size="2xl" @saved="index.get()" @close="form.show = false">
         <Form :model-value="form.model" @close="form.show = false" />
       </FormModal>
-
-      <!-- Invite Modal -->
-      <FormModal v-if="inviteModal.show" @saved="index.get()" @close="inviteModal.show = false">
-        <InvitationForm @close="inviteModal.show = false" />
-      </FormModal>
     </div>
 
     <!-- Slide-out Side Panel -->
@@ -501,6 +496,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
+import { useModalsStore } from 'spack'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
 import TableTh from '@/thetheme/components/TableTh.vue'
@@ -537,9 +533,6 @@ const form = reactive({
   model: null
 })
 
-const inviteModal = reactive({
-  show: false
-})
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -573,7 +566,7 @@ const openEmployeeModal = (employee = null) => {
 }
 
 const openInviteModal = () => {
-  inviteModal.show = true
+  useModalsStore().add(InvitationForm)
 }
 
 const loadStatistics = async () => {

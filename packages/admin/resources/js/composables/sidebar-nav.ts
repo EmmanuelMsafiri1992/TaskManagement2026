@@ -52,9 +52,11 @@ export const useSidebarNav: SidebarNav[] = [
   },
   {
     label: 'Team',
-    uri: '/employees',
     icon: UsersIcon,
-    permission: 'user:view',
+    children: [
+      { label: 'All Members', uri: '/employees', permission: 'user:view' },
+      { label: 'Invitations', uri: '/users', permission: 'user:view' },
+    ],
   },
   {
     label: 'Working Hours',
