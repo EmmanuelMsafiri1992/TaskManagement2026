@@ -230,7 +230,7 @@
           <p class="mt-1 text-sm text-gray-500">{{ __('Preview available templates before creating a quotation') }}</p>
         </div>
 
-        <div class="max-h-[70vh] overflow-y-auto px-6 py-4">
+        <div class="max-h-[80vh] overflow-y-auto px-6 py-4">
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <!-- Style 1 - Classic -->
             <div class="group cursor-pointer rounded-lg border-2 border-gray-200 p-3 transition hover:border-indigo-500 hover:shadow-lg">
