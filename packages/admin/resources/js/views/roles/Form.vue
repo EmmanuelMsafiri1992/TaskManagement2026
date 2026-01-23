@@ -1,11 +1,14 @@
 <template>
-  <FormModal :id="id" :name="name" uri="roles">
+  <FormModal :id="id" :name="name" uri="roles" size="4xl">
     <FieldText name="name" label="Name" class="col-span-12" />
 
     <div class="col-span-12">
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-4 flex items-center justify-between sticky top-0 bg-white py-2 z-10">
         <p class="block text-sm font-medium text-gray-700">
           {{ __('Permissions') }}
+          <span class="text-xs text-gray-500 ml-2">
+            ({{ selectedCount }}/{{ totalCount }} {{ __('selected') }})
+          </span>
         </p>
         <div class="flex items-center gap-2">
           <span
@@ -25,33 +28,42 @@
       </div>
 
       <!-- Grouped Permissions -->
-      <div v-if="groupedPermissions && Object.keys(groupedPermissions).length > 0" class="space-y-4">
+      <div v-if="groupedPermissions && Object.keys(groupedPermissions).length > 0" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
         <div
           v-for="(permissions, group) in groupedPermissions"
           :key="group"
-          class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+          class="rounded-lg border border-gray-200 bg-gray-50 p-3"
         >
-          <div class="mb-3 flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-gray-900 capitalize">{{ group }}</h4>
-            <span class="text-xs text-gray-500">
-              {{ getSelectedCount(permissions) }}/{{ permissions.length }}
-            </span>
+          <div class="mb-2 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-gray-900 capitalize">{{ formatGroupName(group) }}</h4>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500">
+                {{ getSelectedCount(permissions) }}/{{ permissions.length }}
+              </span>
+              <button
+                type="button"
+                class="text-xs text-indigo-600 hover:text-indigo-800"
+                @click="selectGroup(permissions)"
+              >
+                {{ __('All') }}
+              </button>
+            </div>
           </div>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          <div class="flex flex-wrap gap-2">
             <label
               v-for="perm in permissions"
               :key="perm.value"
-              class="flex cursor-pointer items-center rounded-md bg-white p-2 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+              class="flex cursor-pointer items-center rounded-md bg-white px-3 py-1.5 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors text-sm"
               :class="{ 'border-indigo-500 bg-indigo-50': isSelected(perm.value) }"
             >
               <input
                 type="checkbox"
                 :value="perm.value"
                 :checked="isSelected(perm.value)"
-                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                class="h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 @change="togglePermission(perm.value)"
               />
-              <span class="ml-2 text-sm text-gray-700">{{ formatPermissionLabel(perm.label) }}</span>
+              <span class="ml-1.5 text-gray-700">{{ formatPermissionLabel(perm.label) }}</span>
             </label>
           </div>
         </div>
@@ -97,6 +109,10 @@
   const form = useFormStore<RoleForm>(name)()
   const index = useIndexStore(name)()
   const FieldText = useFieldText<any>()
+
+  // Total and selected counts
+  const totalCount = computed(() => form.options.permissions?.length || 0)
+  const selectedCount = computed(() => form.data.permissions?.length || 0)
 
   // Group permissions by their prefix (e.g., 'project', 'task', 'user')
   const groupedPermissions = computed(() => {
@@ -153,6 +169,22 @@
       return parts[1].charAt(0).toUpperCase() + parts[1].slice(1).replace('_', ' ')
     }
     return label
+  }
+
+  function formatGroupName(group: string) {
+    // Convert 'advance_request' to 'Advance Request'
+    return group.replace(/_/g, ' ')
+  }
+
+  function selectGroup(permissions: any[]) {
+    if (!form.data.permissions) {
+      form.data.permissions = []
+    }
+    permissions.forEach((perm: any) => {
+      if (!form.data.permissions.includes(perm.value)) {
+        form.data.permissions.push(perm.value)
+      }
+    })
   }
 
   form.onSuccess((response) => {
