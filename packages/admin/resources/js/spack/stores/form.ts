@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 import { axios } from '../axios'
 import type { AxiosResponse } from 'axios'
+import { useFlashStore } from './flash'
 
 interface FormErrors {
   [key: string]: string[]
@@ -109,12 +110,22 @@ export const useFormStore = <T extends FormData = FormData>(name: string) => {
 
         submitting.value = false
 
+        // Show success flash message
+        const flash = useFlashStore()
+        const message = response.data?.message || (id.value ? 'Updated successfully!' : 'Created successfully!')
+        flash.success(message)
+
         // Call all success callbacks
         successCallbacks.value.forEach(callback => callback(response))
 
         return response
       } catch (error: any) {
         submitting.value = false
+
+        // Show error flash message
+        const flash = useFlashStore()
+        const errorMessage = error.response?.data?.message || 'An error occurred. Please try again.'
+        flash.error(errorMessage)
 
         if (error.response?.data?.errors) {
           Object.assign(errors, error.response.data.errors)

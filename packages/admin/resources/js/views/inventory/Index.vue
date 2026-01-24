@@ -443,6 +443,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { CheckCircleIcon, CubeIcon, CurrencyDollarIcon, MagnifyingGlassIcon, PencilIcon, PhotoIcon, TrashIcon, UserIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { useFlashStore } from 'spack'
 import { axios } from 'spack/axios'
 import Loader from '@/thetheme/components/Loader.vue'
 import TheButton from '@/thetheme/components/TheButton.vue'
@@ -453,6 +454,7 @@ import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Form from './Form.vue'
 import { useIndex } from '@/composables/useIndex'
 
+const flash = useFlashStore()
 const processing = ref(true)
 const statistics = ref(null)
 const selectedItem = ref(null)
@@ -528,15 +530,16 @@ const deleteItem = async (item) => {
   if (!confirm(`Delete "${item.item_name}"?`)) return
 
   try {
-    await axios.delete(`inventory/${item.id}`)
+    const response = await axios.delete(`inventory/${item.id}`)
     index.get()
     loadStatistics()
     if (selectedItem.value?.id === item.id) {
       selectedItem.value = null
     }
+    flash.success(response.data?.message || 'Item deleted successfully!')
   } catch (error) {
     console.error('Failed to delete item:', error)
-    alert('Failed to delete item')
+    flash.error(error.response?.data?.message || 'Failed to delete item')
   }
 }
 
@@ -570,9 +573,10 @@ const handleImageUpload = async (event) => {
     selectedItem.value = response.data.data
     // Also update in the list
     index.get()
+    flash.success(response.data?.message || 'Images uploaded successfully!')
   } catch (error) {
     console.error('Failed to upload images:', error)
-    alert(error.response?.data?.message || 'Failed to upload images')
+    flash.error(error.response?.data?.message || 'Failed to upload images')
   } finally {
     uploadingImages.value = false
     if (imageInput.value) {
@@ -591,9 +595,10 @@ const deleteImage = async (imagePath) => {
     })
     selectedItem.value = response.data.data
     index.get()
+    flash.success(response.data?.message || 'Image deleted successfully!')
   } catch (error) {
     console.error('Failed to delete image:', error)
-    alert('Failed to delete image')
+    flash.error(error.response?.data?.message || 'Failed to delete image')
   }
 }
 

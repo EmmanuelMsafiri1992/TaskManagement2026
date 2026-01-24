@@ -212,7 +212,10 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useFlashStore } from 'spack'
 import { axios } from 'spack/axios'
+
+const flash = useFlashStore()
 
 const props = defineProps({
   modelValue: {
@@ -256,15 +259,17 @@ const submit = async () => {
   saving.value = true
 
   try {
+    let response
     if (props.modelValue?.id) {
-      await axios.put(`inventory/${props.modelValue.id}`, formData)
+      response = await axios.put(`inventory/${props.modelValue.id}`, formData)
     } else {
-      await axios.post('inventory', formData)
+      response = await axios.post('inventory', formData)
     }
+    flash.success(response.data?.message || (props.modelValue?.id ? 'Item updated successfully!' : 'Item created successfully!'))
     emit('saved')
   } catch (error) {
     console.error('Failed to save:', error)
-    alert(error.response?.data?.message || 'Failed to save item')
+    flash.error(error.response?.data?.message || 'Failed to save item')
   } finally {
     saving.value = false
   }

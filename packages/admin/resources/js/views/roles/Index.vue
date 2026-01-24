@@ -202,7 +202,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { MagnifyingGlassIcon, PencilSquareIcon, TrashIcon, UserPlusIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { useIndexStore, useModalsStore } from 'spack'
+import { useFlashStore, useIndexStore, useModalsStore } from 'spack'
 import { axios } from 'spack/axios'
 import { TheButton } from 'thetheme'
 import SettingsLayout from 'View/settings/SettingsLayout.vue'
@@ -210,6 +210,8 @@ import UserAvatar from '@/thetheme/components/UserAvatar.vue'
 import Loader from '@/thetheme/components/Loader.vue'
 import Form from './Form.vue'
 import { can } from '@/helpers'
+
+const flash = useFlashStore()
 
 const loading = ref(true)
 const allUsers = ref<any[]>([])
@@ -274,14 +276,15 @@ async function assignUsers() {
 
   userModal.saving = true
   try {
-    await axios.post(`roles/${userModal.role.id}/assign-users`, {
+    const response = await axios.post(`roles/${userModal.role.id}/assign-users`, {
       user_ids: userModal.selectedUsers,
     })
     await fetchRoles()
     userModal.show = false
-  } catch (error) {
+    flash.success(response.data?.message || 'Users assigned successfully!')
+  } catch (error: any) {
     console.error('Failed to assign users:', error)
-    alert('Failed to assign users')
+    flash.error(error.response?.data?.message || 'Failed to assign users')
   } finally {
     userModal.saving = false
   }
@@ -291,13 +294,14 @@ async function removeUserFromRole(role: any, user: any) {
   if (!confirm(`Remove ${user.name} from ${role.name}?`)) return
 
   try {
-    await axios.post(`roles/${role.id}/remove-user`, {
+    const response = await axios.post(`roles/${role.id}/remove-user`, {
       user_id: user.id,
     })
     await fetchRoles()
-  } catch (error) {
+    flash.success(response.data?.message || 'User removed from role successfully!')
+  } catch (error: any) {
     console.error('Failed to remove user:', error)
-    alert('Failed to remove user from role')
+    flash.error(error.response?.data?.message || 'Failed to remove user from role')
   }
 }
 
@@ -305,11 +309,12 @@ async function deleteRole(role: any) {
   if (!confirm(`Delete role "${role.name}"?`)) return
 
   try {
-    await axios.delete(`roles/${role.id}`)
+    const response = await axios.delete(`roles/${role.id}`)
     await fetchRoles()
-  } catch (error) {
+    flash.success(response.data?.message || 'Role deleted successfully!')
+  } catch (error: any) {
     console.error('Failed to delete role:', error)
-    alert('Failed to delete role')
+    flash.error(error.response?.data?.message || 'Failed to delete role')
   }
 }
 
