@@ -123,9 +123,13 @@ class QuotationsController extends Controller
                 $subtotal += $item['quantity'] * $item['unit_price'];
             }
 
+            // Set default values for nullable fields that cannot be null in database
+            $validated['tax_rate'] = $validated['tax_rate'] ?? 0;
+            $validated['discount_amount'] = $validated['discount_amount'] ?? 0;
+
             $validated['subtotal'] = $subtotal;
-            $validated['tax_amount'] = ($validated['tax_rate'] ?? 0) / 100 * $subtotal;
-            $validated['total_amount'] = $subtotal + $validated['tax_amount'] - ($validated['discount_amount'] ?? 0);
+            $validated['tax_amount'] = $validated['tax_rate'] / 100 * $subtotal;
+            $validated['total_amount'] = $subtotal + $validated['tax_amount'] - $validated['discount_amount'];
 
             // Remove items from validated data before creating quotation (items are handled separately)
             $items = $validated['items'];
@@ -222,9 +226,13 @@ class QuotationsController extends Controller
                 $subtotal += $item['quantity'] * $item['unit_price'];
             }
 
+            // Set default values for nullable fields that cannot be null in database
+            $validated['tax_rate'] = $validated['tax_rate'] ?? 0;
+            $validated['discount_amount'] = $validated['discount_amount'] ?? 0;
+
             $validated['subtotal'] = $subtotal;
-            $validated['tax_amount'] = ($validated['tax_rate'] ?? 0) / 100 * $subtotal;
-            $validated['total_amount'] = $subtotal + $validated['tax_amount'] - ($validated['discount_amount'] ?? 0);
+            $validated['tax_amount'] = $validated['tax_rate'] / 100 * $subtotal;
+            $validated['total_amount'] = $subtotal + $validated['tax_amount'] - $validated['discount_amount'];
 
             // Remove items from validated data before updating quotation (items are handled separately)
             unset($validated['items']);
