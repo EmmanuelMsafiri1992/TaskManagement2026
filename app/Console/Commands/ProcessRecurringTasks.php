@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ChecklistItem;
+use App\Models\Label;
 use App\Models\Task;
+use App\Models\TaskCompletion;
 use AhsanDev\Support\Recurring;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -23,7 +24,7 @@ class ProcessRecurringTasks extends Command
      *
      * @var string
      */
-    protected $description = 'Process recurring tasks and create new instances';
+    protected $description = 'Process recurring tasks and reset them for the next iteration';
 
     /**
      * Execute the console command.
@@ -50,15 +51,15 @@ class ProcessRecurringTasks extends Command
 
         foreach ($tasks as $task) {
             try {
-                $this->line("Processing task ID: {$task->id} - {$task->name}");
+                $this->line("Processing task ID: {$task->id} - {$task->title}");
 
-                $result = $this->createTask($task);
+                $result = $this->resetTask($task);
 
                 if ($result === false) {
-                    $this->warn("  → Skipped (completion required)");
+                    $this->warn("  → Skipped (completion required but not completed)");
                     $skipped++;
                 } else {
-                    $this->info("  → Processed successfully");
+                    $this->info("  → Reset successfully for next iteration");
                     $processed++;
                 }
             } catch (\Exception $e) {
@@ -99,18 +100,17 @@ class ProcessRecurringTasks extends Command
     }
 
     /**
-     * Create a task copy.
+     * Reset the task for the next iteration instead of cloning.
      *
      * @param  \App\Models\Task  $task
      * @return bool|null
      */
-    protected function createTask($task)
+    protected function resetTask($task)
     {
         $recurring = Recurring::make($task->meta['recurring']);
-
         $meta = $task->meta;
 
-        // Check if task completion is required
+        // Check if task completion is required but not completed
         if ($task->meta['recurring']['task_completion_required'] && ! $task->completed_at) {
             $recurring->updateNextDateWithoutIteration();
             $nextIteration = $recurring->nextIteration();
@@ -124,71 +124,72 @@ class ProcessRecurringTasks extends Command
             return false;
         }
 
-        // Start Cloning
-        $clone = $task->replicate();
+        // Get current iteration number for notes
+        $currentIteration = $meta['recurring']['current_iteration'] ?? 0;
 
+        // Save completion history if task was completed
+        if ($task->completed_at) {
+            // Get the user who completed the task (first assigned user or null)
+            $userId = $task->users->first()?->id;
+
+            TaskCompletion::create([
+                'task_id' => $task->id,
+                'user_id' => $userId,
+                'completed_at' => $task->completed_at,
+                'is_recurring' => true,
+                'notes' => json_encode([
+                    'iteration' => $currentIteration,
+                    'total_seconds' => $task->total_seconds,
+                    'labels' => $task->labels->pluck('name')->toArray(),
+                ]),
+            ]);
+        }
+
+        // Calculate next iteration
         $nextIteration = $recurring->nextIteration();
 
+        // Update recurring pattern in meta
         if ($nextIteration) {
             $meta['recurring'] = $recurring->pattern();
         } else {
+            // Recurring has ended (reached end date or max repetitions)
             unset($meta['recurring']);
         }
 
-        $clone->recurring_at = $nextIteration;
-        $clone->meta = $meta;
-        $clone->replicated_at = now();
-        $clone->completed_at = null;
-        $clone->due_at = null;
-        $clone->total_seconds = 0;
-        $clone->save();
+        // Reset checklist items to uncompleted
+        foreach ($task->checklists as $checklist) {
+            $checklist->checklistItems()->update(['completed_at' => null]);
+        }
 
-        // Attach users
-        $clone->users()->attach($task->users->pluck('id'));
-
-        // For recurring tasks, always start with "not started" label
-        // Remove status labels and only keep non-status labels
+        // Reset labels to "not started"
         $statusLabels = ['not started', 'started', 'in progress', 'completed', 'stuck'];
         $nonStatusLabels = $task->labels->filter(function ($label) use ($statusLabels) {
             return !in_array(strtolower($label->name), $statusLabels);
-        })->pluck('id');
+        })->pluck('id')->toArray();
 
-        // Attach non-status labels
-        if ($nonStatusLabels->isNotEmpty()) {
-            $clone->labels()->attach($nonStatusLabels);
+        // Detach all labels and reattach non-status labels
+        $task->labels()->detach();
+        if (!empty($nonStatusLabels)) {
+            $task->labels()->attach($nonStatusLabels);
         }
 
-        // Always add "not started" label for new recurring task instance
-        $notStartedLabel = \App\Models\Label::where('name', 'not started')->first();
+        // Add "not started" label
+        $notStartedLabel = Label::where('name', 'not started')->first();
         if ($notStartedLabel) {
-            $clone->labels()->attach($notStartedLabel->id);
+            $task->labels()->attach($notStartedLabel->id);
         }
 
-        // Clone checklists
-        foreach ($task->checklists as $checklist) {
-            $cloneChecklist = $checklist->replicate();
-            $cloneChecklist->task_id = $clone->id;
-            $cloneChecklist->save();
-
-            foreach ($checklist->checklistItems as $checklistItem) {
-                ChecklistItem::create([
-                    'checklist_id' => $cloneChecklist->id,
-                    'title' => $checklistItem->title,
-                    'order' => $checklistItem->order,
-                ]);
-            }
-        }
-
-        // Remove recurring from original task
-        unset($meta['recurring']);
+        // Reset the task for next iteration
         $task->update([
-            'recurring_at' => null,
+            'completed_at' => null,
+            'total_seconds' => 0,
+            'recurring_at' => $nextIteration,
             'meta' => $meta,
         ]);
 
-        Log::info('Recurring task cloned', [
-            'original_task_id' => $task->id,
-            'new_task_id' => $clone->id,
+        Log::info('Recurring task reset for next iteration', [
+            'task_id' => $task->id,
+            'iteration' => $currentIteration,
             'next_iteration' => $nextIteration?->format('Y-m-d H:i:s'),
         ]);
 

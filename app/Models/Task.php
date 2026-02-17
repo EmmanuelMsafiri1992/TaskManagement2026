@@ -123,4 +123,12 @@ class Task extends Model
     {
         return $this->belongsTo(Priority::class);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function completions()
+    {
+        return $this->hasMany(TaskCompletion::class);
+    }
 }
