@@ -36,18 +36,14 @@ class CleanupDuplicateRecurringTasks extends Command
             $this->info('DRY RUN MODE - No changes will be made');
         }
 
-        $this->info('Scanning for duplicate recurring tasks...');
+        $this->info('Scanning for ALL duplicate tasks by title within same project list...');
 
-        // Find all tasks with recurring meta (these are the ones we want to keep)
-        $recurringTasks = Task::all()->filter(function ($task) {
-            return isset($task->meta['recurring']);
-        });
+        // Get all non-deleted tasks grouped by project_list_id and title
+        $allTasks = Task::whereNull('deleted_at')->get();
 
-        $this->info("Found {$recurringTasks->count()} tasks with recurring configuration");
-
-        // Group by title and project_id to find duplicates
-        $grouped = $recurringTasks->groupBy(function ($task) {
-            return $task->project_id . '_' . $task->title;
+        // Group by project_list_id + title to find duplicates
+        $grouped = $allTasks->groupBy(function ($task) {
+            return $task->project_list_id . '_' . $task->title;
         });
 
         $totalDuplicates = 0;
@@ -55,52 +51,35 @@ class CleanupDuplicateRecurringTasks extends Command
 
         foreach ($grouped as $key => $tasks) {
             if ($tasks->count() > 1) {
-                $this->warn("Duplicate found: {$tasks->first()->title} ({$tasks->count()} copies)");
+                $first = $tasks->first();
+                $this->warn("Duplicate found: \"{$first->title}\" in list {$first->project_list_id} ({$tasks->count()} copies)");
 
-                // Keep the most recent one (highest ID), delete the rest
-                $sorted = $tasks->sortByDesc('id');
-                $keep = $sorted->first();
-                $duplicates = $sorted->slice(1);
+                // Prefer to keep the one with recurring meta, otherwise keep the oldest (lowest ID)
+                $withRecurring = $tasks->first(function ($t) {
+                    return isset($t->meta['recurring']);
+                });
 
-                $this->line("  Keeping ID: {$keep->id}");
+                if ($withRecurring) {
+                    $keep = $withRecurring;
+                } else {
+                    // Keep the oldest one (lowest ID) - it's likely the original
+                    $keep = $tasks->sortBy('id')->first();
+                }
 
-                foreach ($duplicates as $duplicate) {
-                    $this->line("  Will delete ID: {$duplicate->id}");
-                    $toDelete->push($duplicate);
-                    $totalDuplicates++;
+                $this->line("  Keeping ID: {$keep->id}" . (isset($keep->meta['recurring']) ? ' (has recurring)' : ''));
+
+                foreach ($tasks as $task) {
+                    if ($task->id !== $keep->id) {
+                        $this->line("  Will delete ID: {$task->id}");
+                        $toDelete->push($task);
+                        $totalDuplicates++;
+                    }
                 }
             }
         }
 
-        // Also find tasks with replicated_at that have same title but no recurring
-        // These are the "orphaned" original tasks that lost their recurring config
-        $this->info("\nScanning for orphaned original tasks...");
-
-        $replicatedTasks = Task::whereNotNull('replicated_at')
-            ->whereNull('deleted_at')
-            ->get();
-
-        foreach ($replicatedTasks as $task) {
-            // Check if there's another task with same title in same project that has recurring
-            $hasRecurringVersion = Task::where('project_id', $task->project_id)
-                ->where('title', $task->title)
-                ->where('id', '!=', $task->id)
-                ->whereNull('deleted_at')
-                ->get()
-                ->filter(function ($t) {
-                    return isset($t->meta['recurring']);
-                })
-                ->isNotEmpty();
-
-            if ($hasRecurringVersion && !isset($task->meta['recurring'])) {
-                $this->line("  Orphaned task ID: {$task->id} - {$task->title}");
-                $toDelete->push($task);
-                $totalDuplicates++;
-            }
-        }
-
         $this->newLine();
-        $this->info("Total duplicates/orphans found: {$totalDuplicates}");
+        $this->info("Total duplicates found: {$totalDuplicates}");
 
         if ($totalDuplicates === 0) {
             $this->info('No duplicates to clean up!');
@@ -131,6 +110,15 @@ class CleanupDuplicateRecurringTasks extends Command
                     $checklist->checklistItems()->delete();
                     $checklist->delete();
                 }
+
+                // Delete comments
+                $task->comments()->delete();
+
+                // Delete attachments
+                $task->attachments()->delete();
+
+                // Delete time logs
+                $task->timelogs()->delete();
 
                 // Force delete the task
                 $task->forceDelete();
