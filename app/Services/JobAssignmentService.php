@@ -33,9 +33,11 @@ class JobAssignmentService
     /**
      * Fetch and assign new jobs to users based on their countries.
      *
+     * @param  int  $hours  Number of hours to look back (default: 24)
+     * @param  int|null  $limit  Maximum number of posts to process
      * @return array Statistics about the assignment process
      */
-    public function assignNewJobs()
+    public function assignNewJobs($hours = 24, $limit = null)
     {
         $stats = [
             'posts_fetched' => 0,
@@ -46,8 +48,12 @@ class JobAssignmentService
         ];
 
         try {
-            // Fetch recent posts from V11 database (last 8 hours)
-            $recentPosts = Post::recent()->get();
+            // Fetch recent posts from V11 database
+            $query = Post::recent($hours);
+            if ($limit) {
+                $query->limit($limit);
+            }
+            $recentPosts = $query->get();
             $stats['posts_fetched'] = $recentPosts->count();
 
             Log::info('Fetched recent job posts', ['count' => $stats['posts_fetched']]);
@@ -329,5 +335,73 @@ class JobAssignmentService
                 ->whereDate('assigned_at', today())
                 ->count(),
         ];
+    }
+
+    /**
+     * Assign a specific post by ID to all eligible users.
+     * Called when a new job is posted on nyasajob.
+     *
+     * @param  int  $postId
+     * @return array Statistics about the assignment
+     */
+    public function assignPostById($postId)
+    {
+        $stats = [
+            'post_id' => $postId,
+            'assignments_created' => 0,
+            'tasks_created' => 0,
+            'notifications_sent' => 0,
+            'errors' => 0,
+        ];
+
+        try {
+            $post = Post::where('id', $postId)
+                ->whereNotNull('email_verified_at')
+                ->whereNull('deleted_at')
+                ->whereNull('archived_at')
+                ->first();
+
+            if (!$post) {
+                Log::warning('Post not found or not eligible for assignment', ['post_id' => $postId]);
+                $stats['errors']++;
+                return $stats;
+            }
+
+            $usersWithCountries = $this->getUsersWithCountries();
+
+            if (empty($usersWithCountries)) {
+                Log::info('No users with assigned countries found');
+                return $stats;
+            }
+
+            $assignmentResult = $this->assignPostToUsers($post, $usersWithCountries);
+            $stats['assignments_created'] = $assignmentResult['assignments'];
+            $stats['tasks_created'] = $assignmentResult['tasks'];
+            $stats['notifications_sent'] = $assignmentResult['notifications'];
+
+            Log::info('Post assigned to users', $stats);
+
+            return $stats;
+        } catch (\Exception $e) {
+            Log::error('Failed to assign post by ID', [
+                'post_id' => $postId,
+                'error' => $e->getMessage(),
+            ]);
+            $stats['errors']++;
+            return $stats;
+        }
+    }
+
+    /**
+     * Get all country codes that have assigned users.
+     *
+     * @return array
+     */
+    public function getActiveCountryCodes()
+    {
+        return UserCountry::select('country_code')
+            ->distinct()
+            ->pluck('country_code')
+            ->toArray();
     }
 }

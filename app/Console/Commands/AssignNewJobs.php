@@ -13,6 +13,8 @@ class AssignNewJobs extends Command
      * @var string
      */
     protected $signature = 'jobs:assign-new
+                            {--hours=24 : Number of hours to look back for jobs}
+                            {--limit= : Maximum number of jobs to process}
                             {--force : Force assignment even if run recently}';
 
     /**
@@ -46,11 +48,14 @@ class AssignNewJobs extends Command
      */
     public function handle()
     {
-        $this->info('Starting job assignment process...');
+        $hours = (int) $this->option('hours');
+        $limit = $this->option('limit') ? (int) $this->option('limit') : null;
+
+        $this->info("Starting job assignment process (looking back {$hours} hours)...");
         $this->newLine();
 
         try {
-            $stats = $this->jobAssignmentService->assignNewJobs();
+            $stats = $this->jobAssignmentService->assignNewJobs($hours, $limit);
 
             $this->displayResults($stats);
 

@@ -49,7 +49,9 @@
       "Bash(findstr:*)",
       "Bash(mysql:*)",
       "Bash(php check_roles.php:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(del \"\\\\?\\\\c:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\nul\")",
+      "Bash(cmd //c \"del /f /q \\\\?\\\\c:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\nul\")"
     ]
   }
 }

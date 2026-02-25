@@ -37,4 +37,9 @@ return [
         'redirect_uri' => env('ADSENSE_REDIRECT_URI', env('APP_URL') . 'auth/google/adsense/callback'),
     ],
 
+    'nyasajob' => [
+        'webhook_token' => env('NYASAJOB_WEBHOOK_TOKEN'),
+        'base_url' => env('NYASAJOB_BASE_URL', 'https://nyasajob.com'),
+    ],
+
 ];
