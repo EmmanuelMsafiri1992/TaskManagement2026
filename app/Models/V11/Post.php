@@ -2,6 +2,7 @@
 
 namespace App\Models\V11;
 
+use Hashids\Hashids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -141,34 +142,21 @@ class Post extends Model
     }
 
     /**
-     * Generate hashId for the post (simplified version of nyasajob's hashId).
-     * Uses base62 encoding for URL-safe IDs.
+     * Generate hashId for the post using Hashids library.
+     * Matches nyasajob's hashId() function format exactly.
      *
      * @return string
      */
     public function getHashId()
     {
-        // Simple hash implementation matching nyasajob's pattern
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        $id = $this->id;
-        $hash = '';
-
-        // Convert to base62
-        while ($id > 0) {
-            $hash = $alphabet[$id % 62] . $hash;
-            $id = (int)($id / 62);
-        }
-
-        // Pad to minimum 11 characters
-        while (strlen($hash) < 11) {
-            $hash = 'a' . $hash;
-        }
-
-        return $hash;
+        // Use same parameters as nyasajob: empty salt, min length 11
+        $hashids = new Hashids('', 11);
+        return $hashids->encode($this->id);
     }
 
     /**
      * Get the proper nyasajob URL for this post.
+     * Format matches nyasajob's UrlGen::post() with MULTI_COUNTRIES_URLS=true
      *
      * @return string
      */
@@ -179,6 +167,7 @@ class Post extends Model
         $countryCode = strtolower($this->country_code);
 
         // Format: https://nyasajob.com/{country_code}/{slug}/{hashId}
+        // This matches nyasajob's URL pattern with MULTI_COUNTRIES_URLS=true
         return self::NYASAJOB_BASE_URL . "/{$countryCode}/{$slug}/{$hashId}";
     }
 
