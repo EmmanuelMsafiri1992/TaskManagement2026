@@ -31,6 +31,12 @@ class Kernel extends ConsoleKernel
                  ->hourly()
                  ->withoutOverlapping()
                  ->runInBackground();
+
+        // Send task reminders twice daily (8 AM and 2 PM)
+        // Reminds users about uncompleted tasks past 24 hours
+        $schedule->command('tasks:send-reminders --hours=24 --project=18')
+                 ->twiceDaily(8, 14)
+                 ->withoutOverlapping();
     }
 
     /**
