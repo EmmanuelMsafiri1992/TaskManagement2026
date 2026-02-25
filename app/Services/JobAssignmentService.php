@@ -133,6 +133,11 @@ class JobAssignmentService
     }
 
     /**
+     * Maximum jobs per country per user within 24 hours.
+     */
+    protected const MAX_JOBS_PER_COUNTRY = 5;
+
+    /**
      * Assign a post to all eligible users.
      *
      * @param  Post  $post
@@ -156,7 +161,7 @@ class JobAssignmentService
                 continue;
             }
 
-            // Check if this post is already shared by this user
+            // Check if this post is already shared by this user (prevent duplicates)
             $existingShare = JobShare::where('user_id', $user->id)
                 ->where('v11_post_id', $post->id)
                 ->exists();
@@ -165,6 +170,22 @@ class JobAssignmentService
                 Log::debug('Post already shared by user', [
                     'post_id' => $post->id,
                     'user_id' => $user->id,
+                ]);
+                continue;
+            }
+
+            // Check per-country limit (max 5 jobs per country per user in last 24 hours)
+            $countryJobCount = JobShare::where('user_id', $user->id)
+                ->where('country_code', $post->country_code)
+                ->where('assigned_at', '>=', now()->subHours(24))
+                ->count();
+
+            if ($countryJobCount >= self::MAX_JOBS_PER_COUNTRY) {
+                Log::debug('User reached max jobs for country', [
+                    'user_id' => $user->id,
+                    'country_code' => $post->country_code,
+                    'current_count' => $countryJobCount,
+                    'max_allowed' => self::MAX_JOBS_PER_COUNTRY,
                 ]);
                 continue;
             }
