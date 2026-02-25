@@ -205,11 +205,11 @@ class JobAssignmentService
             // Format content for sharing
             $formattedContent = $post->formatForSharing($shortUrl);
 
-            // Get or create default project
+            // Get the Nyasajob Career International project (ID: 18)
             $project = $this->getOrCreateDefaultProject();
 
-            // Get or create "Social Media Sharing" project list
-            $projectList = $this->getOrCreateSocialMediaList($project);
+            // Get user-specific list (Weston: 99, Nathan: 101)
+            $projectList = $this->getOrCreateSocialMediaList($project, $user->id);
 
             // Create task
             $task = Task::create([
@@ -259,44 +259,37 @@ class JobAssignmentService
     }
 
     /**
-     * Get or create the default project.
+     * Get the Nyasajob Career International project.
      *
      * @return Project
      */
     protected function getOrCreateDefaultProject()
     {
-        $project = Project::where('name', 'Social Media Tasks')->first();
-
-        if (!$project) {
-            $project = Project::create([
-                'name' => 'Social Media Tasks',
-                'description' => 'Automated job sharing tasks for social media',
-            ]);
-        }
-
-        return $project;
+        // Use the existing Nyasajob Career International project (ID: 18)
+        return Project::find(18);
     }
 
     /**
-     * Get or create the social media project list.
+     * Get the user-specific project list.
+     * Weston (user_id 7) -> List 99 (Weston Tasks)
+     * Nathan (user_id 4) -> List 101 (Nathan Tasks)
      *
      * @param  Project  $project
+     * @param  int|null  $userId
      * @return ProjectList
      */
-    protected function getOrCreateSocialMediaList(Project $project)
+    protected function getOrCreateSocialMediaList(Project $project, $userId = null)
     {
-        $projectList = ProjectList::where('project_id', $project->id)
-            ->where('name', 'Job Sharing')
-            ->first();
+        // Map user IDs to their specific lists
+        $userListMap = [
+            7 => 99,  // Weston -> Weston Tasks
+            4 => 101, // Nathan -> Nathan Tasks
+        ];
 
-        if (!$projectList) {
-            $projectList = ProjectList::create([
-                'project_id' => $project->id,
-                'name' => 'Job Sharing',
-            ]);
-        }
+        // Get the list ID for this user, default to Nathan's list
+        $listId = $userListMap[$userId] ?? 101;
 
-        return $projectList;
+        return ProjectList::find($listId);
     }
 
     /**
