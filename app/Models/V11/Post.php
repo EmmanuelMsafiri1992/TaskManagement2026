@@ -281,9 +281,9 @@ class Post extends Model
         $description = $this->getShortDescription(180);
         $lines[] = $description;
 
-        // Call to action with clickable link
+        // Call to action with plain URL (works on all platforms)
         $lines[] = "";
-        $lines[] = "👉 [Apply Now]({$shortUrl})";
+        $lines[] = "👉 Apply Now: {$shortUrl}";
         $lines[] = "";
 
         // Hashtags for discoverability
@@ -378,7 +378,7 @@ class Post extends Model
 
 {$this->getShortDescription(150)}
 
-👉 [Apply Now]({$shortUrl})
+👉 Apply Now: {$shortUrl}
 
 {$this->generateHashtags()}";
     }
