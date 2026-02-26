@@ -218,13 +218,11 @@ class JobAssignmentService
     protected function createJobAssignment(User $user, Post $post)
     {
         return DB::transaction(function () use ($user, $post) {
-            // Generate shortened URL
+            // Use direct nyasajob URL (no shortener)
             $postUrl = $post->getUrl();
-            $shortenedUrl = $this->urlShortener->shorten($postUrl, $user->id);
-            $shortUrl = $shortenedUrl ? $shortenedUrl->short_url : $postUrl;
 
             // Format content for sharing
-            $formattedContent = $post->formatForSharing($shortUrl);
+            $formattedContent = $post->formatForSharing($postUrl);
 
             // Get the Nyasajob Career International project (ID: 18)
             $project = $this->getOrCreateDefaultProject();
@@ -253,7 +251,7 @@ class JobAssignmentService
                 'post_title' => $post->title,
                 'post_url' => $postUrl,
                 'country_code' => $post->country_code,
-                'shortened_url' => $shortUrl,
+                'shortened_url' => $postUrl,  // Using direct URL instead of shortener
                 'formatted_content' => $formattedContent,
                 'assigned_at' => now(),
             ]);
