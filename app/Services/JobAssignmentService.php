@@ -63,6 +63,9 @@ class JobAssignmentService
                 return $stats;
             }
 
+            // Sort posts by country_code so jobs from same country are grouped together
+            $recentPosts = $recentPosts->sortBy('country_code')->values();
+
             // Get all users with their assigned countries
             $usersWithCountries = $this->getUsersWithCountries();
 
@@ -71,7 +74,7 @@ class JobAssignmentService
                 return $stats;
             }
 
-            // Process each post
+            // Process each post (now sorted by country)
             foreach ($recentPosts as $post) {
                 try {
                     $assignmentResult = $this->assignPostToUsers($post, $usersWithCountries);
