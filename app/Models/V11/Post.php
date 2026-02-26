@@ -203,13 +203,42 @@ class Post extends Model
     public function getCountryName()
     {
         $countries = [
+            // Africa
             'MW' => 'Malawi', 'ZA' => 'South Africa', 'KE' => 'Kenya', 'NG' => 'Nigeria',
             'GH' => 'Ghana', 'ZM' => 'Zambia', 'TZ' => 'Tanzania', 'UG' => 'Uganda',
             'ZW' => 'Zimbabwe', 'BW' => 'Botswana', 'NA' => 'Namibia', 'MZ' => 'Mozambique',
             'RW' => 'Rwanda', 'ET' => 'Ethiopia', 'EG' => 'Egypt', 'MA' => 'Morocco',
+            'SN' => 'Senegal', 'CI' => 'Ivory Coast', 'CM' => 'Cameroon', 'AO' => 'Angola',
+            'TN' => 'Tunisia', 'DZ' => 'Algeria', 'LY' => 'Libya', 'SD' => 'Sudan',
+            'MU' => 'Mauritius', 'SC' => 'Seychelles', 'MG' => 'Madagascar',
+            // Europe
             'US' => 'United States', 'GB' => 'United Kingdom', 'CA' => 'Canada',
-            'AU' => 'Australia', 'DE' => 'Germany', 'FR' => 'France', 'IN' => 'India',
-            'PH' => 'Philippines', 'AE' => 'UAE', 'SA' => 'Saudi Arabia', 'QA' => 'Qatar',
+            'AU' => 'Australia', 'DE' => 'Germany', 'FR' => 'France', 'IT' => 'Italy',
+            'ES' => 'Spain', 'PT' => 'Portugal', 'NL' => 'Netherlands', 'BE' => 'Belgium',
+            'CH' => 'Switzerland', 'AT' => 'Austria', 'SE' => 'Sweden', 'NO' => 'Norway',
+            'DK' => 'Denmark', 'FI' => 'Finland', 'IE' => 'Ireland', 'PL' => 'Poland',
+            'CZ' => 'Czech Republic', 'HU' => 'Hungary', 'RO' => 'Romania', 'BG' => 'Bulgaria',
+            'GR' => 'Greece', 'HR' => 'Croatia', 'SK' => 'Slovakia', 'SI' => 'Slovenia',
+            'LT' => 'Lithuania', 'LV' => 'Latvia', 'EE' => 'Estonia', 'IS' => 'Iceland',
+            'LU' => 'Luxembourg', 'MT' => 'Malta', 'CY' => 'Cyprus', 'RS' => 'Serbia',
+            // Asia
+            'IN' => 'India', 'PH' => 'Philippines', 'SG' => 'Singapore', 'MY' => 'Malaysia',
+            'TH' => 'Thailand', 'VN' => 'Vietnam', 'ID' => 'Indonesia', 'JP' => 'Japan',
+            'KR' => 'South Korea', 'CN' => 'China', 'HK' => 'Hong Kong', 'TW' => 'Taiwan',
+            'PK' => 'Pakistan', 'BD' => 'Bangladesh', 'LK' => 'Sri Lanka', 'NP' => 'Nepal',
+            // Middle East
+            'AE' => 'UAE', 'SA' => 'Saudi Arabia', 'QA' => 'Qatar', 'KW' => 'Kuwait',
+            'BH' => 'Bahrain', 'OM' => 'Oman', 'JO' => 'Jordan', 'LB' => 'Lebanon',
+            'IL' => 'Israel', 'TR' => 'Turkey', 'IQ' => 'Iraq', 'IR' => 'Iran',
+            // Americas
+            'MX' => 'Mexico', 'BR' => 'Brazil', 'AR' => 'Argentina', 'CL' => 'Chile',
+            'CO' => 'Colombia', 'PE' => 'Peru', 'VE' => 'Venezuela', 'EC' => 'Ecuador',
+            'UY' => 'Uruguay', 'PY' => 'Paraguay', 'BO' => 'Bolivia', 'CR' => 'Costa Rica',
+            'PA' => 'Panama', 'PR' => 'Puerto Rico', 'DO' => 'Dominican Republic',
+            'JM' => 'Jamaica', 'TT' => 'Trinidad and Tobago', 'BS' => 'Bahamas',
+            'BM' => 'Bermuda', 'KY' => 'Cayman Islands', 'BB' => 'Barbados',
+            // Oceania
+            'NZ' => 'New Zealand', 'FJ' => 'Fiji', 'PG' => 'Papua New Guinea',
         ];
 
         return $countries[$this->country_code] ?? $this->country_code;
@@ -255,33 +284,37 @@ class Post extends Model
     public function formatForSharing($shortUrl)
     {
         $location = $this->getCountryName();
-        $companyInfo = $this->company_name ? " at **{$this->company_name}**" : "";
+        $companyInfo = $this->company_name ? " at {$this->company_name}" : "";
 
         // Build engaging social media post
         $lines = [];
 
-        // Eye-catching header with job type indicators
-        $urgentBadge = $this->is_urgent ? "🚨 URGENT: " : "";
+        // Clear job indicator with badges
+        $urgentBadge = $this->is_urgent ? "🚨 URGENT " : "";
         $featuredBadge = $this->featured ? "⭐ " : "";
-        $lines[] = "{$urgentBadge}{$featuredBadge}🔥 **{$this->title}**{$companyInfo}";
+        $lines[] = "{$urgentBadge}{$featuredBadge}💼 JOB OPPORTUNITY";
         $lines[] = "";
 
-        // Location with flag emoji
+        // Job title clearly labeled
+        $lines[] = "📌 Position: {$this->title}{$companyInfo}";
+
+        // Location with flag emoji and full country name
         $flagEmoji = $this->getCountryFlag();
-        $lines[] = "📍 {$flagEmoji} {$location}";
+        $lines[] = "📍 Location: {$flagEmoji} {$location}";
 
         // Salary (major attraction point)
         $salary = $this->formatSalary();
         if ($salary) {
-            $lines[] = "💰 {$salary}";
+            $lines[] = "💰 Salary: {$salary}";
         }
 
-        // Short description
+        // Description (increased to ~400 chars / 60-80 words)
         $lines[] = "";
-        $description = $this->getShortDescription(180);
+        $lines[] = "📝 About:";
+        $description = $this->getShortDescription(400);
         $lines[] = $description;
 
-        // Call to action with plain URL (works on all platforms)
+        // Call to action with plain URL
         $lines[] = "";
         $lines[] = "👉 Apply Now: {$shortUrl}";
         $lines[] = "";
