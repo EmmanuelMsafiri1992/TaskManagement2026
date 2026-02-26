@@ -34,7 +34,8 @@
             "App\\": "app/",
             "Admin\\": "packages/admin/src/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Hashids\\": "vendor/hashids/hashids/src/"
         }
     },
     "autoload-dev": {
