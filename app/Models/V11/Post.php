@@ -156,7 +156,7 @@ class Post extends Model
 
     /**
      * Get the proper nyasajob URL for this post.
-     * Format matches nyasajob's UrlGen::post() with MULTI_COUNTRIES_URLS=true
+     * Format: https://nyasajob.com/{slug}/{hashId}
      *
      * @return string
      */
@@ -164,11 +164,9 @@ class Post extends Model
     {
         $slug = $this->getSlug();
         $hashId = $this->getHashId();
-        $countryCode = strtolower($this->country_code);
 
-        // Format: https://nyasajob.com/{country_code}/{slug}/{hashId}
-        // This matches nyasajob's URL pattern with MULTI_COUNTRIES_URLS=true
-        return self::NYASAJOB_BASE_URL . "/{$countryCode}/{$slug}/{$hashId}";
+        // Format: https://nyasajob.com/{slug}/{hashId}
+        return self::NYASAJOB_BASE_URL . "/{$slug}/{$hashId}";
     }
 
     /**
