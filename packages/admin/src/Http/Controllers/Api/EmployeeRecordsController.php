@@ -13,9 +13,18 @@ class EmployeeRecordsController extends Controller
 {
     public function index(Request $request)
     {
-        // Query ALL users with their employee records (if any)
+        // Query users with their employee records (if any)
+        // By default, show only active (non-archived) users
         $query = User::with(['employeeRecord.supervisor', 'roles'])
             ->select('users.*');
+
+        // Filter by archived status
+        if ($request->filled('archived') && $request->archived === 'true') {
+            $query->onlyTrashed();
+        } elseif ($request->filled('show_all') && $request->show_all === 'true') {
+            $query->withTrashed();
+        }
+        // Default: only non-archived users (no additional filter needed)
 
         // Search by name or email
         if ($request->filled('search')) {
@@ -114,6 +123,8 @@ class EmployeeRecordsController extends Controller
                 'tax_identification_number' => $employee?->tax_identification_number,
                 'pension_number' => $employee?->pension_number,
                 'notes' => $employee?->notes,
+                'is_archived' => $user->trashed(),
+                'deleted_at' => $user->deleted_at,
             ];
         });
 

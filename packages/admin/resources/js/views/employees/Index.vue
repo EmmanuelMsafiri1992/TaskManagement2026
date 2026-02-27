@@ -136,6 +136,15 @@
               {{ dept }}
             </option>
           </select>
+
+          <select
+            v-model="index.params.archived"
+            class="block rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            @change="index.get()"
+          >
+            <option value="">{{ __('Active Members') }}</option>
+            <option value="true">{{ __('Archived Members') }}</option>
+          </select>
         </div>
 
         <div class="flex gap-2 ltr:ml-auto rtl:mr-auto">
@@ -231,7 +240,13 @@
                       </td>
                       <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span
-                          v-if="employee.has_employee_record"
+                          v-if="employee.is_archived"
+                          class="inline-flex rounded-full bg-gray-200 px-2 text-xs font-semibold leading-5 text-gray-600"
+                        >
+                          {{ __('Archived') }}
+                        </span>
+                        <span
+                          v-else-if="employee.has_employee_record"
                           class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
                           :class="{
                             'bg-green-100 text-green-800': employee.employment_status === 'Active',
@@ -256,9 +271,22 @@
                           @click.stop="selectEmployee(employee)"
                         />
                         <PencilIcon
-                          v-if="can('employee:update') || can('user:update')"
+                          v-if="(can('employee:update') || can('user:update')) && !employee.is_archived"
                           class="ml-2 w-5 cursor-pointer text-gray-400 hover:text-gray-800"
+                          :title="__('Edit')"
                           @click.stop="openEmployeeModal(employee)"
+                        />
+                        <ArchiveBoxIcon
+                          v-if="can('user:delete') && !employee.is_archived && employee.id !== 1"
+                          class="ml-2 w-5 cursor-pointer text-orange-400 hover:text-orange-600"
+                          :title="__('Archive')"
+                          @click.stop="archiveEmployee(employee)"
+                        />
+                        <ArchiveBoxXMarkIcon
+                          v-if="can('user:delete') && employee.is_archived"
+                          class="ml-2 w-5 cursor-pointer text-green-400 hover:text-green-600"
+                          :title="__('Restore')"
+                          @click.stop="unarchiveEmployee(employee)"
                         />
                       </td>
                     </tr>
@@ -494,7 +522,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { ArchiveBoxIcon, ArchiveBoxXMarkIcon, BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import { useModalsStore } from 'spack'
 import Loader from '@/thetheme/components/Loader.vue'
@@ -523,6 +551,7 @@ const index = useIndex('employees', {
   employment_type: '',
   department: '',
   has_employee_record: '',
+  archived: '',
   sort_by: 'name',
   sort_order: 'asc',
   per_page: 15
@@ -567,6 +596,36 @@ const openEmployeeModal = (employee = null) => {
 
 const openInviteModal = () => {
   useModalsStore().add(InvitationForm)
+}
+
+const archiveEmployee = async (employee) => {
+  if (!confirm(__('Are you sure you want to archive this team member? They will no longer appear in the active list.'))) {
+    return
+  }
+  try {
+    await axios.post(`users/${employee.id}/archive`)
+    await index.get()
+    await loadStatistics()
+    selectedEmployee.value = null
+  } catch (error) {
+    console.error('Failed to archive employee:', error)
+    alert(__('Failed to archive team member'))
+  }
+}
+
+const unarchiveEmployee = async (employee) => {
+  if (!confirm(__('Are you sure you want to restore this team member?'))) {
+    return
+  }
+  try {
+    await axios.post(`users/${employee.id}/unarchive`)
+    await index.get()
+    await loadStatistics()
+    selectedEmployee.value = null
+  } catch (error) {
+    console.error('Failed to unarchive employee:', error)
+    alert(__('Failed to restore team member'))
+  }
 }
 
 const loadStatistics = async () => {

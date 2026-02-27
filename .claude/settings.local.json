@@ -52,7 +52,9 @@
       "Bash(php:*)",
       "Bash(del \"\\\\?\\\\c:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\nul\")",
       "Bash(cmd //c \"del /f /q \\\\?\\\\c:\\\\laragon\\\\www\\\\EISALL\\\\TaskManagement2026\\\\nul\")",
-      "Bash(composer install:*)"
+      "Bash(composer install:*)",
+      "Bash(gh run list:*)",
+      "Bash(ssh:*)"
     ]
   }
 }
