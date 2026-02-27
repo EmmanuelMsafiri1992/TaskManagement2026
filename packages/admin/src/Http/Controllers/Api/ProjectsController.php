@@ -111,7 +111,7 @@ class ProjectsController extends AuthorizeController
 
         return $project->append(['is_favorite'])->load(['users', 'lists' => function ($query) {
             $query->orderBy('order')->with(['tasks' => function ($q) {
-                $q->orderBy('order');
+                $q->whereNull('completed_at')->orderBy('order');
             }, 'tasks.users', 'tasks.comments', 'tasks.checklists.checklistItems', 'tasks.priority', 'tasks.labels']);
         }]);
     }
