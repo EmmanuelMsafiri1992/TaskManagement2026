@@ -42,9 +42,8 @@ class PerformanceReportController
                 $startDate = null; // All time
         }
 
-        // Get all active users (not archived)
+        // Get all active users (not deleted via soft delete)
         $users = User::whereNotNull('email_verified_at')
-            ->whereNull('archived_at')
             ->orderBy('name')
             ->get();
 
