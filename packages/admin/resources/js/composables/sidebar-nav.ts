@@ -1,4 +1,4 @@
-import { AcademicCapIcon, ArchiveBoxIcon, BanknotesIcon, BriefcaseIcon, BuildingOffice2Icon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, Cog6ToothIcon, FilmIcon, HomeIcon, InboxIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
+import { AcademicCapIcon, ArchiveBoxIcon, BanknotesIcon, BriefcaseIcon, BuildingOffice2Icon, CalendarDaysIcon, CalendarIcon, ChartBarIcon, ChartPieIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, ClockIcon, Cog6ToothIcon, FilmIcon, HomeIcon, InboxIcon, TrophyIcon, UserPlusIcon, UsersIcon, WalletIcon } from '@heroicons/vue/24/outline'
 import type { SidebarNav } from '@/types'
 
 // Feature key mapping for sidebar items
@@ -29,6 +29,7 @@ const featureKeyMap: Record<string, string> = {
   '/adsense-reports': 'adsense-reports',
   '/video-enhancer': 'video-enhancer',
   '/audit-trail': 'audit-trail',
+  '/performance-report': 'performance-report',
   '/settings/general': 'settings',
   '/settings/sidebar-features': 'settings',
   '/settings/user-assignments': 'settings',
@@ -142,6 +143,12 @@ export const useSidebarNav: SidebarNav[] = [
     uri: '/audit-trail',
     icon: ClipboardDocumentListIcon,
     permission: 'audit:view',
+  },
+  {
+    label: 'Performance Report',
+    uri: '/performance-report',
+    icon: TrophyIcon,
+    superAdminOnly: true,
   },
   {
     label: 'Settings',
