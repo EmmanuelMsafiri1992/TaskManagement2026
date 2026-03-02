@@ -1,5 +1,14 @@
 <template>
   <div v-if="stats" class="hidden lg:flex items-center space-x-4 px-4">
+    <!-- Total Completed -->
+    <div class="flex items-center space-x-1.5 text-sm">
+      <CheckBadgeIcon class="h-4 w-4 text-emerald-600" />
+      <span class="text-gray-700 font-medium">{{ stats.total_completed }}</span>
+      <span class="text-gray-400 text-xs">completed</span>
+    </div>
+
+    <div class="h-4 w-px bg-gray-200"></div>
+
     <!-- Completed Today -->
     <div class="flex items-center space-x-1.5 text-sm">
       <CheckCircleIcon class="h-4 w-4 text-green-500" />
@@ -54,6 +63,7 @@
 import { ref, onMounted } from 'vue'
 import { axios } from 'spack/axios'
 import {
+  CheckBadgeIcon,
   CheckCircleIcon,
   PlusCircleIcon,
   ExclamationCircleIcon,
