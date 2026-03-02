@@ -2,10 +2,10 @@
 
 namespace Admin\Http\Controllers\Api;
 
-use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PerformanceReportController
 {
@@ -22,36 +22,88 @@ class PerformanceReportController
             abort(403);
         }
 
-        $period = $request->get('period', 'week'); // week, month, all
-        $today = Carbon::today();
+        $period = $request->get('period', 'week');
+        $today = Carbon::today()->toDateString();
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateTimeString();
 
+        // Determine start date based on period
         switch ($period) {
             case 'today':
-                $startDate = $today;
+                $startDate = Carbon::today()->toDateTimeString();
                 break;
             case 'week':
-                $startDate = Carbon::now()->startOfWeek();
+                $startDate = $startOfWeek;
                 break;
             case 'month':
-                $startDate = Carbon::now()->startOfMonth();
+                $startDate = Carbon::now()->startOfMonth()->toDateTimeString();
                 break;
             case 'year':
-                $startDate = Carbon::now()->startOfYear();
+                $startDate = Carbon::now()->startOfYear()->toDateTimeString();
                 break;
             default:
                 $startDate = null; // All time
         }
 
-        // Get all active users (not deleted via soft delete)
-        $users = User::whereNotNull('email_verified_at')
-            ->orderBy('name')
-            ->get();
+        // Single optimized query to get all user stats
+        $query = DB::table('users')
+            ->select([
+                'users.id as user_id',
+                'users.name',
+                'users.email',
+                'users.avatar',
+                DB::raw('COUNT(DISTINCT tasks.id) as total_tasks'),
+                DB::raw('COUNT(DISTINCT CASE WHEN tasks.completed_at IS NOT NULL THEN tasks.id END) as completed'),
+                DB::raw('COUNT(DISTINCT CASE WHEN tasks.completed_at IS NULL THEN tasks.id END) as pending'),
+                DB::raw("COUNT(DISTINCT CASE WHEN tasks.completed_at IS NULL AND tasks.due_at IS NOT NULL AND DATE(tasks.due_at) < '{$today}' THEN tasks.id END) as overdue"),
+                DB::raw("COUNT(DISTINCT CASE WHEN tasks.completed_at IS NOT NULL AND tasks.due_at IS NOT NULL AND DATE(tasks.completed_at) <= DATE(tasks.due_at) THEN tasks.id END) as on_time"),
+                DB::raw("COUNT(DISTINCT CASE WHEN tasks.completed_at IS NOT NULL AND tasks.due_at IS NOT NULL AND DATE(tasks.completed_at) > DATE(tasks.due_at) THEN tasks.id END) as completed_late"),
+                DB::raw("COUNT(DISTINCT CASE WHEN DATE(tasks.completed_at) = '{$today}' THEN tasks.id END) as completed_today"),
+                DB::raw("COUNT(DISTINCT CASE WHEN tasks.completed_at >= '{$startOfWeek}' THEN tasks.id END) as completed_this_week"),
+            ])
+            ->leftJoin('task_user', 'users.id', '=', 'task_user.user_id')
+            ->leftJoin('tasks', function ($join) use ($startDate) {
+                $join->on('task_user.task_id', '=', 'tasks.id')
+                    ->whereNull('tasks.deleted_at');
+                if ($startDate) {
+                    $join->where('tasks.created_at', '>=', $startDate);
+                }
+            })
+            ->whereNotNull('users.email_verified_at')
+            ->whereNull('users.deleted_at')
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar');
+
+        $results = $query->get();
 
         $report = [];
+        foreach ($results as $row) {
+            $totalTasks = (int) $row->total_tasks;
+            $completed = (int) $row->completed;
+            $onTime = (int) $row->on_time;
+            $completedLate = (int) $row->completed_late;
 
-        foreach ($users as $user) {
-            $userStats = $this->getUserStats($user, $startDate, $today);
-            $report[] = $userStats;
+            // Performance percentage
+            $performance = $totalTasks > 0 ? round(($completed / $totalTasks) * 100) : 0;
+
+            // On-time rate (of completed tasks with due dates)
+            $completedWithDueDate = $onTime + $completedLate;
+            $onTimeRate = $completedWithDueDate > 0 ? round(($onTime / $completedWithDueDate) * 100) : 100;
+
+            $report[] = [
+                'user_id' => $row->user_id,
+                'name' => $row->name,
+                'email' => $row->email,
+                'avatar' => $row->avatar,
+                'total_tasks' => $totalTasks,
+                'completed' => $completed,
+                'completed_today' => (int) $row->completed_today,
+                'completed_this_week' => (int) $row->completed_this_week,
+                'pending' => (int) $row->pending,
+                'overdue' => (int) $row->overdue,
+                'on_time' => $onTime,
+                'completed_late' => $completedLate,
+                'performance' => $performance,
+                'on_time_rate' => $onTimeRate,
+            ];
         }
 
         // Sort by performance descending
@@ -77,80 +129,5 @@ class PerformanceReportController
             'team_totals' => $teamTotals,
             'period' => $period,
         ]);
-    }
-
-    /**
-     * Get stats for a specific user.
-     */
-    private function getUserStats(User $user, ?Carbon $startDate, Carbon $today): array
-    {
-        $query = Task::whereHas('users', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        });
-
-        if ($startDate) {
-            $query->where('created_at', '>=', $startDate);
-        }
-
-        $totalTasks = (clone $query)->count();
-
-        $completed = (clone $query)->whereNotNull('completed_at')->count();
-
-        $pending = (clone $query)->whereNull('completed_at')->count();
-
-        $overdue = (clone $query)
-            ->whereNull('completed_at')
-            ->whereNotNull('due_at')
-            ->where('due_at', '<', $today)
-            ->count();
-
-        // Tasks completed on time (completed before or on due date)
-        $onTime = (clone $query)
-            ->whereNotNull('completed_at')
-            ->whereNotNull('due_at')
-            ->whereRaw('DATE(completed_at) <= DATE(due_at)')
-            ->count();
-
-        // Tasks completed late
-        $completedLate = (clone $query)
-            ->whereNotNull('completed_at')
-            ->whereNotNull('due_at')
-            ->whereRaw('DATE(completed_at) > DATE(due_at)')
-            ->count();
-
-        // Performance percentage
-        $performance = $totalTasks > 0 ? round(($completed / $totalTasks) * 100) : 0;
-
-        // On-time rate (of completed tasks with due dates)
-        $completedWithDueDate = $onTime + $completedLate;
-        $onTimeRate = $completedWithDueDate > 0 ? round(($onTime / $completedWithDueDate) * 100) : 100;
-
-        // Completed today
-        $completedToday = Task::whereHas('users', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })->whereDate('completed_at', $today)->count();
-
-        // Completed this week
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $completedThisWeek = Task::whereHas('users', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })->where('completed_at', '>=', $startOfWeek)->count();
-
-        return [
-            'user_id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'avatar' => $user->avatar,
-            'total_tasks' => $totalTasks,
-            'completed' => $completed,
-            'completed_today' => $completedToday,
-            'completed_this_week' => $completedThisWeek,
-            'pending' => $pending,
-            'overdue' => $overdue,
-            'on_time' => $onTime,
-            'completed_late' => $completedLate,
-            'performance' => $performance,
-            'on_time_rate' => $onTimeRate,
-        ];
     }
 }
