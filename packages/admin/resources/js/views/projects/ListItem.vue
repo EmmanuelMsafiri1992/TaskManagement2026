@@ -44,11 +44,21 @@
           v-show="task.due_at"
           class="flex items-center py-1 ltr:mr-2.5 rtl:ml-2.5"
         >
-          <CalendarIcon class="h-4 w-4 text-gray-400" />
+          <CalendarIcon
+            class="h-4 w-4"
+            :class="isOverdue ? 'text-red-500' : 'text-gray-400'"
+          />
           <span
-            class="text-xs text-gray-500 ltr:ml-1 rtl:mr-1"
+            class="text-xs ltr:ml-1 rtl:mr-1"
+            :class="isOverdue ? 'text-red-500 font-semibold' : 'text-gray-500'"
             v-text="task.human_due_date"
           ></span>
+          <span
+            v-if="isOverdue"
+            class="ml-1 text-[10px] font-bold text-red-600 uppercase"
+          >
+            overdue
+          </span>
         </div>
 
         <div
@@ -142,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import TaskModal from 'View/task/TaskModal.vue'
   import { useModalsStore } from 'spack'
   import { useTimerStore } from 'Store/timer'
@@ -159,6 +169,15 @@
   const props = defineProps<{
     task: any
   }>()
+
+  // Check if task is overdue (due date is in the past and not completed)
+  const isOverdue = computed(() => {
+    if (!props.task.due_at || props.task.completed_at) return false
+    const dueDate = new Date(props.task.due_at)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return dueDate < today
+  })
 
   // const processing = ref(false)
   const timer = useTimerStore()
