@@ -200,6 +200,7 @@ Route::patch('tasks/{task}/archive', TaskArchive::class);
 Route::patch('tasks/{task}/restore', TaskRestore::class);
 Route::patch('tasks/{task}/due-date', TaskDueDate::class);
 Route::post('tasks/{task}/recurring', TaskRecurring::class);
+Route::get('tasks-stats', \Admin\Http\Controllers\Api\TaskStatsController::class);
 Route::post('sub-tasks', [SubTasksController::class, 'store']);
 Route::patch('sub-tasks/{task}', [SubTasksController::class, 'update']);
 Route::delete('sub-tasks/{task}', [SubTasksController::class, 'destroy']);

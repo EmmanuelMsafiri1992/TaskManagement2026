@@ -15,6 +15,7 @@
           v-if="can('project:create') || can('user:create')"
           class="ltr:ml-6 rtl:mr-6"
         />
+        <TaskStats class="ltr:ml-8 rtl:mr-8" />
       </div>
       <div class="flex items-center ltr:ml-4 rtl:mr-4 ltr:md:ml-6 rtl:md:mr-6">
         <GeneratorDropdown />
@@ -37,8 +38,10 @@
   import RecentDropdown from './_RecentDropdown.vue'
   import ProfileDropdown from './ProfileDropdown.vue'
   import ContractCountdown from './ContractCountdown.vue'
+  import TaskStats from './TaskStats.vue'
   import { Bars3BottomLeftIcon } from '@heroicons/vue/24/outline'
   import { useStore } from 'Store/main'
+  import { can } from '@/helpers'
 
   const store = useStore()
 </script>
