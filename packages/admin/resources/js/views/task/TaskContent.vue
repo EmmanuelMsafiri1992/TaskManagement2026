@@ -85,19 +85,19 @@
       await navigator.clipboard.writeText(task.data.description)
       copied.value = true
 
-      // Mark task as complete
-      const { data } = await axios.patch(`tasks/${task.data.id}/complete`)
-      task.data.completed_at = data.completed_at
+      // Mark task as complete (don't await - let it run in background)
+      axios.patch(`tasks/${task.data.id}/complete`).then(({ data }) => {
+        task.data.completed_at = data.completed_at
+        // Refresh project in background after modal closes
+        if (task.data.project_id) {
+          projectDetail.fetch(task.data.project_id)
+        }
+      })
 
-      // Update project detail
-      if (task.data.project_id) {
-        projectDetail.fetch(task.data.project_id)
-      }
-
-      // Close modal after a short delay
+      // Close modal quickly
       setTimeout(() => {
         useModalsStore().pop()
-      }, 1500)
+      }, 800)
 
     } catch (error) {
       console.error('Failed to copy or complete task:', error)

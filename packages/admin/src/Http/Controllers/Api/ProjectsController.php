@@ -109,13 +109,21 @@ class ProjectsController extends AuthorizeController
             ['updated_at' => now()]
         );
 
-        return $project->append(['is_favorite'])->load(['users', 'lists' => function ($query) {
-            $query->orderBy('order')->with(['tasks' => function ($q) {
-                $q->whereNull('completed_at')
-                    ->leftJoin('job_shares', 'tasks.id', '=', 'job_shares.task_id')
-                    ->orderBy('job_shares.country_code')
-                    ->orderBy('tasks.order')
-                    ->select('tasks.*');
+        // Only apply country sorting for job sharing project (ID: 18)
+        $isJobSharingProject = $project->id == 18;
+
+        return $project->append(['is_favorite'])->load(['users', 'lists' => function ($query) use ($isJobSharingProject) {
+            $query->orderBy('order')->with(['tasks' => function ($q) use ($isJobSharingProject) {
+                $q->whereNull('completed_at');
+
+                if ($isJobSharingProject) {
+                    $q->leftJoin('job_shares', 'tasks.id', '=', 'job_shares.task_id')
+                        ->orderBy('job_shares.country_code')
+                        ->orderBy('tasks.order')
+                        ->select('tasks.*');
+                } else {
+                    $q->orderBy('order');
+                }
             }, 'tasks.users', 'tasks.comments', 'tasks.checklists.checklistItems', 'tasks.priority', 'tasks.labels']);
         }]);
     }
