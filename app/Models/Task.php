@@ -131,4 +131,12 @@ class Task extends Model
     {
         return $this->hasMany(TaskCompletion::class);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function jobShare()
+    {
+        return $this->hasOne(JobShare::class);
+    }
 }

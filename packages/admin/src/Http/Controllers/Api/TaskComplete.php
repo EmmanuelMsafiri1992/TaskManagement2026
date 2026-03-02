@@ -35,7 +35,7 @@ class TaskComplete
         // Add "completed" label and remove other status labels
         $this->syncLabelsForComplete($task);
 
-        return ['success' => true, 'completed_at' => 'true'];
+        return ['success' => true, 'completed_at' => $task->completed_at];
     }
 
     /**

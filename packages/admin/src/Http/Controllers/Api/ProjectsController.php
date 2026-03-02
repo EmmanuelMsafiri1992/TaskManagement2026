@@ -111,7 +111,11 @@ class ProjectsController extends AuthorizeController
 
         return $project->append(['is_favorite'])->load(['users', 'lists' => function ($query) {
             $query->orderBy('order')->with(['tasks' => function ($q) {
-                $q->whereNull('completed_at')->orderBy('order');
+                $q->whereNull('completed_at')
+                    ->leftJoin('job_shares', 'tasks.id', '=', 'job_shares.task_id')
+                    ->orderBy('job_shares.country_code')
+                    ->orderBy('tasks.order')
+                    ->select('tasks.*');
             }, 'tasks.users', 'tasks.comments', 'tasks.checklists.checklistItems', 'tasks.priority', 'tasks.labels']);
         }]);
     }
