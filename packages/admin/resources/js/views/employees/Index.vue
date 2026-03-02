@@ -521,7 +521,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { inject, onMounted, reactive, ref } from 'vue'
 import { ArchiveBoxIcon, ArchiveBoxXMarkIcon, BanknotesIcon, BriefcaseIcon, CalendarDaysIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, EyeIcon, MagnifyingGlassIcon, PencilIcon, UserIcon, UsersIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { axios } from 'spack/axios'
 import { useModalsStore } from 'spack'
@@ -536,6 +536,7 @@ import InvitationForm from '../users/InvitationForm.vue'
 import { useIndex } from '@/composables/useIndex'
 import { can } from '@/helpers'
 
+const __ = inject('__')
 const processing = ref(true)
 const statistics = ref(null)
 const selectedEmployee = ref(null)
